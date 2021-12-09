@@ -1,0 +1,14 @@
+-std=c++20
+-nostdlib
+-ffreestanding
+-fno-builtin
+-fno-exceptions
+-fno-rtti
+-O2
+-pedantic
+-Wall
+-Wextra
+-target
+i686-elf
+-I
+src

@@ -14,13 +14,16 @@
 
 static uint8_t gdt_raw[8][3];
 
+static struct {
+	uint16_t limit;
+	void* base;
+} PACKED gdt_reg;
+
 struct GDTEntry {
 	size_t base;
 	size_t limit;
 	uint8_t type;
 };
-
-extern "C" void set_gdt(void*, size_t);
 
 void gdt_initialize() {
 	GDTEntry table[3];
@@ -53,10 +56,11 @@ void gdt_initialize() {
 		raw[5] = entry.type;
 	}
 
-	set_gdt(gdt_raw, sizeof(gdt_raw));
-}
+	gdt_reg.limit = sizeof(gdt_raw) - 1;
+	gdt_reg.base = reinterpret_cast<void*>(gdt_raw);
 
-#define PACKED __attribute__((packed))
+	asm volatile("lgdt %0" : : "X"(gdt_reg));
+}
 
 struct IDTEntry {
 	uint16_t isr_low;   // The lower 16 bits of the ISR's address
@@ -72,7 +76,7 @@ static IDTEntry idt_table[IDT_ENTRIES];
 static struct {
 	uint16_t limit;
 	uint32_t base;
-} PACKED idt_reg; // the r stands for register
+} PACKED idt_reg;
 
 extern "C" void exception_handler() {
 	asm("cli\n"
@@ -91,6 +95,10 @@ void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
 
 extern void* isr_stub_table[];
 
+extern "C" void kb_handler() {
+	printf("hey?\n");
+}
+
 void idt_initialize() {
 	idt_reg.base = reinterpret_cast<uintptr_t>(&idt_table[0]);
 	idt_reg.limit = uint16_t(sizeof(IDTEntry) * IDT_ENTRIES - 1);
@@ -99,9 +107,16 @@ void idt_initialize() {
 		idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
 	}
 
+	idt_set_descriptor(0x20 + 0, reinterpret_cast<void*>(&kb_handler), 0x8E);
+	idt_set_descriptor(0x20 + 1, reinterpret_cast<void*>(&kb_handler), 0x8E);
+	idt_set_descriptor(0x20 + 2, reinterpret_cast<void*>(&kb_handler), 0x8E);
+	idt_set_descriptor(0x20 + 3, reinterpret_cast<void*>(&kb_handler), 0x8E);
+	idt_set_descriptor(0x20 + 4, reinterpret_cast<void*>(&kb_handler), 0x8E);
+	idt_set_descriptor(0x20 + 5, reinterpret_cast<void*>(&kb_handler), 0x8E);
+
 	asm volatile("lidt %0\n"
 	             "sti" : : "m"(idt_reg));
-	// sti enabled interrupts by setting the interrupt flag
+	// sti enables interrupts by setting the interrupt flag
 }
 
 #define PIC1_CMD 0x20
@@ -197,15 +212,44 @@ u16 pic_get_isr() {
 
 // TODO: Spurious irqs
 
+#define PORT 0x3f8 // COM1
+
+int serial_ininitialize() {
+	outb(PORT + 1, 0x00);    // Disable all interrupts
+	outb(PORT + 3, 0x80);    // Enable DLAB (set baud rate divisor)
+	outb(PORT + 0, 0x03);    // Set divisor to 3 (lo byte) 38400 baud
+	outb(PORT + 1, 0x00);    //                  (hi byte)
+	outb(PORT + 3, 0x03);    // 8 bits, no parity, one stop bit
+	outb(PORT + 2, 0xC7);    // Enable FIFO, clear them, with 14-byte threshold
+	outb(PORT + 4, 0x0B);    // IRQs enabled, RTS/DSR set
+	outb(PORT + 4, 0x1E);    // Set in loopback mode, test the serial chip
+	outb(PORT + 0, 0xAE);    // Test serial chip (send byte 0xAE and check if serial returns same byte)
+
+	// Check if serial is faulty (i.e: not same byte as sent)
+	if (inb(PORT + 0) != 0xAE) {
+		return 1;
+	}
+
+	// If serial is not faulty set it in normal operation mode
+	// (not-loopback with IRQs enabled and OUT#1 and OUT#2 bits enabled)
+	outb(PORT + 4, 0x0F);
+	return 0;
+}
+
+
 extern "C" void kernel_main() {
 	// Initialize terminal interface
 	terminal_initialize();
 
 	gdt_initialize();
 
+	pic_remap(0x20, 0x28);
+
 	idt_initialize();
 
-	pic_remap(0x20, 0x28);
+	if (serial_ininitialize()) {
+		printf("fucky wucky\n");
+	}
 
 	terminal_set_color(2);
  
@@ -213,7 +257,5 @@ extern "C" void kernel_main() {
 	printf("I am mat\n");
 	printf("I am mat 2");
 	printf("its me mat once again");
-
-	terminal_scroll_down();
 
 }

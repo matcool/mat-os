@@ -6,7 +6,6 @@ set -xe
 # clang -masm=intel -nostdlib -Wall -Wextra -target i686-elf boot.s -c
 # clang -masm=intel -nostdlib -Wall -Wextra -target i686-elf gdt.s -c
 nasm -w+orphan-labels -f elf32 src/kernel/boot.asm -o build/boot.o
-nasm -w+orphan-labels -f elf32 src/kernel/gdt.asm -o build/gdt.o
 nasm -w+orphan-labels -f elf32 src/kernel/exception-table.asm -o build/exception-table.o
 
 cd build
@@ -26,7 +25,6 @@ clang -T linker.ld -o build/myos.bin -ffreestanding -O2 -nostdlib \
   build/common.o \
   build/terminal.o \
   build/stdio.o \
-  build/gdt.o \
   build/exception-table.o \
   -target i686-elf
 
