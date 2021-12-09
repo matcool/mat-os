@@ -104,6 +104,99 @@ void idt_initialize() {
 	// sti enabled interrupts by setting the interrupt flag
 }
 
+#define PIC1_CMD 0x20
+#define PIC1_DAT 0x21
+#define PIC2_CMD 0xA0
+#define PIC2_DAT 0xA1
+
+#define ICW1_ICW4 0x01
+#define ICW1_SINGLE 0x02
+#define ICW1_INTERVAL4 0x04
+#define ICW1_LEVEL 0x08
+#define ICW1_INIT 0x10
+
+#define ICW4_8086 0x01
+#define ICW4_AUTO 0x02
+#define ICW4_BUF_SLAVE 0x08
+#define ICW4_BUF_MASTER 0x0C
+#define ICW4_SFNM 0x10
+
+#define PIC_READ_IRR 0xA
+#define PIC_READ_ISR 0xB
+
+void pic_eoi(u8 irq) {
+	if (irq >= 8)
+		outb(PIC2_CMD, 0x20);
+	outb(PIC1_CMD, 0x20);
+}
+
+void pic_remap(u8 pic1_offset, u8 pic2_offset) {
+	auto mask1 = inb(PIC1_DAT);
+	auto mask2 = inb(PIC2_DAT);
+
+	outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
+	io_wait();
+	outb(PIC2_CMD, ICW1_INIT | ICW1_ICW4);
+	io_wait();
+	outb(PIC1_DAT, pic1_offset);
+	io_wait();
+	outb(PIC2_DAT, pic2_offset);
+	io_wait();
+	outb(PIC1_DAT, 4);
+	io_wait();
+	outb(PIC2_DAT, 2);
+	io_wait();
+ 
+	outb(PIC1_DAT, ICW4_8086);
+	io_wait();
+	outb(PIC2_DAT, ICW4_8086);
+	io_wait();
+ 
+	outb(PIC1_DAT, mask1);
+	outb(PIC2_DAT, mask2);
+}
+
+void pic_set_mask(u8 irq) {
+	u16 port;
+
+	if (irq < 8) {
+		port = PIC1_DAT;
+	} else {
+		port = PIC2_DAT;
+		irq -= 8;
+	}
+	outb(port, inb(port) | (1 << irq));
+}
+
+void pic_clear_mask(u8 irq) {
+	u16 port;
+
+	// TODO: not copy paste this mayb
+	if (irq < 8) {
+		port = PIC1_DAT;
+	} else {
+		port = PIC2_DAT;
+		irq -= 8;
+	}
+	outb(port, inb(port) & ~(1 << irq));
+}
+
+u16 _pic_get_irq_reg(u8 value) {
+	outb(PIC1_CMD, value);
+	outb(PIC2_CMD, value);
+	return (inb(PIC2_CMD) << 8) | inb(PIC1_CMD);
+}
+
+u16 pic_get_irr() {
+	return _pic_get_irq_reg(PIC_READ_IRR);
+}
+
+u16 pic_get_isr() {
+	return _pic_get_irq_reg(PIC_READ_ISR);
+}
+
+// TODO: Spurious irqs
+
 extern "C" void kernel_main() {
 	// Initialize terminal interface
 	terminal_initialize();
@@ -111,6 +204,8 @@ extern "C" void kernel_main() {
 	gdt_initialize();
 
 	idt_initialize();
+
+	pic_remap(0x20, 0x28);
 
 	terminal_set_color(2);
  
