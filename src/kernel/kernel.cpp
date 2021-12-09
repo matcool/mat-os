@@ -1,16 +1,17 @@
 #include "kernel.h"
+#include "../common.hpp"
 
-/* Check if the compiler thinks you are targeting the wrong operating system. */
+// Check if the compiler thinks you are targeting the wrong operating system.
 #if defined(__linux__)
 #error "You are not using a cross-compiler, you will most certainly run into trouble"
 #endif
  
-/* This tutorial will only work for the 32-bit ix86 targets. */
+// This tutorial will only work for the 32-bit ix86 targets.
 #if !defined(__i386__)
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
  
-/* Hardware text mode color constants. */
+// Hardware text mode color constants.
 enum vga_color {
 	VGA_COLOR_BLACK = 0,
 	VGA_COLOR_BLUE = 1,
@@ -158,11 +159,62 @@ void gdt_initialize() {
 	set_gdt(gdt_raw, sizeof(gdt_raw));
 }
 
+#define PACKED __attribute__((packed))
+
+struct IDTEntry {
+	uint16_t isr_low;   // The lower 16 bits of the ISR's address
+	uint16_t kernel_cs; // The GDT segment selector that the CPU will load into CS before calling the ISR
+	uint8_t reserved;   // Set to zero
+	uint8_t attributes; // Type and attributes; see the IDT page
+	uint16_t isr_high;  // The higher 16 bits of the ISR's address
+} PACKED;
+
+constexpr const auto IDT_ENTRIES = 256;
+static IDTEntry idt_table[IDT_ENTRIES];
+
+static struct {
+	uint16_t limit;
+	uint32_t base;
+} PACKED idt_reg; // the r stands for register
+
+__attribute__((noreturn))
+extern "C" void exception_handler() {
+	asm("cli\n"
+	    "hlt":);
+}
+
+void idt_set_descriptor(uint8_t vector, void* isr, uint8_t flags) {
+	auto& descriptor = idt_table[vector];
+
+	descriptor.isr_low    = reinterpret_cast<uint32_t>(isr) & 0xFFFF;
+	descriptor.kernel_cs  = 0x08; // this value can be whatever offset your kernel code selector is in your GDT
+	descriptor.attributes = flags;
+	descriptor.isr_high   = reinterpret_cast<uint32_t>(isr) >> 16;
+	descriptor.reserved   = 0;
+}
+
+extern void* isr_stub_table[];
+
+void idt_initialize() {
+	idt_reg.base = reinterpret_cast<uintptr_t>(&idt_table[0]);
+	idt_reg.limit = uint16_t(sizeof(IDTEntry) * IDT_ENTRIES - 1);
+
+	for (u8 vector = 0; vector < 32; ++vector) {
+		idt_set_descriptor(vector, isr_stub_table[vector], 0x8E);
+	}
+
+	asm volatile("lidt %0\n"
+	             "sti" : : "m"(idt_reg));
+	// sti enabled interrupts by setting the interrupt flag
+}
+
 extern "C" void kernel_main() {
-	/* Initialize terminal interface */
+	// Initialize terminal interface
 	terminal_initialize();
 
 	gdt_initialize();
+
+	idt_initialize();
 
 	terminal_set_color(2);
  
