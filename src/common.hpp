@@ -1,4 +1,5 @@
 #pragma once
+#include <stddef.h>
 #include <stdint.h>
 
 using u8 = uint8_t;
@@ -11,3 +12,9 @@ using u64 = uint64_t;
 using i64 = int64_t;
 
 using uptr = uintptr_t;
+
+// mat lib c
+
+size_t strlen(const char* str);
+
+void* memcpy(void* dst, const void* src, size_t len);
