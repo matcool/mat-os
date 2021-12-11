@@ -19,7 +19,7 @@
 __attribute__((interrupt))
 void keyboard_interrupt(InterruptFrame*) {
 	auto scancode = inb(0x60);
-	serial_put_char(scancode);
+	terminal_put_char(scancode);
 	pic_eoi(1);
 }
 
@@ -48,7 +48,6 @@ extern "C" void kernel_main() {
 
 	asm volatile("int3" :);
 	serial_put_string("after int 3\n");
-
 
 	asm volatile("int3" :);
 	serial_put_string("another int 3\n");
