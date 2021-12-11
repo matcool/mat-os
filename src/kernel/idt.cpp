@@ -69,7 +69,6 @@ void idt_init() {
 	// TODO: change this when paging is implemented
 	idt_register.addr = reinterpret_cast<uptr>(idt_table);
 
-	serial_put_string("going to load idt\n");
 
 	asm volatile("lidt %0" : : "m"(idt_register));
 

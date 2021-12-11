@@ -26,19 +26,24 @@ void serial_put_string(const char* str) {
 }
 
 void serial_put_number(i32 n) {
+	char buffer[11] = {};
+	size_t i = 11;
+	const bool neg = n < 0;
 	while (n) {
-		serial_put_char('0' + (n % 10));
+		buffer[--i] = '0' + (n % 10);
 		n /= 10;
 	}
+	if (neg) buffer[--i] = '-';
+	while (i < 11)
+		serial_put_char(buffer[i++]);
 }
+
 void serial_put_hex(u32 n) {
-	char buffer[10];
-	memset(buffer, 0, sizeof(buffer));
+	char buffer[10] = {};
 	size_t i = 10;
 	while (n) {
 		u8 c = n & 0xF;
 		c += c > 9 ? 'A' : '0';
-		// serial_put_char(c);
 		buffer[--i] = c;
 		n >>= 4;
 	}
