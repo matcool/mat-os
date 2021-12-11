@@ -16,6 +16,13 @@
 #error "This tutorial needs to be compiled with a ix86-elf compiler"
 #endif
 
+__attribute__((interrupt))
+void keyboard_interrupt(InterruptFrame*) {
+	auto scancode = inb(0x60);
+	serial_put_char(scancode);
+	pic_eoi(1);
+}
+
 extern "C" void kernel_main() {
 	terminal_init();
 
@@ -24,6 +31,8 @@ extern "C" void kernel_main() {
 	gdt_init();
 
 	pic_init();
+
+	idt_get_table()[0x21] = IDTEntry(&keyboard_interrupt, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
 
 	idt_init();
 
@@ -40,4 +49,7 @@ extern "C" void kernel_main() {
 	asm volatile("int3" :);
 	serial_put_string("after int 3\n");
 
+
+	asm volatile("int3" :);
+	serial_put_string("another int 3\n");
 }

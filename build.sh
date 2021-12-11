@@ -6,7 +6,6 @@ set -xe
 # clang -masm=intel -nostdlib -Wall -Wextra -target i686-elf boot.s -c
 # clang -masm=intel -nostdlib -Wall -Wextra -target i686-elf gdt.s -c
 nasm -w+orphan-labels -f elf32 src/kernel/boot.asm -o build/boot.o
-# nasm -w+orphan-labels -f elf32 src/kernel/exception-table.asm -o build/exception-table.o
 
 cd build
 clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -O2 -pedantic -Wall -Wextra \

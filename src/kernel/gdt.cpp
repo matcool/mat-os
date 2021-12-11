@@ -7,7 +7,6 @@ static struct {
 } PACKED gdt_register;
 
 // FIXME: maybe rename to segment?
-// this is so dumb
 struct GDTEntry {
 	u16 limit_lower;
 	u16 base_lower;

@@ -25,7 +25,5 @@ void pic_eoi(u8 irq);
 void pic_set_mask(u8 irq);
 void pic_clear_mask(u8 irq);
 void pic_remap(u8 offset);
-u16 pic_get_irr();
-u16 pic_get_isr();
 
 void pic_init();

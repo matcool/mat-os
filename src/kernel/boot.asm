@@ -34,8 +34,6 @@ _start:
 
 	call kernel_main
 
-	cli
-
 loop:
 	hlt
 	jmp loop
