@@ -9,7 +9,7 @@
 %define MAGIC 0x1BADB002
 ; checksum of above, to prove we are multiboot
 %define CHECKSUM -(MAGIC + FLAGS)
- 
+
 
 section .multiboot
 align 4
@@ -21,7 +21,7 @@ section .bss
 align 16
 stack_bottom:
 ; 16 KiB
-times 16384	resb 0 
+times 16384	resb 0
 stack_top:
 
 extern kernel_main
@@ -35,8 +35,14 @@ _start:
 	call kernel_main
 
 	cli
+
 loop:
 	hlt
 	jmp loop
 
-; .size _start, . - _start
+
+global load_idt
+load_idt:
+	mov eax, [esp + 4]
+	lidt [eax]
+	ret

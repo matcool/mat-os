@@ -16,17 +16,17 @@ using i64 = int64_t;
 using uptr = uintptr_t;
 
 inline void outb(u16 port, u8 value) {
-    asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
+	asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
 }
 
 inline u8 inb(u16 port) {
-    u8 ret;
-    asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
-    return ret;
+	u8 ret;
+	asm volatile("inb %1, %0" : "=a"(ret) : "Nd"(port));
+	return ret;
 }
 
 inline void io_wait() {
-    outb(0x80, 0);
+	outb(0x80, 0);
 }
 
 // mat lib c
@@ -34,3 +34,4 @@ inline void io_wait() {
 size_t strlen(const char* str);
 
 void* memcpy(void* dst, const void* src, size_t len);
+void memset(void* dst, u8 val, size_t len);

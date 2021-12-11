@@ -11,10 +11,16 @@ size_t strlen(const char* str) {
 
 void* memcpy(void* dst, const void* src, size_t len) {
 	// TODO: optimize this
-	auto d = (uint8_t*)dst;
-	auto s = (const uint8_t*)src;
+	auto d = (u8*)dst;
+	auto s = (const u8*)src;
 	while (len--) {
 		*d++ = *s++;
 	}
 	return dst;
+}
+
+void memset(void* dst, u8 value, size_t len) {
+	auto d = reinterpret_cast<u8*>(dst);
+	while (len--)
+		*d++ = value;
 }
