@@ -86,8 +86,10 @@ namespace {
 			// god i hate at&t syntax
 			// TODO: actually support error codes, rn they just break everything
 			asm volatile(R"(
+				add $4, %%esp
 				pushal
 				mov %%esp, %%eax
+				push $0
 				push %%eax
 				call %P0
 				pop %%eax

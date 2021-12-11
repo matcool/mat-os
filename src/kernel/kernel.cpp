@@ -17,8 +17,7 @@
 #endif
 
 INTERRUPT
-void keyboard_interrupt(InterruptFrame* frame) {
-	serial_put_hex(frame->eip); serial_put_char('\n');
+void keyboard_interrupt(InterruptFrame*) {
 	auto scancode = inb(0x60);
 	terminal_put_char(scancode);
 	pic_eoi(1);
@@ -33,7 +32,7 @@ extern "C" void kernel_main() {
 
 	pic_init();
 
-	idt_get_table()[0x21] = IDTEntry(isr_wrapper<&keyboard_interrupt>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+	idt_get_table()[0x20 + 1] = IDTEntry(isr_wrapper<&keyboard_interrupt>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
 
 	idt_init();
 
