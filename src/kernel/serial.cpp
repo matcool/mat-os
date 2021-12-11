@@ -43,7 +43,7 @@ void serial_put_hex(u32 n) {
 	size_t i = 10;
 	do {
 		u8 c = n & 0xF;
-		c += c > 9 ? 'A' : '0';
+		c += c > 9 ? 'A' - 10 : '0';
 		buffer[--i] = c;
 		n >>= 4;
 	} while (n);

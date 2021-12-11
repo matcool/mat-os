@@ -36,7 +36,72 @@ constexpr auto IDT_GATE_TRAP      = 0b1111;
 constexpr auto IDT_GATE_TASK      = 0b0101;
 
 struct InterruptFrame {
-
+	u32 edi;
+	u32 esi;
+	u32 ebp;
+	u32 esp;
+	u32 ebx;
+	u32 edx;
+	u32 ecx;
+	u32 eax;
+	u32 eip;
+	u16 cs;
+	u32 eflags;
 };
+
+
+namespace {
+	using isr_wrapper_t = void(__cdecl*)(InterruptFrame*);
+	using isr_wrapper_exception_t = void(__cdecl*)(InterruptFrame*, u32);
+
+	template <auto>
+	static constexpr bool __false = false;
+
+	template <auto func>
+	struct __isr_wrapper {
+		static_assert(__false<func>, "Improper function passed to isr_wrapper");
+	};
+
+	template <isr_wrapper_t func>
+	struct __isr_wrapper<func> {
+		__attribute__((naked))
+		static void wrapper() {
+			// god i hate at&t syntax
+			asm volatile(R"(
+				pushal
+				mov %%esp, %%eax
+				push %%eax
+				call %P0
+				pop %%eax
+				popal
+				iret
+			)" : : "i"(func));
+		}
+	};
+
+	template <isr_wrapper_exception_t func>
+	struct __isr_wrapper<func> {
+		__attribute__((naked))
+		static void wrapper() {
+			// god i hate at&t syntax
+			// TODO: actually support error codes, rn they just break everything
+			asm volatile(R"(
+				pushal
+				mov %%esp, %%eax
+				push %%eax
+				call %P0
+				pop %%eax
+				popal
+				iret
+			)" : : "i"(func));
+		}
+	};
+}
+
+template <auto func>
+static constexpr auto isr_wrapper = &__isr_wrapper<func>::wrapper;
+
+#define INTERRUPT __attribute__((cdecl))
+
 
 void idt_init();
