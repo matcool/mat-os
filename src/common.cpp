@@ -113,3 +113,11 @@ void* malloc(size_t size) {
 void free(void* addr) {
 	alloc::remove_chunk(reinterpret_cast<uptr>(addr) - reinterpret_cast<uptr>(&alloc::memory));
 }
+
+void* operator new(size_t size) {
+	return malloc(size);
+}
+
+void operator delete(void* ptr) {
+	free(ptr);
+}

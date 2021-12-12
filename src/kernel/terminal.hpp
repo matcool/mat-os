@@ -1,5 +1,7 @@
 #pragma once
 #include "common.hpp"
+#include <lib/string.hpp>
+#include <lib/format.hpp>
 
 // Hardware text mode color constants.
 enum vga_color {
@@ -30,3 +32,8 @@ void terminal_put_entry_at(char c, uint8_t color, size_t x, size_t y);
 void terminal_put_char(char);
 void terminal_write(const char* data, size_t len);
 void terminal_write_string(const char* string);
+
+template <class... Args>
+void terminal(const StringView& string, Args... args) {
+	format_to([](char c) { terminal_put_char(c); }, string, args...);
+}

@@ -10,6 +10,8 @@ public:
 
 	inline size_t size() const { return m_size; }
 	inline const char* data() const { return m_data; }
+
+	inline char at(const size_t i) const { return m_data[i]; }
 };
 
 inline StringView operator "" _sv(const char* data, size_t len) {

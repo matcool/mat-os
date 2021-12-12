@@ -31,7 +31,7 @@ extern "C" void kernel_main() {
 	printf("Hello, kernel World!\n");
 	printf("I am mat\n");
 	printf("I am mat 2");
-	printf("its me mat once again");
+	printf("its me mat once again\n");
 
 
 	asm volatile("int3" :);
@@ -40,17 +40,23 @@ extern "C" void kernel_main() {
 	asm volatile("int3" :);
 	serial_put_string("another int 3\n");
 
-	char* a = (char*)malloc(8);
-	if (a != nullptr) {
-		a[0] = 'H';
-		a[1] = 'e';
-		a[2] = 'l';
-		a[3] = 'l';
-		a[4] = 'o';
+	char* data = (char*)malloc(8);
+	if (data != nullptr) {
+		data[0] = 'H';
+		data[1] = 'e';
+		data[2] = 'l';
+		data[3] = 'l';
+		data[4] = 'o';
+		data[5] = '\n';
+		data[6] = 0;
 
-		free(a);
+		terminal_write_string(data);
+
+		free(data);
 	} else {
 		serial_put_string("malloc failed\n");
 	}
 
+	terminal("hello {} there! {} + {} = {}\n"_sv, 23, 1, 2, 3);
+	terminal("this shouldnt get formatted {{}}, but this should {}\n"_sv, 42);
 }
