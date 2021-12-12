@@ -36,26 +36,29 @@ void format_to(FuncPtr<void, char> write, const StringView& string, Args... args
 	size_t format_index = 0;
 	for (size_t i = 0; i < string.size(); ++i) {
 		const char c = string.at(i);
-		if (c == '{' && i != string.size() - 1) {
+		if (i != string.size() - 1) {
 			const auto next = string.at(i + 1);
-			if (next == '{') {
-				write('{');
-				// im going to assume the next two are }
-				// if they arent then blame the user (me)
-				write('}');
-				i += 3;
-			} else if (next == '}') {
-				++i;
-				if (format_index < sizeof...(Args)) {
-					partials[format_index++]();
+			if (c == '{') {
+				if (next == '{') {
+					write('{');
+					++i;
+				} else if (next == '}') {
+					++i;
+					if (format_index < sizeof...(Args)) {
+						partials[format_index++]();
+					} else {
+						// ?? error
+					}
 				} else {
-					// ?? error
+					// ?? unimplemented format options
 				}
-			} else {
-				// ?? unimplemented format options
+				continue;
+			} else if (c == '}' && next == '}') {
+				write('}');
+				++i;
+				continue;
 			}
-		} else {
-			write(c);
 		}
+		write(c);
 	}
 }

@@ -1,4 +1,5 @@
 #pragma once
+#include "kernel/serial.hpp"
 #include "stl.hpp"
 #include "template-utils.hpp"
 
@@ -35,17 +36,36 @@ class Function;
 
 template <class R, class... Args>
 class Function<R(Args...)> {
-	CallableBase<R(Args...)>* m_callable = nullptr;
+	union {
+		u8 m_inline_data[24];
+		CallableBase<R(Args...)>* m_callable;
+	};
+	bool m_inline;
 public:
 	template <class T>
-	Function(T&& lambda) : m_callable(new Callable<T, R(Args...)>(lambda)) {
+	Function(T&& value) {
+		using C = Callable<T, R(Args...)>;
+		if (sizeof(C) > 24) {
+			m_inline = false;
+			m_callable = new C(value);
+		} else {
+			m_inline = true;
+			new (reinterpret_cast<void*>(m_inline_data)) C(value);
+		}
 	}
 
 	~Function() {
-		delete m_callable;
+		if (m_inline) {
+			using C = CallableBase<R(Args...)>;
+			reinterpret_cast<C*>(m_inline_data)->~C();
+		} else
+			delete m_callable;
 	}
 
 	R operator()(Args... args) {
-		m_callable->call(args...);
+		if (m_inline)
+			return reinterpret_cast<CallableBase<R(Args...)>*>(m_inline_data)->call(args...);
+		else
+			return m_callable->call(args...);
 	}
 };

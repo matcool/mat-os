@@ -28,22 +28,22 @@ void memset(void* dst, u8 value, size_t len) {
 }
 
 namespace alloc {
-	// 16mb
 	constexpr auto MEM_SIZE = 16000000;
 	constexpr auto CHUNKS = 1024;
-	static u8 memory[MEM_SIZE];
+	// Lol, lets hope nothing is at that addr
+	const void* memory = reinterpret_cast<void*>(0x04000000);
 	struct MemChunk {
 		uptr offset;
 		size_t size;
 		bool used;
 	};
-	static MemChunk chunks[CHUNKS] = { { .offset = 0, .size = MEM_SIZE, .used = false } };
+	static MemChunk chunks[CHUNKS] = { { .offset = 0, .size = MEM_SIZE, .used = false }, {} };
 	static size_t chunks_size = 1;
 
 	// TODO: optimization
 
 	void dump_info() {
-		serial_put_hex(reinterpret_cast<uptr>(&memory)); serial_put_char('\n');
+		serial_put_hex(reinterpret_cast<uptr>(memory)); serial_put_char('\n');
 		size_t total = 0, available = 0;
 		for (size_t i = 0; i < chunks_size; ++i) {
 			if (chunks[i].used)
@@ -106,16 +106,20 @@ namespace alloc {
 void* malloc(size_t size) {
 	const auto addr = alloc::add_chunk(size);
 	if (addr != alloc::INVALID)
-		return reinterpret_cast<void*>(reinterpret_cast<uptr>(&alloc::memory) + addr);
+		return reinterpret_cast<void*>(reinterpret_cast<uptr>(alloc::memory) + addr);
 	return nullptr;
 }
 
 void free(void* addr) {
-	alloc::remove_chunk(reinterpret_cast<uptr>(addr) - reinterpret_cast<uptr>(&alloc::memory));
+	alloc::remove_chunk(reinterpret_cast<uptr>(addr) - reinterpret_cast<uptr>(alloc::memory));
 }
 
 void* operator new(size_t size) {
 	return malloc(size);
+}
+
+void* operator new(size_t, void* ptr) {
+	return ptr;
 }
 
 void operator delete(void* ptr) {

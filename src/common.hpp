@@ -40,3 +40,5 @@ void memset(void* dst, u8 val, size_t len);
 
 void* malloc(size_t size);
 void free(void* addr);
+
+void* operator new(size_t, void* ptr);

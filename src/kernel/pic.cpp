@@ -7,8 +7,8 @@ void pic_eoi(u8 irq) {
 }
 
 void pic_remap(u8 offset) {
-	auto mask1 = inb(PIC1_DAT);
-	auto mask2 = inb(PIC2_DAT);
+	// auto mask1 = inb(PIC1_DAT);
+	// auto mask2 = inb(PIC2_DAT);
 
 	outb(PIC1_CMD, ICW1_INIT | ICW1_ICW4);
 	io_wait();
@@ -30,8 +30,8 @@ void pic_remap(u8 offset) {
 	outb(PIC2_DAT, ICW4_8086);
 	io_wait();
 
-	outb(PIC1_DAT, mask1);
-	outb(PIC2_DAT, mask2);
+	// outb(PIC1_DAT, mask1);
+	// outb(PIC2_DAT, mask2);
 }
 
 void pic_set_mask(u8 irq) {
@@ -63,7 +63,10 @@ void pic_clear_mask(u8 irq) {
 
 void pic_init() {
 	pic_remap(0x20);
-	for (u8 i = 0; i < 16; ++i)
-		pic_set_mask(i);
+
+	// set mask for all irqs
+	outb(PIC1_DAT, 0xFF);
+	outb(PIC2_DAT, 0xFF);
+
 	pic_clear_mask(1);
 }
