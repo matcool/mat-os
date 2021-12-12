@@ -8,15 +8,18 @@ template <class T>
 class Vector : public Iterable<Vector<T>> {
 	size_t m_size, m_capacity;
 	T* m_data;
+
+	void destroy(size_t i) {
+		if constexpr (is_destructible<T>)
+			m_data[i].~T();
+	}
 public:
-	Vector() : m_size(0), m_capacity(3), m_data(reinterpret_cast<T*>(operator new(sizeof(T) * m_capacity))) {}
+	Vector(size_t capacity = 3) : m_size(0), m_capacity(capacity),
+		m_data(capacity ? reinterpret_cast<T*>(operator new(sizeof(T) * m_capacity)) : nullptr) {}
 
 	~Vector() {
-		if constexpr (is_destructible<T>) {
-			for (size_t i = 0; i < m_size; ++i) {
-				m_data[i].~T();
-			}
-		}
+		for (size_t i = 0; i < m_size; ++i)
+			destroy(i);
 		// note its not delete[]
 		delete m_data;
 	}
@@ -46,5 +49,11 @@ public:
 		if (m_size >= m_capacity)
 			reserve(m_capacity + 6);
 		new (&m_data[m_size++]) T(value);
+	}
+
+	void clear() {
+		for (size_t i = 0; i < m_size; ++i)
+			destroy(i);
+		m_size = 0;
 	}
 };

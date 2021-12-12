@@ -4,7 +4,7 @@
 template <class T>
 struct Iterator {
 	size_t m_index;
-	const T* m_container;
+	T* m_container;
 
 	Iterator& operator++() {
 		++m_index;
@@ -15,7 +15,7 @@ struct Iterator {
 		return m_index != other.m_index;
 	}
 
-	auto& operator*() {
+	decltype(auto) operator*() const {
 		return (*m_container)[m_index];
 	}
 };
@@ -27,9 +27,10 @@ struct Iterable {
 	auto begin() { return Iterator<T> { 0, derived() }; }
 	auto end() { return Iterator<T> { derived()->size(), derived() }; }
 
-	auto begin() const { return Iterator<T> { 0, derived() }; }
-	auto end() const { return Iterator<T> { derived()->size(), derived() }; }
+	auto begin() const { return Iterator<const T> { 0, derived() }; }
+	auto end() const { return Iterator<const T> { derived()->size(), derived() }; }
 
 private:
-	inline const T* derived() const { return static_cast<const T*>(this); }
+	constexpr T* derived() { return static_cast<T*>(this); }
+	constexpr const T* derived() const { return static_cast<const T*>(this); }
 };

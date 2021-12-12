@@ -43,7 +43,6 @@ namespace alloc {
 	// TODO: optimization
 
 	void dump_info() {
-		serial_put_hex(reinterpret_cast<uptr>(memory)); serial_put_char('\n');
 		size_t total = 0, available = 0;
 		for (size_t i = 0; i < chunks_size; ++i) {
 			if (chunks[i].used)
