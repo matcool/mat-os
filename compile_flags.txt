@@ -12,3 +12,5 @@
 i686-elf
 -I
 src
+-I
+src/lib

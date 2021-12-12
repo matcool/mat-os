@@ -5,23 +5,13 @@
 #include "idt.hpp"
 #include "pic.hpp"
 #include "gdt.hpp"
+#include "keyboard.hpp"
+#include "string.hpp"
 
-// Check if the compiler thinks you are targeting the wrong operating system.
-#if defined(__linux__)
-#error "You are not using a cross-compiler, you will most certainly run into trouble"
+#if defined(__linux__) || !defined(__i386__)
+	#error "Compilation options are incorrect"
 #endif
 
-// This tutorial will only work for the 32-bit ix86 targets.
-#if !defined(__i386__)
-#error "This tutorial needs to be compiled with a ix86-elf compiler"
-#endif
-
-INTERRUPT
-void keyboard_interrupt(InterruptFrame*) {
-	auto scancode = inb(0x60);
-	terminal_put_char(scancode);
-	pic_eoi(1);
-}
 
 extern "C" void kernel_main() {
 	terminal_init();
@@ -32,13 +22,11 @@ extern "C" void kernel_main() {
 
 	pic_init();
 
-	idt_get_table()[0x20 + 1] = IDTEntry(isr_wrapper<&keyboard_interrupt>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+	keyboard_init();
 
 	idt_init();
 
 	serial_put_string("hello\n");
-
-	terminal_set_color(2);
 
 	printf("Hello, kernel World!\n");
 	printf("I am mat\n");
@@ -51,4 +39,18 @@ extern "C" void kernel_main() {
 
 	asm volatile("int3" :);
 	serial_put_string("another int 3\n");
+
+	char* a = (char*)malloc(8);
+	if (a != nullptr) {
+		a[0] = 'H';
+		a[1] = 'e';
+		a[2] = 'l';
+		a[3] = 'l';
+		a[4] = 'o';
+
+		free(a);
+	} else {
+		serial_put_string("malloc failed\n");
+	}
+
 }

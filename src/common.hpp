@@ -4,6 +4,8 @@
 
 #define PACKED __attribute__((packed))
 
+// TODO: maybe split these types into another file
+
 using u8 = uint8_t;
 using i8 = int8_t;
 using u16 = uint16_t;
@@ -35,3 +37,6 @@ size_t strlen(const char* str);
 
 void* memcpy(void* dst, const void* src, size_t len);
 void memset(void* dst, u8 val, size_t len);
+
+void* malloc(size_t size);
+void free(void* addr);

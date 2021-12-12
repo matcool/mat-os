@@ -12,6 +12,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   -Wall -Wextra -Wno-unused-const-variable \
   -target i686-elf \
   -I../src \
+  -I../src/lib \
   ../src/common.cpp \
   ../src/kernel/kernel.cpp \
   ../src/kernel/terminal.cpp \
@@ -20,6 +21,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   ../src/kernel/gdt.cpp \
   ../src/kernel/idt.cpp \
   ../src/kernel/serial.cpp \
+  ../src/kernel/keyboard.cpp \
   -c
 cd ..
 
@@ -33,6 +35,7 @@ clang -T linker.ld -g -o build/myos.bin -ffreestanding -O2 -nostdlib \
   build/gdt.o \
   build/idt.o \
   build/serial.o \
+  build/keyboard.o \
   -target i686-elf
 
 if grub-file --is-x86-multiboot build/myos.bin; then
