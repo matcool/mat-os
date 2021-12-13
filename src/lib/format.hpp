@@ -67,6 +67,13 @@ struct Formatter<T> {
 	}
 };
 
+template <>
+struct Formatter<bool> {
+	static void format(FuncPtr<void, char> write, bool value, const StringView&) {
+		Formatter<StringView>::format(write, value ? "true"_sv : "false"_sv, ""_sv);
+	}
+};
+
 template <class... Args>
 void format_to(FuncPtr<void, char> write, const StringView& string, Args... args) {
 	Function<void(const StringView&)> partials[sizeof...(Args)] =

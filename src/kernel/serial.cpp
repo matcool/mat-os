@@ -26,29 +26,9 @@ void serial_put_string(const char* str) {
 }
 
 void serial_put_number(i32 n) {
-	char buffer[11] = {};
-	size_t i = 11;
-	const bool neg = n < 0;
-	do {
-		buffer[--i] = '0' + (n % 10);
-		n /= 10;
-	} while (n);
-	if (neg) buffer[--i] = '-';
-	while (i < 11)
-		serial_put_char(buffer[i++]);
+	Formatter<i32>::format(serial_put_char, n, ""_sv);
 }
 
 void serial_put_hex(u32 n) {
-	char buffer[10] = {};
-	size_t i = 10;
-	do {
-		u8 c = n & 0xF;
-		c += c > 9 ? 'A' - 10 : '0';
-		buffer[--i] = c;
-		n >>= 4;
-	} while (n);
-	buffer[--i] = 'x';
-	buffer[--i] = '0';
-	while (i < 10)
-		serial_put_char(buffer[i++]);
+	Formatter<u32>::format(serial_put_char, n, "x"_sv);
 }

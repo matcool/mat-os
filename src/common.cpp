@@ -28,7 +28,7 @@ void memset(void* dst, u8 value, size_t len) {
 }
 
 namespace alloc {
-	constexpr auto MEM_SIZE = 16000000;
+	constexpr auto MEM_SIZE = 0xF40000;
 	constexpr auto CHUNKS = 1024;
 	// Lol, lets hope nothing is at that addr
 	const void* memory = reinterpret_cast<void*>(0x04000000);
@@ -45,20 +45,45 @@ namespace alloc {
 	void dump_info() {
 		size_t total = 0, available = 0;
 		for (size_t i = 0; i < chunks_size; ++i) {
+			const auto& chunk = chunks[i];
 			if (chunks[i].used)
-				total += chunks[i].size;
+				total += chunk.size;
 			else
-				available += chunks[i].size;
+				available += chunk.size;
+			serial("Chunk:\n  - offset: {}\n  - size: {}\n  - used: {}\n", chunk.offset, chunk.size, chunk.used);
 		}
-		serial_put_string("Total allocated memory: "); serial_put_number(total); serial_put_char('\n');
-		serial_put_string("Total available memory: "); serial_put_number(available); serial_put_char('\n');
+		// should be ok to have this here as it shouldnt cause any allocations
+		serial("Allocated: {x}\nAvailable: {x}\n", total, available);
 	}
 
 	void merge_chunks() {
-		dump_info();
+		// only merge non used chunks because merging used chunks can create this situation
+		// a = malloc(4)
+		// Chunks: {offset = 0, size = 4}
+		// b = malloc(4);
+		// Chunks: {offset = 0, size = 4}, {offset = 4, size = 4}
+		// After merge:
+		// Chunks: {offset = 0, size = 8}
+		// free(b); -> ?? no offset matches b
+		// or
+		// free(a); -> The whole chunk gets freed, indirectly freeing b
+		// Chunks: {}
 		for (size_t i = 0; i < chunks_size; ++i) {
-
+			if (chunks[i].used) continue;
+			const auto target_offset = chunks[i].offset + chunks[i].size;
+			for (size_t j = 0; j < chunks_size; ++j) {
+				if (!chunks[j].used && chunks[j].offset == target_offset) {
+					serial("Merging chunk {} with {}\n", j, i);
+					chunks[i].size += chunks[j].size;
+					if (j < i)
+						--i;
+					for (size_t k = j + 1; j < chunks_size; ++j)
+						chunks[k - 1] = chunks[k];
+					--chunks_size;
+				}
+			}
 		}
+		dump_info();
 	}
 
 	static constexpr auto INVALID = NumberLimit<uptr>::max;
@@ -66,6 +91,7 @@ namespace alloc {
 	uptr add_chunk(size_t size) {
 		// TODO: maybe instead of the first match try to find the closest in size?
 		// or even try to find exact size match, if not then find the least close match
+		// thus minimizing small unused chunks
 		for (size_t i = 0; i < chunks_size; ++i) {
 			auto& chunk = chunks[i];
 			if (!chunk.used && chunk.size >= size) {
@@ -103,6 +129,7 @@ namespace alloc {
 }
 
 void* malloc(size_t size) {
+	if (size == 0) return nullptr;
 	const auto addr = alloc::add_chunk(size);
 	if (addr != alloc::INVALID)
 		return reinterpret_cast<void*>(reinterpret_cast<uptr>(alloc::memory) + addr);
