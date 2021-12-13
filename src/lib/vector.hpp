@@ -2,7 +2,6 @@
 #include "stl.hpp"
 #include "iterator.hpp"
 #include "template-utils.hpp"
-#include "kernel/serial.hpp"
 
 template <class T>
 class Vector : public Iterable<Vector<T>> {
@@ -47,7 +46,7 @@ public:
 
 	void push_back(const T& value) {
 		if (m_size >= m_capacity)
-			reserve(m_capacity + 6);
+			reserve(m_capacity + 8);
 		new (&m_data[m_size++]) T(value);
 	}
 

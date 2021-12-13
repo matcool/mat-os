@@ -78,5 +78,8 @@ extern "C" void kernel_main() {
 	serial("-- end vector test --\n"_sv);
 
 	terminal("Check out this hex number {x}, pretty cool right {} {x}\n"_sv, 1337, i8(-127), i8(-127));
-	terminal("Hello {}!\n"_sv, "world"_sv);
+	terminal("Hello {}!\n"_sv, "world");
+
+	String str = "hi";
+	terminal("{} there\n", str);
 }

@@ -124,3 +124,7 @@ void* operator new(size_t, void* ptr) {
 void operator delete(void* ptr) {
 	free(ptr);
 }
+
+void operator delete[](void* ptr) {
+	free(ptr);
+}

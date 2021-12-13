@@ -5,6 +5,7 @@
 #include "template-utils.hpp"
 #include "function.hpp"
 #include "vector.hpp"
+#include "string.hpp"
 
 template <class T>
 struct Formatter {
@@ -57,8 +58,9 @@ struct Formatter<T> {
 	}
 };
 
-template <>
-struct Formatter<StringView> {
+template <class T>
+requires is_any_of<T, StringView, const char*, String>
+struct Formatter<T> {
 	static void format(FuncPtr<void, char> write, const StringView& value, const StringView&) {
 		for (const char c : value)
 			write(c);
@@ -67,10 +69,11 @@ struct Formatter<StringView> {
 
 template <class... Args>
 void format_to(FuncPtr<void, char> write, const StringView& string, Args... args) {
-	Function<void(const StringView&)> partials[sizeof...(Args)] = { [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
+	Function<void(const StringView&)> partials[sizeof...(Args)] =
+		{ [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
 
 	size_t format_index = 0;
-	Vector<char> format_options(0);
+	String format_options;
 	for (size_t i = 0; i < string.size(); ++i) {
 		const char c = string.at(i);
 		if (i != string.size() - 1) {
@@ -85,6 +88,8 @@ void format_to(FuncPtr<void, char> write, const StringView& string, Args... args
 						partials[format_index++](""_sv);
 					} else {
 						// ?? error
+						// for now just ignore
+						return;
 					}
 				} else {
 					format_options.clear();
@@ -99,9 +104,7 @@ void format_to(FuncPtr<void, char> write, const StringView& string, Args... args
 				}
 				continue;
 			} else if (c == '}' && next == '}') {
-				write('}');
 				++i;
-				continue;
 			}
 		}
 		write(c);
