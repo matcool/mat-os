@@ -23,7 +23,7 @@ namespace {
 
 template <integral T>
 struct Formatter<T> {
-	static void format(FuncPtr<void, char> write, T value, const StringView& options) {
+	static void format(FuncPtr<void(char)> write, T value, const StringView& options) {
 		if (value == 0) return write('0');
 		const bool neg = value < 0;
 		if (neg) value = -value;
@@ -61,7 +61,7 @@ struct Formatter<T> {
 template <class T>
 requires is_any_of<T, StringView, const char*, String>
 struct Formatter<T> {
-	static void format(FuncPtr<void, char> write, const StringView& value, const StringView&) {
+	static void format(FuncPtr<void(char)> write, const StringView& value, const StringView&) {
 		for (const char c : value)
 			write(c);
 	}
@@ -69,13 +69,13 @@ struct Formatter<T> {
 
 template <>
 struct Formatter<bool> {
-	static void format(FuncPtr<void, char> write, bool value, const StringView&) {
+	static void format(FuncPtr<void(char)> write, bool value, const StringView&) {
 		Formatter<StringView>::format(write, value ? "true"_sv : "false"_sv, ""_sv);
 	}
 };
 
 template <class... Args>
-void format_to(FuncPtr<void, char> write, const StringView& string, Args... args) {
+void format_to(FuncPtr<void(char)> write, const StringView& string, Args... args) {
 	Function<void(const StringView&)> partials[sizeof...(Args)] =
 		{ [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
 
