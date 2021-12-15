@@ -10,7 +10,7 @@ nasm -w+orphan-labels -f elf32 src/kernel/boot.asm -o build/boot.o
 cd build
 clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fno-rtti -O2 -pedantic \
   -Wall -Wextra -Wno-unused-const-variable \
-  -target i686-elf \
+  -target i386-elf \
   -I../src \
   -I../src/lib \
   ../src/common.cpp \
@@ -36,7 +36,7 @@ clang -T linker.ld -g -o build/myos.bin -ffreestanding -O2 -nostdlib \
   build/idt.o \
   build/serial.o \
   build/keyboard.o \
-  -target i686-elf
+  -target i386-elf
 
 if grub-file --is-x86-multiboot build/myos.bin; then
   echo multiboot confirmed

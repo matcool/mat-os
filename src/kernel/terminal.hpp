@@ -25,6 +25,9 @@ enum vga_color {
 
 uint8_t vga_entry_color(vga_color fg, vga_color bg);
 
+constexpr size_t VGA_WIDTH = 80;
+constexpr size_t VGA_HEIGHT = 25;
+
 void terminal_init();
 void terminal_scroll_down();
 void terminal_set_color(uint8_t color);
@@ -32,6 +35,7 @@ void terminal_put_entry_at(char c, uint8_t color, size_t x, size_t y);
 void terminal_put_char(char);
 void terminal_write(const char* data, size_t len);
 void terminal_write_string(const char* string);
+void terminal_delete_char();
 
 template <class... Args>
 void terminal(const StringView& string, Args... args) {

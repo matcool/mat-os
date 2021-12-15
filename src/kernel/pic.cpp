@@ -69,4 +69,5 @@ void pic_init() {
 	outb(PIC2_DAT, 0xFF);
 
 	pic_clear_mask(1);
+	pic_clear_mask(12);
 }

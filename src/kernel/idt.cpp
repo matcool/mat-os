@@ -1,5 +1,6 @@
 #include "idt.hpp"
 #include "serial.hpp"
+#include "log.hpp"
 
 static struct {
 	u16 size;
@@ -71,7 +72,11 @@ void idt_init() {
 	// TODO: change this when paging is implemented
 	idt_register.addr = reinterpret_cast<uptr>(idt_table);
 
+	log("IDT initialized");
+
 	asm volatile("lidt %0; sti" : : "m"(idt_register));
+
+#if 0
 
 	struct {
 		u16 size;
@@ -96,4 +101,5 @@ void idt_init() {
 	serial_put_char(' ');
 	serial_put_hex(data.addr);
 	serial_put_string("\n");
+#endif
 }

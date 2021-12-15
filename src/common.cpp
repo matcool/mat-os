@@ -144,6 +144,10 @@ void* operator new(size_t size) {
 	return malloc(size);
 }
 
+void* operator new[](size_t size) {
+	return operator new(size);
+}
+
 void* operator new(size_t, void* ptr) {
 	return ptr;
 }

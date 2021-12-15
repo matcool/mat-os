@@ -31,6 +31,7 @@ global _start
 _start:
 
 	mov [rel stack_top], esp
+	cli
 
 	call kernel_main
 
