@@ -38,9 +38,10 @@ class BasicString : public Iterable<BasicString<T, inline_size>> {
 		T* m_data;
 	};
 
-	bool is_inline() { return m_capacity <= inline_size; }
+	// it shouldnt ever go below it
+	bool is_inline() { return m_capacity == inline_size; }
 public:
-	BasicString(const StringView& sv) : m_size(sv.size()), m_capacity(min(sv.size(), inline_size)) {
+	BasicString(const StringView& sv) : m_size(sv.size()), m_capacity(max(sv.size(), inline_size)) {
 		if (!is_inline())
 			m_data = new char[m_size + 1];
 		const auto d = data();
@@ -87,6 +88,7 @@ public:
 		if (m_size >= m_capacity)
 			reserve(m_capacity + 8);
 		data()[m_size++] = value;
+		data()[m_size] = 0;
 	}
 
 	void clear() {

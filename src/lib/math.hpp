@@ -9,3 +9,12 @@ auto min(T a, Args... values) {
 		return a < m ? a : m;
 	}
 }
+
+template <class T, class... Args>
+auto max(T a, Args... values) {
+	if constexpr (sizeof...(Args) == 0) return a;
+	else {
+		const auto m = max(values...);
+		return a > m ? a : m;
+	}
+}

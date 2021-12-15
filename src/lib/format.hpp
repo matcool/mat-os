@@ -59,7 +59,7 @@ struct Formatter<T> {
 };
 
 template <class T>
-requires is_any_of<T, StringView, const char*, String>
+requires is_any_of<T, StringView, const char*, char*, String>
 struct Formatter<T> {
 	static void format(FuncPtr<void(char)> write, const StringView& value, const StringView&) {
 		for (const char c : value)
@@ -69,51 +69,66 @@ struct Formatter<T> {
 
 template <>
 struct Formatter<bool> {
-	static void format(FuncPtr<void(char)> write, bool value, const StringView&) {
+	static void format(FuncPtr<void(char)> write, const bool value, const StringView&) {
 		Formatter<StringView>::format(write, value ? "true"_sv : "false"_sv, ""_sv);
+	}
+};
+
+template <>
+struct Formatter<char> {
+	static void format(FuncPtr<void(char)> write, const char value, const StringView&) {
+		write(value);
 	}
 };
 
 template <class... Args>
 void format_to(FuncPtr<void(char)> write, const StringView& string, Args... args) {
-	Function<void(const StringView&)> partials[sizeof...(Args)] =
-		{ [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
+	// if no extra args are given just write out the raw string
+	// should i remove the unused {} ?
+	// i dunno
+	if constexpr (sizeof...(Args) == 0) {
+		for (const char c : string)
+			write(c);
+	} else {
+		Function<void(const StringView&)> partials[sizeof...(Args)] =
+			{ [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
 
-	size_t format_index = 0;
-	String format_options;
-	for (size_t i = 0; i < string.size(); ++i) {
-		const char c = string.at(i);
-		if (i != string.size() - 1) {
-			auto next = string.at(i + 1);
-			if (c == '{') {
-				if (next == '{') {
-					write('{');
-					++i;
-				} else if (next == '}') {
-					++i;
-					if (format_index < sizeof...(Args)) {
-						partials[format_index++](""_sv);
+		size_t format_index = 0;
+		String format_options;
+		for (size_t i = 0; i < string.size(); ++i) {
+			const char c = string.at(i);
+			if (i != string.size() - 1) {
+				auto next = string.at(i + 1);
+				if (c == '{') {
+					if (next == '{') {
+						write('{');
+						++i;
+					} else if (next == '}') {
+						++i;
+						if (format_index < sizeof...(Args)) {
+							partials[format_index++](""_sv);
+						} else {
+							// ?? error
+							// for now just ignore
+							return;
+						}
 					} else {
-						// ?? error
-						// for now just ignore
-						return;
+						format_options.clear();
+						++i;
+						while (next != '}') {
+							format_options.push_back(next);
+							if (++i >= string.size()) break; // error?
+							next = string[i];
+						}
+						if (format_index < sizeof...(Args))
+							partials[format_index++](StringView(format_options.data(), format_options.size()));
 					}
-				} else {
-					format_options.clear();
+					continue;
+				} else if (c == '}' && next == '}') {
 					++i;
-					while (next != '}') {
-						format_options.push_back(next);
-						if (++i >= string.size()) break; // error?
-						next = string[i];
-					}
-					if (format_index < sizeof...(Args))
-						partials[format_index++](StringView(format_options.data(), format_options.size()));
 				}
-				continue;
-			} else if (c == '}' && next == '}') {
-				++i;
 			}
+			write(c);
 		}
-		write(c);
 	}
 }
