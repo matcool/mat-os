@@ -81,8 +81,15 @@ struct Formatter<char> {
 	}
 };
 
+template <>
+struct Formatter<void*> {
+	static void format(FuncPtr<void(char)> write, const void* value, const StringView&) {
+		Formatter<uptr>::format(write, reinterpret_cast<uptr>(value), "x"_sv);
+	}
+};
+
 template <class... Args>
-void format_to(FuncPtr<void(char)> write, const StringView& string, Args... args) {
+void format_to(FuncPtr<void(char)> write, const StringView& string, const Args&... args) {
 	// if no extra args are given just write out the raw string
 	// should i remove the unused {} ?
 	// i dunno
@@ -91,7 +98,7 @@ void format_to(FuncPtr<void(char)> write, const StringView& string, Args... args
 			write(c);
 	} else {
 		Function<void(const StringView&)> partials[sizeof...(Args)] =
-			{ [&](const StringView& options) { Formatter<decltype(args)>::format(write, args, options); }... };
+			{ [&](const StringView& options) { Formatter<remove_cv<remove_ref<decltype(args)>>>::format(write, args, options); }... };
 
 		size_t format_index = 0;
 		String format_options;

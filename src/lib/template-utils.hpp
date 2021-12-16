@@ -51,3 +51,30 @@ static constexpr bool is_any_of = is_same<T, U> ? true : is_any_of<T, Ts...>;
 
 template <class T, class U>
 static constexpr bool is_any_of<T, U> = is_same<T, U>;
+
+template <class T>
+static constexpr bool is_pointer = false;
+
+template <class T>
+static constexpr bool is_pointer<T*> = true;
+
+namespace {
+	template <class T>
+	struct _remove_cv { using type = T; };
+	template <class T>
+	struct _remove_cv<const T> { using type = T; };
+	template <class T>
+	struct _remove_cv<volatile T> { using type = T; };
+
+	template <class T>
+	struct _remove_ref { using type = T; };
+	template <class T>
+	struct _remove_ref<T&> { using type = T; };
+}
+
+// cv is const/volatile
+template <class T>
+using remove_cv = typename _remove_cv<T>::type;
+
+template <class T>
+using remove_ref = typename _remove_ref<T>::type;

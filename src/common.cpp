@@ -35,52 +35,65 @@ namespace alloc {
 	struct MemChunk {
 		uptr offset;
 		size_t size;
+		// TODO: maybe change these to u16 and have it as the direct
+		// index into the list, thus saving 4 bytes
+		MemChunk* previous;
+		MemChunk* next;
 		bool used;
 	};
-	static MemChunk chunks[CHUNKS] = { { .offset = 0, .size = MEM_SIZE, .used = false }, {} };
+	static MemChunk chunks[CHUNKS] = { {
+		.offset = 0,
+		.size = MEM_SIZE,
+		.previous = nullptr,
+		.next = nullptr,
+		.used = false
+	}, {} };
 	static size_t chunks_size = 1;
+	static MemChunk* start = &chunks[0];
 
 	// TODO: optimization
 
 	void dump_info() {
-		size_t total = 0, available = 0;
-		for (size_t i = 0; i < chunks_size; ++i) {
-			const auto& chunk = chunks[i];
-			if (chunks[i].used)
-				total += chunk.size;
-			else
-				available += chunk.size;
-			serial("Chunk:\n  - offset: {}\n  - size: {}\n  - used: {}\n", chunk.offset, chunk.size, chunk.used);
+		serial(" -- dump info -- \n"_sv);
+		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
+			serial("{}\n", *chunk);
 		}
-		// should be ok to have this here as it shouldnt cause any allocations
-		serial("Allocated: {x}\nAvailable: {x}\n", total, available);
+		serial("["_sv);
+		for (size_t i = 0; i < chunks_size; ++i) {
+			serial("{}, ", chunks[i]);
+		}
+		serial("]\n -- dump info over -- \n"_sv);
 	}
 
 	void merge_chunks() {
-		// only merge non used chunks because merging used chunks can create this situation
-		// a = malloc(4)
-		// Chunks: {offset = 0, size = 4}
-		// b = malloc(4);
-		// Chunks: {offset = 0, size = 4}, {offset = 4, size = 4}
-		// After merge:
-		// Chunks: {offset = 0, size = 8}
-		// free(b); -> ?? no offset matches b
-		// or
-		// free(a); -> The whole chunk gets freed, indirectly freeing b
-		// Chunks: {}
-		for (size_t i = 0; i < chunks_size; ++i) {
-			if (chunks[i].used) continue;
-			const auto target_offset = chunks[i].offset + chunks[i].size;
-			for (size_t j = 0; j < chunks_size; ++j) {
-				if (!chunks[j].used && chunks[j].offset == target_offset) {
-					serial("Merging chunk {} with {}\n", j, i);
-					chunks[i].size += chunks[j].size;
-					if (j < i)
-						--i;
-					for (size_t k = j + 1; j < chunks_size; ++j)
-						chunks[k - 1] = chunks[k];
-					--chunks_size;
+		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
+			// only merge unused chunks (for now?)
+			if (chunk->used) continue;
+			while (chunk->next && !chunk->next->used) {
+				serial("merging {} with this one {}\n", *chunk, *chunk->next);
+				chunk->size += chunk->next->size;
+				const auto next = chunk->next->next;
+
+				// chunk->next->size = 666;
+
+				const int index = chunk->next - chunks;
+				chunk->next = next;
+				for (size_t i = index; i < chunks_size - 1; ++i) {
+					const auto& target = chunks[i + 1];
+					if (target.previous)
+						--target.previous->next;
+					else
+						--start;
+					if (target.next && target.next)
+						--target.next->previous;
+					chunks[i] = chunks[i + 1];
 				}
+				--chunks_size;
+				if (chunk - chunks > index)
+					--chunk;
+
+				if (chunk->next)
+					chunk->next->previous = chunk;
 			}
 		}
 		dump_info();
@@ -92,41 +105,61 @@ namespace alloc {
 		// TODO: maybe instead of the first match try to find the closest in size?
 		// or even try to find exact size match, if not then find the least close match
 		// thus minimizing small unused chunks
-		for (size_t i = 0; i < chunks_size; ++i) {
-			auto& chunk = chunks[i];
-			if (!chunk.used && chunk.size >= size) {
-				if (chunk.size == size) {
-					chunk.used = true;
-					return chunk.offset;
+		serial(" - trying to allocate {}\n", size);
+		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
+			if (!chunk->used && chunk->size >= size) {
+				if (chunk->size == size) {
+					chunk->used = true;
+					return chunk->offset;
 				} else {
-					auto& ret = chunks[chunks_size++] = { .offset = chunk.offset, .size = size, .used = true };
-					chunk.offset += size;
-					chunk.size -= size;
+					auto& new_chunk = chunks[chunks_size++];
+					new_chunk = { .offset = chunk->offset, .size = size, .previous = nullptr, .next = nullptr, .used = true };
+					if (chunk->previous == nullptr)
+						start = &new_chunk;
+					else
+						chunk->previous->next = &new_chunk;
+					new_chunk.previous = chunk->previous;
+					chunk->previous = &new_chunk;
+					new_chunk.next = chunk;
+
+					chunk->offset += size;
+					chunk->size -= size;
 					merge_chunks();
-					return ret.offset;
+					return new_chunk.offset;
 				}
 			}
 		}
 		return INVALID;
 	}
 
-	size_t index_for_address(uptr addr) {
-		for (size_t i = 0; i < chunks_size; ++i) {
-			if (chunks[i].offset == addr) return i;
+	MemChunk* chunk_for_address(uptr addr) {
+		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
+			if (chunk->offset == addr) return chunk;
 		}
-		return NumberLimit<size_t>::max;
+		return nullptr;
 	}
 
 	void remove_chunk(uptr offset) {
-		const auto index = index_for_address(offset);
-		if (index != NumberLimit<size_t>::max) {
-			chunks[index].used = false;
+		const auto chunk = chunk_for_address(offset);
+		if (chunk) {
+			serial(" - setting offset={} to unused\n", chunk->offset);
+			chunk->used = false;
 			merge_chunks();
 		} else {
-			serial_put_string("huh\n");
+			serial("improper free? ({x})\n", offset);
 		}
 	}
 }
+
+template <>
+struct Formatter<alloc::MemChunk> {
+	static void format(FuncPtr<void(char)> write, const alloc::MemChunk& chunk, const StringView&) {
+		// lmao
+		format_to(write, "chunk({},size={},prev={},next={},{})",
+			chunk.offset, chunk.size, chunk.previous ? chunk.previous - alloc::chunks : -1,
+			chunk.next ? chunk.next - alloc::chunks : -1, chunk.used ? "used"_sv : "unused"_sv);
+	}
+};
 
 void* malloc(size_t size) {
 	if (size == 0) return nullptr;
@@ -137,6 +170,7 @@ void* malloc(size_t size) {
 }
 
 void free(void* addr) {
+	serial("freeing {}\n", addr);
 	alloc::remove_chunk(reinterpret_cast<uptr>(addr) - reinterpret_cast<uptr>(alloc::memory));
 }
 
