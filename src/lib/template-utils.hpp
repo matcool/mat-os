@@ -65,11 +65,15 @@ namespace {
 	struct _remove_cv<const T> { using type = T; };
 	template <class T>
 	struct _remove_cv<volatile T> { using type = T; };
+	template <class T>
+	struct _remove_cv<const volatile T> { using type = T; };
 
 	template <class T>
 	struct _remove_ref { using type = T; };
 	template <class T>
 	struct _remove_ref<T&> { using type = T; };
+	template <class T>
+	struct _remove_ref<T&&> { using type = T; };
 }
 
 // cv is const/volatile
@@ -78,3 +82,15 @@ using remove_cv = typename _remove_cv<T>::type;
 
 template <class T>
 using remove_ref = typename _remove_ref<T>::type;
+
+// TODO: maybe put this in another header, stl puts it in <utility>
+
+template <class T>
+constexpr T&& forward(remove_ref<T>& value) noexcept {
+	return static_cast<T&&>(value);
+}
+
+template <class T>
+constexpr T&& forward(remove_ref<T>&& value) noexcept {
+	return static_cast<T&&>(value);
+}

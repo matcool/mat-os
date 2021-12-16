@@ -38,6 +38,6 @@ void terminal_write_string(const char* string);
 void terminal_delete_char();
 
 template <class... Args>
-void terminal(const StringView& string, Args... args) {
+void terminal(const StringView& string, Args&&... args) {
 	format_to([](char c) { terminal_put_char(c); }, string, args...);
 }

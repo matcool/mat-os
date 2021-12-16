@@ -59,11 +59,20 @@ struct Formatter<T> {
 };
 
 template <class T>
-requires is_any_of<T, StringView, const char*, char*, String>
+requires is_any_of<T, StringView, char*, String>
 struct Formatter<T> {
 	static void format(FuncPtr<void(char)> write, const StringView& value, const StringView&) {
 		for (const char c : value)
 			write(c);
+	}
+};
+
+template <size_t N>
+struct Formatter<char[N]> {
+	static void format(FuncPtr<void(char)> write, const char (&value)[N], const StringView&) {
+		// N goes up to the null terminator, which we don't care eabout
+		for (size_t i = 0; i < N - 1; ++i)
+			write(value[i]);
 	}
 };
 
@@ -89,7 +98,7 @@ struct Formatter<void*> {
 };
 
 template <class... Args>
-void format_to(FuncPtr<void(char)> write, const StringView& string, const Args&... args) {
+void format_to(FuncPtr<void(char)> write, const StringView& string, Args&&... args) {
 	// if no extra args are given just write out the raw string
 	// should i remove the unused {} ?
 	// i dunno
@@ -98,7 +107,9 @@ void format_to(FuncPtr<void(char)> write, const StringView& string, const Args&.
 			write(c);
 	} else {
 		Function<void(const StringView&)> partials[sizeof...(Args)] =
-			{ [&](const StringView& options) { Formatter<remove_cv<remove_ref<decltype(args)>>>::format(write, args, options); }... };
+			{ [&write, &args](const StringView& options) {
+				Formatter<remove_cv<remove_ref<decltype(args)>>>::format(write, forward<decltype(args)>(args), options);
+			}... };
 
 		size_t format_index = 0;
 		String format_options;
