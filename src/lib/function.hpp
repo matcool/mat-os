@@ -62,10 +62,8 @@ public:
 			delete m_callable;
 	}
 
-	R operator()(Args... args) {
-		if (m_inline)
-			return reinterpret_cast<CallableBase<R(Args...)>*>(m_inline_data)->call(args...);
-		else
-			return m_callable->call(args...);
+	R operator()(Args&&... args) {
+		auto callable = m_inline ? reinterpret_cast<CallableBase<R(Args...)>*>(m_inline_data) : m_callable;
+		return callable->call(forward<decltype(args)>(args)...);
 	}
 };
