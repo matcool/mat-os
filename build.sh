@@ -22,6 +22,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   ../src/kernel/idt.cpp \
   ../src/kernel/serial.cpp \
   ../src/kernel/keyboard.cpp \
+  ../src/kernel/paging.cpp \
   -c
 cd ..
 
@@ -36,6 +37,7 @@ clang -T linker.ld -g -o build/myos.bin -ffreestanding -O2 -nostdlib \
   build/idt.o \
   build/serial.o \
   build/keyboard.o \
+  build/paging.o \
   -target i386-elf
 
 if grub-file --is-x86-multiboot build/myos.bin; then

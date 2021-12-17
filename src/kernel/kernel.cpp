@@ -10,6 +10,7 @@
 #include "array.hpp"
 #include "vector.hpp"
 #include "log.hpp"
+#include "paging.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -17,6 +18,8 @@
 
 extern "C" void kernel_main() {
 	serial_init();
+
+	paging_init();
 
 	terminal_init();
 
@@ -27,10 +30,6 @@ extern "C" void kernel_main() {
 	keyboard_init();
 
 	idt_init();
-
-	serial("-- checking if int3 works --\n"_sv);
-
-	asm volatile("int3" :);
 
 	serial("hello\n"_sv);
 

@@ -54,6 +54,7 @@ namespace alloc {
 	// TODO: optimization
 
 	void dump_info() {
+		return;
 		serial(" -- dump info -- \n"_sv);
 		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
 			serial("{}\n", *chunk);
@@ -70,7 +71,7 @@ namespace alloc {
 			// only merge unused chunks (for now?)
 			if (chunk->used) continue;
 			while (chunk->next && !chunk->next->used) {
-				serial("merging {} with this one {}\n", *chunk, *chunk->next);
+				// serial("merging {} with this one {}\n", *chunk, *chunk->next);
 				chunk->size += chunk->next->size;
 				const auto next = chunk->next->next;
 
@@ -105,7 +106,7 @@ namespace alloc {
 		// TODO: maybe instead of the first match try to find the closest in size?
 		// or even try to find exact size match, if not then find the least close match
 		// thus minimizing small unused chunks
-		serial(" - trying to allocate {}\n", size);
+		serial(" - trying to allocate {} bytes\n", size);
 		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
 			if (!chunk->used && chunk->size >= size) {
 				if (chunk->size == size) {
@@ -142,7 +143,7 @@ namespace alloc {
 	void remove_chunk(uptr offset) {
 		const auto chunk = chunk_for_address(offset);
 		if (chunk) {
-			serial(" - setting offset={} to unused\n", chunk->offset);
+			serial(" - freeing {} bytes\n", chunk->size);
 			chunk->used = false;
 			merge_chunks();
 		} else {
@@ -170,7 +171,6 @@ void* malloc(size_t size) {
 }
 
 void free(void* addr) {
-	serial("freeing {}\n", addr);
 	alloc::remove_chunk(reinterpret_cast<uptr>(addr) - reinterpret_cast<uptr>(alloc::memory));
 }
 

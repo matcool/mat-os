@@ -48,6 +48,7 @@ public:
 		memcpy(d, sv.data(), m_size);
 		d[m_size] = 0;
 	}
+	BasicString(const BasicString& string) : BasicString(string.sv()) {}
 	BasicString(const char* str) : BasicString(StringView(str)) {}
 	BasicString() : m_size(0), m_capacity(inline_size) {
 		m_inline_data[0] = 0;
