@@ -22,7 +22,7 @@ void keyboard_interrupt(InterruptFrame*) {
 			shift_held = !release;
 		} else if (!release) {
 			if (scan_code == 0xe) {
-				terminal_delete_char();
+				// terminal_delete_char();
 			} else {
 				char c = scan_code_map[scan_code];
 				if (c) {

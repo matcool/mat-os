@@ -85,10 +85,14 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 				pixels[y * multiboot->framebuffer_width + x] = 0xFF223344;
 			}
 		}
+		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
 	}
-	terminal_init(multiboot->framebuffer_addr);
 
 	serial("hello\n"_sv);
+
+	terminal("Check out \"my\" awesome font!\nabcdefghijklmnopqrstuvwxyz\n0123456789\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n"_sv);
+
+	// return;
 
 	terminal("Hello, kernel World!\n"_sv);
 	terminal("I am mat\n"_sv);
