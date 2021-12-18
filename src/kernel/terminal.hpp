@@ -28,7 +28,7 @@ uint8_t vga_entry_color(vga_color fg, vga_color bg);
 constexpr size_t VGA_WIDTH = 80;
 constexpr size_t VGA_HEIGHT = 25;
 
-void terminal_init();
+void terminal_init(u32);
 void terminal_scroll_down();
 void terminal_set_color(uint8_t color);
 void terminal_put_entry_at(char c, uint8_t color, size_t x, size_t y);

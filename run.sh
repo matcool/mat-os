@@ -7,4 +7,4 @@ set -xe
 # qemu executable path.
 
 # -d int -M smm=off
-./build.sh && "/mnt/c/Program Files/qemu/qemu-system-i386.exe" -s -serial stdio -kernel build/myos.bin
+./build.sh && "/mnt/c/Program Files/qemu/qemu-system-i386.exe" -s -serial stdio -cdrom build/matos.iso

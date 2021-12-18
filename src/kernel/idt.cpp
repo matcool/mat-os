@@ -1,6 +1,7 @@
 #include "idt.hpp"
 #include "serial.hpp"
 #include "log.hpp"
+#include "terminal.hpp"
 
 static struct {
 	u16 size;
@@ -21,9 +22,7 @@ void exception_handler(InterruptFrame*, u32) {
 template <size_t N>
 INTERRUPT
 void fancy_interrupt(InterruptFrame* frame) {
-	serial_put_string("EIP: "); serial_put_hex(frame->eip); serial_put_char('\n');
-	serial_put_string("ESP: "); serial_put_hex(frame->esp); serial_put_char('\n');
-	serial_put_string("hit interrupt "); serial_put_number(N); serial_put_char('\n');
+	serial("EIP: {x}\nESP: {x}\nhit interrupt {}\n", frame->eip, frame->esp, N);
 }
 
 template <size_t N>
@@ -37,10 +36,7 @@ constexpr void gen_interrupts_lol() {
 template <size_t N>
 INTERRUPT
 void fancy_exception(InterruptFrame* frame, u32 error_code) {
-	serial_put_string("EIP: "); serial_put_hex(frame->eip); serial_put_char('\n');
-	serial_put_string("ESP: "); serial_put_hex(frame->esp); serial_put_char('\n');
-	serial_put_string("hit interrupt "); serial_put_number(N); serial_put_char('\n');
-	serial_put_string("error code "); serial_put_number(error_code); serial_put_char('\n');
+	serial("EIP: {x}\nESP: {x}\nError code: {}\nhit interrupt {}\n", frame->eip, frame->esp, error_code, N);
 }
 
 template <size_t N>
@@ -65,7 +61,7 @@ void idt_init() {
 	gen_exception<17>();
 	gen_exception<21>();
 	gen_exception<30>();
-	serial_put_string("now going to the interrupt handlers\n");
+
 	gen_interrupts_lol<31>();
 
 	idt_register.size = sizeof(idt_table) - 1;
