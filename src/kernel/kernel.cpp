@@ -65,21 +65,13 @@ struct MultibootInfo {
 extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial_init();
 
-	// paging_init();
+	paging_init();
 
 	gdt_init();
 
 	pic_init();
 
 	keyboard_init();
-
-	idt_init();
-
-	asm volatile("int3" :);
-
-	serial("made it out of the int3\n");
-
-	return;
 
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,
@@ -94,6 +86,8 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
 	}
 
+	idt_init();
+
 	serial("hello\n"_sv);
 
 	terminal("Check out this awesome font!\nabcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789\n!\"#$%&'()*+?<>= 0 | 1\n"_sv);
@@ -104,13 +98,11 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	terminal("I am mat 2"_sv);
 	terminal("its me mat once again\n"_sv);
 
-	// asm volatile("int3" :);
-	// serial("after int 3\n"_sv);
+	asm volatile("int3" :);
+	serial("after int 3\n"_sv);
 
-	// asm volatile("int3" :);
-	// serial("another int 3\n"_sv);
-
-	// return;
+	asm volatile("int3" :);
+	serial("another int 3\n"_sv);
 
 	serial("Going to allocate 8 bytes\n"_sv);
 	char* data = (char*)malloc(8);

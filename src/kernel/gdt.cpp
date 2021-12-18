@@ -48,16 +48,28 @@ static GDTEntry gdt_table[3] = {
 	GDTEntry(0, 0xFFFFF, GDT_SEGMENT | GDT_CODE_OR_DATA | GDT_RW | GDT_DATA,       GDT_GRANULAR | GDT_SIZE)
 };
 
+extern "C" void flush_seg_regs();
+
 void gdt_init() {
 	gdt_register.size = sizeof(gdt_table) - 1;
 	gdt_register.addr = reinterpret_cast<uptr>(gdt_table);
 
-	asm volatile("lgdt %0" : : "m"(gdt_register));
+	asm volatile(R"(
+		lgdt %0
+		ljmp $0x08, $flush%=
+		flush%=:
+		mov $0x10, %%ax
+		mov %%ax, %%ds
+		mov %%ax, %%es
+		mov %%ax, %%fs
+		mov %%ax, %%gs
+		mov %%ax, %%ss
+	)" : : "m"(gdt_register));
 
 	log("GDT initialized");
 
 	// sanity checks to see if gdt got set properly
-// #if 0
+#if 0
 	struct {
 		u16 size;
 		uptr addr;
@@ -81,5 +93,5 @@ void gdt_init() {
 	serial_put_char(' ');
 	serial_put_hex(data.addr);
 	serial_put_string("\n");
-// #endif
+#endif
 }

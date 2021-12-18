@@ -46,7 +46,7 @@ section .text
 global _start
 _start:
 
-	mov [rel stack_top], esp
+	mov esp, stack_top
 	cli
 
 	push ebx
