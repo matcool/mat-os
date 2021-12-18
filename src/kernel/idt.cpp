@@ -14,11 +14,6 @@ static IDTEntry idt_table[256];
 
 IDTEntry* idt_get_table() { return idt_table; }
 
-INTERRUPT
-void exception_handler(InterruptFrame*, u32) {
-	serial_put_string("exception handler hit\n");
-}
-
 template <size_t N>
 INTERRUPT
 void fancy_interrupt(InterruptFrame* frame) {
@@ -46,12 +41,6 @@ void gen_exception() {
 }
 
 void idt_init() {
-	// constexpr size_t errors[10] = { 8, 10, 11, 12, 13, 14, 17, 21, 29, 30 };
-	// for (const auto i : errors) {
-	// 	serial_put_number(i); serial_put_char(' '); serial_put_number(idt_table[i].attributes); serial_put_char(' '); serial_put_hex(idt_table[i].addr_low); serial_put_char('\n');
-	// 	if (idt_table[i].attributes == 0)
-	// 		idt_table[i] = IDTEntry(isr_wrapper<&exception_handler>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
-	// }
 	gen_exception<8>();
 	gen_exception<10>();
 	gen_exception<11>();
@@ -65,7 +54,6 @@ void idt_init() {
 	gen_interrupts_lol<31>();
 
 	idt_register.size = sizeof(idt_table) - 1;
-	// TODO: change this when paging is implemented
 	idt_register.addr = reinterpret_cast<uptr>(idt_table);
 
 	log("IDT initialized");

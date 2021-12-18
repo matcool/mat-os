@@ -75,6 +75,12 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 
 	idt_init();
 
+	asm volatile("int3" :);
+
+	serial("made it out of the int3\n");
+
+	return;
+
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,
 		u32(multiboot->framebuffer_addr), multiboot->framebuffer_width, multiboot->framebuffer_height);
@@ -88,9 +94,6 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
 	}
 
-	// asm volatile("int3" :);
-
-	// return;
 	serial("hello\n"_sv);
 
 	terminal("Check out this awesome font!\nabcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789\n!\"#$%&'()*+?<>= 0 | 1\n"_sv);

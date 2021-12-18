@@ -1,5 +1,6 @@
 #pragma once
 #include "common.hpp"
+#include "template-utils.hpp"
 
 struct IDTEntry {
 	u16 addr_low;  // lower 2 bytes of the address
@@ -54,12 +55,9 @@ namespace {
 	using isr_wrapper_t = void(__cdecl*)(InterruptFrame*);
 	using isr_wrapper_exception_t = void(__cdecl*)(InterruptFrame*, u32);
 
-	template <auto>
-	static constexpr bool __false = false;
-
 	template <auto func>
 	struct __isr_wrapper {
-		static_assert(__false<func>, "Improper function passed to isr_wrapper");
+		static_assert(always_false_v<func>, "Improper function passed to isr_wrapper");
 	};
 
 	template <isr_wrapper_t func>
@@ -84,7 +82,7 @@ namespace {
 		__attribute__((naked))
 		static void wrapper() {
 			// god i hate at&t syntax
-			// TODO: actually support error codes, rn they just break everything
+			// TODO: actually support error codes, rn it just gets popped off
 			asm volatile(R"(
 				add $4, %%esp
 				pushal

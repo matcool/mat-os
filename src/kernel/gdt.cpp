@@ -57,7 +57,7 @@ void gdt_init() {
 	log("GDT initialized");
 
 	// sanity checks to see if gdt got set properly
-#if 0
+// #if 0
 	struct {
 		u16 size;
 		uptr addr;
@@ -81,5 +81,5 @@ void gdt_init() {
 	serial_put_char(' ');
 	serial_put_hex(data.addr);
 	serial_put_string("\n");
-#endif
+// #endif
 }
