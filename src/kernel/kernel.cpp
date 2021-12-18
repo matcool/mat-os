@@ -65,7 +65,7 @@ struct MultibootInfo {
 extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial_init();
 
-	paging_init();
+	// paging_init();
 
 	gdt_init();
 
@@ -88,11 +88,13 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
 	}
 
-	serial("hello\n"_sv);
-
-	terminal("Check out \"my\" awesome font!\nabcdefghijklmnopqrstuvwxyz\n0123456789\nABCDEFGHIJKLMNOPQRSTUVWXYZ\n"_sv);
+	// asm volatile("int3" :);
 
 	// return;
+	serial("hello\n"_sv);
+
+	terminal("Check out this awesome font!\nabcdefghijklmnopqrstuvwxyz ABCDEFGHIJKLMNOPQRSTUVWXYZ\n0123456789\n!\"#$%&'()*+?<>= 0 | 1\n"_sv);
+
 
 	terminal("Hello, kernel World!\n"_sv);
 	terminal("I am mat\n"_sv);
