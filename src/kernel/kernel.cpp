@@ -63,6 +63,10 @@ struct MultibootInfo {
 	} framebuffer_color;
 };
 
+u32* Screen::raw = nullptr;
+u32 Screen::width = 0;
+u32 Screen::height = 0;
+
 extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial_init();
 
@@ -82,6 +86,9 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		u32(multiboot->framebuffer_addr), multiboot->framebuffer_width, multiboot->framebuffer_height);
 	if (multiboot->framebuffer_type == 1) {
 		const auto pixels = reinterpret_cast<u32*>(u32(multiboot->framebuffer_addr));
+		Screen::raw = pixels;
+		Screen::width = multiboot->framebuffer_width;
+		Screen::height = multiboot->framebuffer_height;
 		for (size_t y = 0; y < multiboot->framebuffer_height; ++y) {
 			for (size_t x = 0; x < multiboot->framebuffer_width; ++x) {
 				pixels[y * multiboot->framebuffer_width + x] = 0xFF223344;

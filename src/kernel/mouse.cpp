@@ -4,10 +4,38 @@
 #include "serial.hpp"
 #include "log.hpp"
 #include "ps2.hpp"
+#include "kernel.hpp"
+
+bool left_down = false;
+bool right_down = false;
+bool middle_down = false;
+
+i32 mouse_x = 0;
+i32 mouse_y = 0;
 
 INTERRUPT
 void mouse_handler(InterruptFrame*) {
-	serial("mouse ? {x}\n", inb(PS2_DATA_PORT));
+	auto data = inb(PS2_DATA_PORT);
+	i16 x_mov = inb(PS2_DATA_PORT);
+	i16 y_mov = inb(PS2_DATA_PORT);
+	if ((data & 0b11000000) == 0) {
+		if (data & 0b010000)
+			x_mov -= 256;
+		if (data & 0b100000)
+			y_mov -= 256;
+		middle_down = !!(data & 0b100);
+		right_down = !!(data & 0b010);
+		left_down = !!(data & 0b001);
+		mouse_x += x_mov;
+		mouse_y -= y_mov;
+		serial("mouse {},{}\n", mouse_x, mouse_y);
+		mouse_x = max(min(mouse_x, Screen::width - 1), 0);
+		mouse_y = max(min(mouse_y, Screen::height - 1), 0);
+		Screen::raw[mouse_y * Screen::width + mouse_x] = 0xFF000000;
+		Screen::raw[mouse_y * Screen::width + mouse_x + 1] = 0xFF000000;
+		Screen::raw[(mouse_y + 1) * Screen::width + mouse_x] = 0xFF000000;
+		Screen::raw[(mouse_y + 1) * Screen::width + mouse_x + 1] = 0xFF000000;
+	}
 	pic_eoi(12);
 }
 
