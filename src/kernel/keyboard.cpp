@@ -4,6 +4,7 @@
 #include "terminal.hpp"
 #include "pic.hpp"
 #include "log.hpp"
+#include "ps2.hpp"
 
 char scan_code_map[256] = {0};
 
@@ -12,7 +13,7 @@ bool caps_lock = false;
 
 INTERRUPT
 void keyboard_interrupt(InterruptFrame*) {
-	auto scan_code = inb(0x60);
+	auto scan_code = inb(PS2_DATA_PORT);
 	serial("scan code: {x}\n", scan_code);
 	if (scan_code == 0xFA) {
 

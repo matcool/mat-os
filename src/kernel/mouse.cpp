@@ -3,38 +3,12 @@
 #include "pic.hpp"
 #include "serial.hpp"
 #include "log.hpp"
+#include "ps2.hpp"
 
 INTERRUPT
 void mouse_handler(InterruptFrame*) {
-	serial("mouse ? {x}\n", inb(0x60));
+	serial("mouse ? {x}\n", inb(PS2_DATA_PORT));
 	pic_eoi(12);
-}
-
-void mouse_wait_out() {
-	u32 time_out = 100000;
-	while (time_out && (inb(0x64) & 0b10) != 0) { --time_out; }
-}
-void mouse_wait_in() {
-	u32 time_out = 100000;
-	while (time_out && (inb(0x64) & 0b01) != 1) { --time_out; }
-}
-
-constexpr u8 COMMAND_PORT = 0x64;
-constexpr u8 DATA_PORT = 0x60;
-
-void ps2_write(u8 command) {
-	mouse_wait_out();
-	outb(COMMAND_PORT, command);
-}
-
-void ps2_write_data(u8 command) {
-	mouse_wait_out();
-	outb(DATA_PORT, command);
-}
-
-u8 ps2_read() {
-	mouse_wait_in();
-	return inb(DATA_PORT);
 }
 
 void mouse_send_command(u8 command) {
