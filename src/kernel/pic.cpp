@@ -70,4 +70,8 @@ void pic_init() {
 
 	pic_clear_mask(1);
 	pic_clear_mask(12);
+
+	// saw on some random forum that you have to clear this to get mouse working
+	// i have no idea why but its true
+	pic_clear_mask(2);
 }

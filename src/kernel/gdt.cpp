@@ -48,8 +48,6 @@ static GDTEntry gdt_table[3] = {
 	GDTEntry(0, 0xFFFFF, GDT_SEGMENT | GDT_CODE_OR_DATA | GDT_RW | GDT_DATA,       GDT_GRANULAR | GDT_SIZE)
 };
 
-extern "C" void flush_seg_regs();
-
 void gdt_init() {
 	gdt_register.size = sizeof(gdt_table) - 1;
 	gdt_register.addr = reinterpret_cast<uptr>(gdt_table);

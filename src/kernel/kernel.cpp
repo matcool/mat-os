@@ -11,6 +11,7 @@
 #include "vector.hpp"
 #include "log.hpp"
 #include "paging.hpp"
+#include "mouse.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -72,6 +73,9 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	pic_init();
 
 	keyboard_init();
+	mouse_init();
+
+	idt_init();
 
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,
@@ -86,7 +90,6 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
 	}
 
-	idt_init();
 
 	serial("hello\n"_sv);
 

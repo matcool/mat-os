@@ -23,7 +23,7 @@ constexpr auto FONT_PIXEL_HEIGHT = FONT_HEIGHT * PIXEL_SIZE;
 #include "terminal-font.hpp"
 
 void terminal_put_entry_at(char c, u32 color, size_t x, size_t y) {
-	const auto letter = terminal_font[c];
+	const auto letter = terminal_font[u8(c)];
 	for (u32 font_j = 0; font_j < FONT_HEIGHT; ++font_j) {
 		const auto row = letter[font_j];
 		for (u32 font_i = 0; font_i < FONT_WIDTH; ++font_i) {
