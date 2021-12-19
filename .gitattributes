@@ -1,4 +1,13 @@
-* text lf
 *.cpp text diff=cpp lf
 *.hpp text diff=cpp lf
+*.asm text lf
+*.ld text lf
+*.sh text lf
+*.txt text lf
+*.cfg text lf
+*.py text lf
+.gitignore text lf
+.gitattributes text lf
+.editorconfig text lf
+
 *.png binary
