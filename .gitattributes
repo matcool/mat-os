@@ -1,3 +1,4 @@
 * text lf
 *.cpp text diff=cpp lf
 *.hpp text diff=cpp lf
+*.png binary
