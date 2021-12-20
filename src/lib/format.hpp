@@ -28,21 +28,35 @@ struct Formatter<T> {
 		const bool neg = value < 0;
 		if (neg) value = -value;
 		// TODO: not this, maybe have a struct instead?
-		if (options.size() && options.at(0) == 'x') {
-			// the +1 is for negative numbers
-			char buffer[sizeof(T) * 2 + 2 + 1];
-			size_t i = sizeof(buffer);
-			do {
-				u8 c = value & 0xF;
-				c += c > 9 ? 'A' - 10 : '0';
-				buffer[--i] = c;
-				value >>= 4;
-			} while (value);
-			buffer[--i] = 'x';
-			buffer[--i] = '0';
-			if (neg) buffer[--i] = '-';
-			while (i < sizeof(buffer))
-				write(buffer[i++]);
+		if (options.size()) {
+			if (options.at(0) == 'x') {
+				// the +1 is for negative numbers
+				char buffer[sizeof(T) * 2 + 2 + 1];
+				size_t i = sizeof(buffer);
+				do {
+					u8 c = value & 0xF;
+					c += c > 9 ? 'A' - 10 : '0';
+					buffer[--i] = c;
+					value >>= 4;
+				} while (value);
+				buffer[--i] = 'x';
+				buffer[--i] = '0';
+				if (neg) buffer[--i] = '-';
+				while (i < sizeof(buffer))
+					write(buffer[i++]);
+			} else if (options.at(0) == 'b') {
+				char buffer[sizeof(T) * 8 + 2 + 1];
+				size_t i = sizeof(buffer);
+				do {
+					buffer[--i] = '0' + (value & 1);
+					value >>= 1;
+				} while (value);
+				buffer[--i] = 'b';
+				buffer[--i] = '0';
+				if (neg) buffer[--i] = '-';
+				while (i < sizeof(buffer))
+					write(buffer[i++]);
+			}
 		} else {
 			constexpr auto max_size = _max_int_length<sizeof(T)>;
 			char buffer[max_size];
