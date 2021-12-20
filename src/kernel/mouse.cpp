@@ -4,7 +4,8 @@
 #include "serial.hpp"
 #include "log.hpp"
 #include "ps2.hpp"
-#include "kernel.hpp"
+#include "screen.hpp"
+#include "terminal.hpp"
 
 bool left_down = false;
 bool right_down = false;
@@ -12,22 +13,6 @@ bool middle_down = false;
 
 i32 mouse_x = 0;
 i32 mouse_y = 0;
-
-const u32 mouse_sprite[13] = {
-	0b000000000000000001,
-	0b000000000000000101,
-	0b000000000000011101,
-	0b000000000001111101,
-	0b000000000111111101,
-	0b000000011111111101,
-	0b000001111111111101,
-	0b000111111111111101,
-	0b010111111111111101,
-	0b000001011111111101,
-	0b000000011101011101,
-	0b000001110100000101,
-	0b000000010000000000
-};
 
 u8 cycle_counter = 0;
 u8 data_bytes[3];
@@ -56,23 +41,11 @@ void mouse_handler(InterruptFrame*) {
 			left_down = !!(data & 0b001);
 			mouse_x += x_mov;
 			mouse_y -= y_mov;
-			mouse_x = max(min(mouse_x, i32(Screen::width) - 1), 0);
-			mouse_y = max(min(mouse_y, i32(Screen::height) - 1), 0);
-			for (u32 j = 0; j < 13; ++j) {
-				auto row = mouse_sprite[j];
-				for (u32 i = 0; i < 9; ++i) {
-					const u8 b = row & 0b11;
-					if (b) {
-						u32 color = 0;
-						if (b == 1) color = 0xFF000000;
-						else color = 0xFFFFFFFF;
-						const auto pixel_y = mouse_y + j;
-						const auto pixel_x = mouse_x + i;
-						Screen::raw[pixel_y * Screen::width + pixel_x] = left_down ? color : 0xFF223344;
-					}
-					row >>= 2;
-				}
-			}
+			auto& screen = Screen::get();
+			mouse_x = max(min(mouse_x, i32(screen.width) - 1), 0);
+			mouse_y = max(min(mouse_y, i32(screen.height) - 1), 0);
+			terminal("mouse at {},{}\n", mouse_x, mouse_y);
+			screen.redraw();
 		}
 	}
 	pic_eoi(12);
@@ -105,7 +78,6 @@ void mouse_init() {
 
 	ps2_write(0x20);
 	const auto config_byte = ps2_read() | 2;
-	serial("config byte is {x}\n", config_byte);
 	ps2_write(0x60);
 	ps2_write_data(config_byte & 0xDF);
 
@@ -121,4 +93,37 @@ void mouse_init() {
 	idt_get_table()[0x20 + 12] = IDTEntry(isr_wrapper<&mouse_handler>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
 
 	log("Mouse initialized");
+}
+
+const u32 mouse_sprite[13] = {
+	0b000000000000000001,
+	0b000000000000000101,
+	0b000000000000011101,
+	0b000000000001111101,
+	0b000000000111111101,
+	0b000000011111111101,
+	0b000001111111111101,
+	0b000111111111111101,
+	0b010111111111111101,
+	0b000001011111111101,
+	0b000000011101011101,
+	0b000001110100000101,
+	0b000000010000000000
+};
+
+void mouse_draw() {
+	auto& screen = Screen::get();
+	for (u32 j = 0; j < 13; ++j) {
+		auto row = mouse_sprite[j];
+		for (u32 i = 0; i < 9; ++i) {
+			const u8 b = row & 0b11;
+			if (b) {
+				const u32 color = b == 1 ? 0xFF000000 : 0xFFFFFFFF;
+				const auto pixel_y = mouse_y + j;
+				const auto pixel_x = mouse_x + i;
+				screen.set_pixel(pixel_x, pixel_y, color);
+			}
+			row >>= 2;
+		}
+	}
 }

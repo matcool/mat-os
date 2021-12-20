@@ -3,9 +3,10 @@
 #include <lib/string.hpp>
 #include <lib/format.hpp>
 
-void terminal_init(u32*, u32 width, u32 height);
+void terminal_init();
 void terminal_put_char(char);
-void terminal_write_string(const char* string);
+
+void terminal_draw();
 
 template <class... Args>
 void terminal(const StringView& string, Args&&... args) {

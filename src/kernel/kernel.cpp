@@ -12,60 +12,19 @@
 #include "log.hpp"
 #include "paging.hpp"
 #include "mouse.hpp"
+#include "screen.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
 #endif
+extern "C" {
+	void* __dso_handle;
 
-struct MultibootInfo {
-	u32 flags;
-	u32 mem_lower;
-	u32 mem_upper;
-	u32 boot_device;
-	u32 cmdline;
-	u32 mods_count;
-	u32 mods_addr;
-	u32 syms[4];
-	u32 mmap_length;
-	u32 mmap_addr;
-	u32 drives_length;
-	u32 drives_addr;
-	u32 config_table;
-	u32 boot_loader_name;
-	u32 apm_table;
+	int __cxa_atexit(void (*destructor) (void *), void *arg, void *dso) {
 
-	u32 vbe_control_info;
-	u32 vbe_mode_info;
-	u16 vbe_mode;
-	u16 vbe_interface_seg;
-	u16 vbe_interface_off;
-	u16 vbe_interface_len;
-
-	u64 framebuffer_addr;
-	u32 framebuffer_pitch;
-	u32 framebuffer_width;
-	u32 framebuffer_height;
-	u8 framebuffer_bpp;
-	u8 framebuffer_type;
-	union {
-		struct {
-			u32 framebuffer_palette_addr;
-			u32 framebuffer_palette_num_colors;
-		} indexed;
-		struct {
-			u8 framebuffer_red_field_position;
-			u8 framebuffer_red_mask_size;
-			u8 framebuffer_green_field_position;
-			u8 framebuffer_green_mask_size;
-			u8 framebuffer_blue_field_position;
-			u8 framebuffer_blue_mask_size;
-		} rgb;
-	} framebuffer_color;
-};
-
-u32* Screen::raw = nullptr;
-u32 Screen::width = 0;
-u32 Screen::height = 0;
+		return 0;
+	}
+}
 
 extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial_init();
@@ -86,15 +45,12 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		u32(multiboot->framebuffer_addr), multiboot->framebuffer_width, multiboot->framebuffer_height);
 	if (multiboot->framebuffer_type == 1) {
 		const auto pixels = reinterpret_cast<u32*>(u32(multiboot->framebuffer_addr));
-		Screen::raw = pixels;
-		Screen::width = multiboot->framebuffer_width;
-		Screen::height = multiboot->framebuffer_height;
-		for (size_t y = 0; y < multiboot->framebuffer_height; ++y) {
-			for (size_t x = 0; x < multiboot->framebuffer_width; ++x) {
-				pixels[y * multiboot->framebuffer_width + x] = 0xFF223344;
-			}
-		}
-		terminal_init(pixels, multiboot->framebuffer_width, multiboot->framebuffer_height);
+		auto& screen = Screen::get();
+		screen.raw_buffer = pixels;
+		screen.width = multiboot->framebuffer_width;
+		screen.height = multiboot->framebuffer_height;
+		terminal_init();
+		screen.redraw();
 	}
 
 
