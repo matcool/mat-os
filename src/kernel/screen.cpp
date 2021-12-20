@@ -13,8 +13,8 @@ void Screen::redraw() {
 	for (size_t i = 0; i < width * height; ++i)
 		buffer_b[i] = 0xFF223344;
 	terminal_draw();
-	mouse_draw();
 
 	for (size_t i = 0; i < width * height; ++i)
 		buffer_a[i] = buffer_b[i];
+	mouse_draw();
 }

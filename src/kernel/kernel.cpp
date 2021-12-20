@@ -20,6 +20,7 @@
 extern "C" {
 	void* __dso_handle;
 
+	// TODO: do this properly Lol
 	int __cxa_atexit(void (*destructor) (void *), void *arg, void *dso) {
 
 		return 0;

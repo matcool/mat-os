@@ -15,7 +15,7 @@ bool caps_lock = false;
 INTERRUPT
 void keyboard_interrupt(InterruptFrame*) {
 	auto scan_code = inb(PS2_DATA_PORT);
-	serial("scan code: {x}\n", scan_code);
+	// serial("scan code: {x}\n", scan_code);
 	if (scan_code == 0xFA) {
 
 	} else {
@@ -26,6 +26,8 @@ void keyboard_interrupt(InterruptFrame*) {
 		} else if (!release) {
 			if (scan_code == 0xe) {
 				terminal_delete_char();
+			} else if (scan_code == 0x1c) {
+				terminal_put_char('\n');
 			} else {
 				char c = scan_code_map[scan_code];
 				if (c) {

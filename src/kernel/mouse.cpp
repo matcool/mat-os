@@ -10,8 +10,9 @@ bool left_down = false;
 bool right_down = false;
 bool middle_down = false;
 
-i32 mouse_x = 0;
-i32 mouse_y = 0;
+u32 mouse_x = 0;
+u32 mouse_y = 0;
+u32 prev_mouse_x, prev_mouse_y;
 
 u8 cycle_counter = 0;
 u8 data_bytes[3];
@@ -19,8 +20,8 @@ u8 data_bytes[3];
 INTERRUPT
 void mouse_handler(InterruptFrame*) {
 	const auto status = inb(PS2_COMMAND_PORT);
+	// buffer is full, ignore
 	if ((status & 1) == 0) {
-		serial("buffer full\n");
 		pic_eoi(12);
 		return;
 	}
@@ -38,12 +39,21 @@ void mouse_handler(InterruptFrame*) {
 			middle_down = !!(data & 0b100);
 			right_down = !!(data & 0b010);
 			left_down = !!(data & 0b001);
-			mouse_x += x_mov;
-			mouse_y -= y_mov;
+			prev_mouse_x = mouse_x;
+			prev_mouse_y = mouse_y;
+			if (i32(mouse_x) < -x_mov)
+				mouse_x = 0;
+			else
+				mouse_x += x_mov;
+			if (i32(mouse_y) < y_mov)
+				mouse_y = 0;
+			else
+				mouse_y -= y_mov;
 			auto& screen = Screen::get();
-			mouse_x = max(min(mouse_x, i32(screen.width) - 1), 0);
-			mouse_y = max(min(mouse_y, i32(screen.height) - 1), 0);
-			screen.redraw();
+			mouse_x = max(min(mouse_x, screen.width - 1), 0u);
+			mouse_y = max(min(mouse_y, screen.height - 1), 0u);
+			// screen.redraw();
+			mouse_draw();
 		}
 	}
 	pic_eoi(12);
@@ -63,7 +73,7 @@ void mouse_set_rate(u8 rate) {
 	ps2_write_data(rate);
 	const auto ans = ps2_read();
 	if (ans != 0xFA)
-		log("Mouse did not respond with ACK ({}) while trying to set rate to {}", ans, rate);
+		log("Mouse did not respond with ACK ({x}) while trying to set rate to {}", ans, rate);
 }
 
 u8 mouse_get_id() {
@@ -111,6 +121,18 @@ const u32 mouse_sprite[13] = {
 
 void mouse_draw() {
 	auto& screen = Screen::get();
+	// this can def be done with just one set of double for loops,
+	// however i am too lazy rn
+	for (u32 j = 0; j < 13; ++j) {
+		auto row = mouse_sprite[j];
+		for (u32 i = 0; i < 9; ++i) {
+			if (row & 0b11) {
+				const auto index = (prev_mouse_y + j) * screen.width + prev_mouse_x + i;
+				screen.buffer_a[index] = screen.buffer_b[index];
+			}
+			row >>= 2;
+		}
+	}
 	for (u32 j = 0; j < 13; ++j) {
 		auto row = mouse_sprite[j];
 		for (u32 i = 0; i < 9; ++i) {
@@ -119,7 +141,7 @@ void mouse_draw() {
 				const u32 color = b == 1 ? 0xFF000000 : 0xFFFFFFFF;
 				const auto pixel_y = mouse_y + j;
 				const auto pixel_x = mouse_x + i;
-				screen.set_pixel(pixel_x, pixel_y, color);
+				screen.buffer_a[pixel_y * screen.width + pixel_x] = color;
 			}
 			row >>= 2;
 		}
