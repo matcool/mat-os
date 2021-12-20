@@ -26,9 +26,9 @@ dd 0
 ; mode type
 dd 0
 ; width
-dd 1024
+dd 800
 ; height
-dd 768
+dd 600
 ; bpp
 dd 32
 

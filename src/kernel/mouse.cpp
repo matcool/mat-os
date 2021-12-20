@@ -5,7 +5,6 @@
 #include "log.hpp"
 #include "ps2.hpp"
 #include "screen.hpp"
-#include "terminal.hpp"
 
 bool left_down = false;
 bool right_down = false;
@@ -44,7 +43,6 @@ void mouse_handler(InterruptFrame*) {
 			auto& screen = Screen::get();
 			mouse_x = max(min(mouse_x, i32(screen.width) - 1), 0);
 			mouse_y = max(min(mouse_y, i32(screen.height) - 1), 0);
-			terminal("mouse at {},{}\n", mouse_x, mouse_y);
 			screen.redraw();
 		}
 	}

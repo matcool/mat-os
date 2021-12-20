@@ -45,10 +45,9 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		u32(multiboot->framebuffer_addr), multiboot->framebuffer_width, multiboot->framebuffer_height);
 	if (multiboot->framebuffer_type == 1) {
 		const auto pixels = reinterpret_cast<u32*>(u32(multiboot->framebuffer_addr));
+		// TODO: not assume bpp and other info
 		auto& screen = Screen::get();
-		screen.raw_buffer = pixels;
-		screen.width = multiboot->framebuffer_width;
-		screen.height = multiboot->framebuffer_height;
+		screen.init(multiboot->framebuffer_width, multiboot->framebuffer_height, pixels);
 		terminal_init();
 		screen.redraw();
 	}
