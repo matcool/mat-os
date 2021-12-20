@@ -5,6 +5,7 @@
 
 void terminal_init();
 void terminal_put_char(char);
+void terminal_delete_char();
 
 void terminal_draw();
 

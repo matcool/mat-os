@@ -5,6 +5,7 @@
 #include "pic.hpp"
 #include "log.hpp"
 #include "ps2.hpp"
+#include "screen.hpp"
 
 char scan_code_map[256] = {0};
 
@@ -24,16 +25,20 @@ void keyboard_interrupt(InterruptFrame*) {
 			shift_held = !release;
 		} else if (!release) {
 			if (scan_code == 0xe) {
-				// terminal_delete_char();
+				terminal_delete_char();
 			} else {
 				char c = scan_code_map[scan_code];
 				if (c) {
 					if (!shift_held && c >= 'A' && c <= 'Z')
 						c += 32;
+					else if (shift_held && c >= '0' && c <= '9') {
+						static const char shift_numbers[10] = {')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
+						c = shift_numbers[c - '0'];
+					}
 					terminal("{}", c);
 				}
 			}
-		} else {
+			Screen::get().redraw();
 		}
 	}
 	pic_eoi(1);

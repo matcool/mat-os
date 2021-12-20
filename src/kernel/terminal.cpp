@@ -50,6 +50,15 @@ void terminal_put_char(char c) {
 	}
 }
 
+void terminal_delete_char() {
+	if (cursor_x == 0) {
+		--cursor_y;
+		cursor_x = width;
+	}
+	--cursor_x;
+	terminal_put_entry_at(' ', cursor_x, cursor_y);
+}
+
 void terminal_draw_char(char c, u32 x, u32 y, u32 color) {
 	const auto letter = terminal_font[u8(c)];
 	auto& screen = Screen::get();
