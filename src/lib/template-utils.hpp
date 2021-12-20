@@ -94,3 +94,19 @@ template <class T>
 constexpr T&& forward(remove_ref<T>&& value) noexcept {
 	return static_cast<T&&>(value);
 }
+
+namespace {
+	template <class T>
+	struct _unsigned_of { using type = T; };
+	template <>
+	struct _unsigned_of<i8> { using type = u8; };
+	template <>
+	struct _unsigned_of<i16> { using type = u16; };
+	template <>
+	struct _unsigned_of<i32> { using type = u32; };
+	template <>
+	struct _unsigned_of<i64> { using type = u64; };
+}
+
+template <integral T>
+using unsigned_of = typename _unsigned_of<T>::type;

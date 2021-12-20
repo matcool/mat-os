@@ -44,15 +44,14 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,
 		u32(multiboot->framebuffer_addr), multiboot->framebuffer_width, multiboot->framebuffer_height);
+	auto& screen = Screen::get();
 	if (multiboot->framebuffer_type == 1) {
 		const auto pixels = reinterpret_cast<u32*>(u32(multiboot->framebuffer_addr));
 		// TODO: not assume bpp and other info
-		auto& screen = Screen::get();
 		screen.init(multiboot->framebuffer_width, multiboot->framebuffer_height, pixels);
 		terminal_init();
-		screen.redraw();
 	}
-
+	screen.redraw();
 
 	serial("hello\n"_sv);
 

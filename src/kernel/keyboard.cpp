@@ -40,7 +40,6 @@ void keyboard_interrupt(InterruptFrame*) {
 					terminal("{}", c);
 				}
 			}
-			Screen::get().redraw();
 		}
 	}
 	pic_eoi(1);

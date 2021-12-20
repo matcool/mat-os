@@ -26,8 +26,37 @@ void terminal_init() {
 
 #include "terminal-font.hpp"
 
+void terminal_draw_char(char c, u32 x, u32 y, u32 color, bool refresh = false) {
+	if (c == ' ') return;
+	const auto letter = terminal_font[u8(c)];
+	auto& screen = Screen::get();
+	for (u32 font_j = 0; font_j < FONT_HEIGHT; ++font_j) {
+		const auto row = letter[font_j];
+		for (u32 font_i = 0; font_i < FONT_WIDTH; ++font_i) {
+			if (row & (1 << font_i)) {
+				for (u8 offset_y = 0; offset_y < PIXEL_SIZE; ++offset_y) {
+					for (u8 offset_x = 0; offset_x < PIXEL_SIZE; ++offset_x) {
+						const auto pixel_y = y * FONT_PIXEL_HEIGHT + font_j * PIXEL_SIZE + offset_y;
+						const auto pixel_x = x * FONT_PIXEL_WIDTH + font_i * PIXEL_SIZE + offset_x;
+						screen.set_pixel(pixel_x, pixel_y, color);
+					}
+				}
+			}
+		}
+	}
+	if (refresh) {
+		for (u32 py = 0; py < FONT_PIXEL_HEIGHT; ++py) {
+			for (u32 px = 0; px < FONT_PIXEL_WIDTH; ++px) {
+				const auto index = (y * FONT_PIXEL_HEIGHT + py) * screen.width + x * FONT_PIXEL_WIDTH + px;
+				screen.buffer_a[index] = screen.buffer_b[index];
+			}
+		}
+	}
+}
+
 void terminal_put_entry_at(char c, size_t x, size_t y) {
 	buffer[y * width + x] = c;
+	terminal_draw_char(c, x, y, 0xFFFFFFFF, true);
 }
 
 void terminal_scroll_down() {
@@ -36,6 +65,8 @@ void terminal_scroll_down() {
 		memcpy(&buffer[y * width], &buffer[(y + 1) * width], width);
 	for (u32 x = 0; x < width; ++x)
 		terminal_put_entry_at(' ', x, height - 1);
+
+	Screen::get().redraw();
 }
 
 void terminal_put_char(char c) {
@@ -57,25 +88,6 @@ void terminal_delete_char() {
 	}
 	--cursor_x;
 	terminal_put_entry_at(' ', cursor_x, cursor_y);
-}
-
-void terminal_draw_char(char c, u32 x, u32 y, u32 color) {
-	const auto letter = terminal_font[u8(c)];
-	auto& screen = Screen::get();
-	for (u32 font_j = 0; font_j < FONT_HEIGHT; ++font_j) {
-		const auto row = letter[font_j];
-		for (u32 font_i = 0; font_i < FONT_WIDTH; ++font_i) {
-			if (row & (1 << font_i)) {
-				for (u8 offset_y = 0; offset_y < PIXEL_SIZE; ++offset_y) {
-					for (u8 offset_x = 0; offset_x < PIXEL_SIZE; ++offset_x) {
-						const auto pixel_y = y * FONT_PIXEL_HEIGHT + font_j * PIXEL_SIZE + offset_y;
-						const auto pixel_x = x * FONT_PIXEL_WIDTH + font_i * PIXEL_SIZE + offset_x;
-						screen.set_pixel(pixel_x, pixel_y, color);
-					}
-				}
-			}
-		}
-	}
 }
 
 void terminal_draw() {

@@ -16,6 +16,8 @@ public:
 	u32* buffer_b;
 
 	void redraw();
+	void clear();
+	void swap();
 
 	// color is in the format 0xAARRGGB, although
 	// the alpha makes no sense in the context of a screen
