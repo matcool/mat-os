@@ -72,6 +72,14 @@ public:
 		delete[] m_elements;
 	}
 
+	size_t size() const { return m_size; }
+	size_t capacity() const { return m_capacity; }
+
+	auto begin() { return HashIterator<T>(this); }
+	auto begin() const { return HashIterator<const T>(this); }
+	auto end() { return HashIterator<T>(m_capacity, nullptr, this); }
+	auto end() const { return HashIterator<const T>(m_capacity, nullptr, this); }
+
 	T& insert(const T& value) {
 		auto& slot = m_elements[index_for_value(value)];
 		if (slot == nullptr) {
@@ -100,14 +108,6 @@ public:
 		return false;
 	}
 
-	size_t size() const { return m_size; }
-	size_t capacity() const { return m_capacity; }
-
-	auto begin() { return HashIterator<T>(this); }
-	auto begin() const { return HashIterator<const T>(this); }
-	auto end() { return HashIterator<T>(m_capacity, nullptr, this); }
-	auto end() const { return HashIterator<const T>(m_capacity, nullptr, this); }
-
 	void remove(const T& value) {
 		auto slot = &m_elements[index_for_value(value)];
 		auto el = *slot;
@@ -120,6 +120,33 @@ public:
 			}
 			slot = &el->next;
 			el = el->next;
+		}
+	}
+
+	// TODO: maybe rename to resize? although id also have to change Vector::reserve to be consistent
+	void reserve(size_t capacity) {
+		if (capacity > m_capacity) {
+			auto new_data = new Element*[capacity];
+			for (size_t i = 0; i < m_capacity; ++i) {
+				auto element = m_elements[i];
+				while (element) {
+					const auto next = element->next;
+					element->next = nullptr;
+					auto& slot = new_data[hash(element->value) % capacity];
+					if (slot == nullptr) {
+						slot = element;
+					} else {
+						auto el = slot;
+						while (el->next)
+							el = el->next;
+						el->next = element;
+					}
+					element = next;
+				}
+			}
+			delete m_elements;
+			m_capacity = capacity;
+			m_elements = new_data;
 		}
 	}
 };

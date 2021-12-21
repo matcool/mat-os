@@ -147,4 +147,11 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	for (const auto& value : my_set) {
 		terminal("set value {}\n", value);
 	}
+	my_set.insert(18);
+	my_set.insert(50);
+	my_set.reserve(32);
+	terminal("---\n");
+	for (const auto& value : my_set) {
+		terminal("set value {}\n", value);
+	}
 }
