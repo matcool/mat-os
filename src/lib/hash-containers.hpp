@@ -4,9 +4,6 @@
 
 // TODO: a better name for this header Lol
 
-template <class K, class V>
-class HashMap;
-
 template <class T>
 class HashSet {
 	// maybe make this packed?
@@ -22,18 +19,16 @@ class HashSet {
 		return hash(value) % m_capacity;
 	}
 
-	template <class K, class V>
-	friend class HashMap;
-
+	template <class V>
 	struct HashIterator {
 		size_t m_index = 0;
 		Element* m_element = nullptr;
-		HashSet<T>* m_set;
+		const HashSet<T>* m_set;
 
-		HashIterator(HashSet<T>* set) : m_set(set) {
+		HashIterator(const HashSet<T>* set) : m_set(set) {
 			until_next();
 		}
-		HashIterator(size_t index, Element* element, HashSet<T>* set)
+		HashIterator(size_t index, Element* element, const HashSet<T>* set)
 			: m_index(index), m_element(element), m_set(set) {}
 
 		void until_next() {
@@ -57,7 +52,7 @@ class HashSet {
 			return m_index != other.m_index || m_element != other.m_element;
 		}
 
-		T& operator*() const {
+		V& operator*() const {
 			return m_element->value;
 		}
 	};
@@ -107,8 +102,10 @@ public:
 
 	size_t size() const { return m_size; }
 
-	auto begin() { return HashIterator(this); }
-	auto end() { return HashIterator(m_capacity, nullptr, this); }
+	auto begin() { return HashIterator<T>(this); }
+	auto begin() const { return HashIterator<const T>(this); }
+	auto end() { return HashIterator<T>(m_capacity, nullptr, this); }
+	auto end() const { return HashIterator<const T>(m_capacity, nullptr, this); }
 };
 
 namespace {
@@ -131,18 +128,11 @@ struct Hash<HashKeyValue<K, V>> {
 };
 
 template <class K, class V>
-class HashMap {
-	HashSet<HashKeyValue<K, V>> m_container;
+class HashMap : public HashSet<HashKeyValue<K, V>> {
+	using Parent = HashSet<HashKeyValue<K, V>>;
 public:
-	HashMap() {}
-
 	V& operator[](const K& key) {
-		return m_container.insert({ key, V() }).value;
+		return Parent::insert({ key, V() }).value;
 	}
-
-	size_t size() const { return m_container.size(); }
-
-	auto begin() { return m_container.begin(); }
-	auto end() { return m_container.end(); }
 };
 

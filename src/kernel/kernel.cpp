@@ -123,6 +123,10 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	my_map["hello"] = 2;
 	my_map["world"_sv] = 3;
 	my_map["hello"_sv] = 10;
+	for (auto& [key, value] : my_map) {
+		terminal("map[{}] = {}\n", key, value);
+		++value;
+	}
 	for (const auto& [key, value] : my_map) {
 		terminal("map[{}] = {}\n", key, value);
 	}
