@@ -24,7 +24,7 @@ namespace {
 template <integral T>
 struct Formatter<T> {
 	static void format(FuncPtr<void(char)> write, T value, const StringView& options) {
-		if (value == 0) return write('0');
+		// if (value == 0) return write('0');
 		const bool neg = value < 0;
 		if (neg) value = -value;
 		// TODO: not this, maybe have a struct instead?

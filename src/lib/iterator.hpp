@@ -21,7 +21,7 @@ struct Iterator {
 };
 
 // Inherit this to have basic forward iterators
-// This assume T has size() and operator[]
+// This assumes T has size() and operator[]
 template <class T>
 struct Iterable {
 	auto begin() { return Iterator<T> { 0, derived() }; }

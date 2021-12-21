@@ -13,6 +13,7 @@
 #include "paging.hpp"
 #include "mouse.hpp"
 #include "screen.hpp"
+#include <lib/hash.hpp>
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -117,4 +118,14 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		str.push_back('A' + i);
 	}
 	terminal("String is now \"{}\" (size={}, capacity={})\n", str, str.size(), str.capacity());
+
+	// TODO: make this work with strings
+	// HashMap<int, StringView> my_map;
+	HashMap<int, int> my_map;
+	my_map[0] = 12;
+	my_map[2] = 3;
+	my_map[34] = 13;
+	for (const auto& [key, value] : my_map) {
+		terminal("map[{}] = {}\n", key, value);
+	}
 }
