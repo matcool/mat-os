@@ -6,11 +6,12 @@
 #include "hash.hpp"
 
 class StringView : public Iterable<StringView> {
-	const size_t m_size;
+	size_t m_size;
 	const char* m_data;
 public:
-	StringView(const char* data, size_t size) : m_size(size), m_data(data) {}
+	constexpr StringView(const char* data, size_t size) : m_size(size), m_data(data) {}
 	StringView(const char* data) : m_size(strlen(data)), m_data(data) {}
+	StringView() : m_size(0), m_data(nullptr) {}
 
 	size_t size() const { return m_size; }
 	const char* data() const { return m_data; }
@@ -26,14 +27,14 @@ public:
 	}
 };
 
-inline StringView operator "" _sv(const char* data, size_t len) {
+inline constexpr StringView operator "" _sv(const char* data, size_t len) {
 	return StringView(data, len);
 }
 
 template <>
 struct Hash<StringView> {
 	static HashType hash(const StringView& str) {
-		return hash_combine(::hash(str.data()), ::hash(str.size()));
+		return hash_combine(str.data(), str.size());
 	}
 };
 

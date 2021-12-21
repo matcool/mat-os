@@ -104,9 +104,10 @@ struct Formatter<char> {
 	}
 };
 
-template <>
-struct Formatter<void*> {
-	static void format(FuncPtr<void(char)> write, const void* value, const StringView&) {
+template <class T>
+requires is_pointer<T> && (!is_same<T, char*>)
+struct Formatter<T> {
+	static void format(FuncPtr<void(char)> write, const T value, const StringView&) {
 		Formatter<uptr>::format(write, reinterpret_cast<uptr>(value), "x"_sv);
 	}
 };
