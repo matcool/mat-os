@@ -123,11 +123,28 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	my_map["hello"] = 2;
 	my_map["world"_sv] = 3;
 	my_map["hello"_sv] = 10;
+	my_map["foo"] = 2;
+	my_map["bar"] = 4;
 	for (auto& [key, value] : my_map) {
 		terminal("map[{}] = {}\n", key, value);
 		++value;
 	}
+	my_map.remove("foo");
 	for (const auto& [key, value] : my_map) {
 		terminal("map[{}] = {}\n", key, value);
+	}
+
+	HashSet<int> my_set;
+	my_set.insert(2);
+	my_set.insert(18);
+	my_set.insert(34);
+	my_set.insert(3);
+	for (const auto& value : my_set) {
+		terminal("set value {}\n", value);
+	}
+	terminal("---\n");
+	my_set.remove(18);
+	for (const auto& value : my_set) {
+		terminal("set value {}\n", value);
 	}
 }

@@ -101,11 +101,27 @@ public:
 	}
 
 	size_t size() const { return m_size; }
+	size_t capacity() const { return m_capacity; }
 
 	auto begin() { return HashIterator<T>(this); }
 	auto begin() const { return HashIterator<const T>(this); }
 	auto end() { return HashIterator<T>(m_capacity, nullptr, this); }
 	auto end() const { return HashIterator<const T>(m_capacity, nullptr, this); }
+
+	void remove(const T& value) {
+		auto slot = &m_elements[index_for_value(value)];
+		auto el = *slot;
+		while (el) {
+			if (el->value == value) {
+				*slot = el->next;
+				--m_size;
+				delete el;
+				return;
+			}
+			slot = &el->next;
+			el = el->next;
+		}
+	}
 };
 
 namespace {
@@ -133,6 +149,11 @@ class HashMap : public HashSet<HashKeyValue<K, V>> {
 public:
 	V& operator[](const K& key) {
 		return Parent::insert({ key, V() }).value;
+	}
+
+	void remove(const K& key) {
+		// TODO: maybe just rewrite it here so i dont have to call the default ctor?
+		Parent::remove({ key, V() });
 	}
 };
 
