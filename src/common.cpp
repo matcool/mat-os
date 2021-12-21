@@ -56,8 +56,13 @@ namespace alloc {
 	void dump_info() {
 		return;
 		serial(" -- dump info -- \n"_sv);
+		size_t count = 0;
 		for (MemChunk* chunk = start; chunk != nullptr; chunk = chunk->next) {
 			serial("{}\n", *chunk);
+			if (++count > chunks_size) {
+				serial("uh ok the linked list is broken\n");
+				break;
+			}
 		}
 		serial("["_sv);
 		for (size_t i = 0; i < chunks_size; ++i) {
@@ -73,28 +78,26 @@ namespace alloc {
 			while (chunk->next && !chunk->next->used) {
 				// serial("merging {} with this one {}\n", *chunk, *chunk->next);
 				chunk->size += chunk->next->size;
-				const auto next = chunk->next->next;
 
 				// chunk->next->size = 666;
 
 				const int index = chunk->next - chunks;
-				chunk->next = next;
+				chunk->next = chunk->next->next;
+				if (chunk->next)
+					chunk->next->previous = chunk;
 				for (size_t i = index; i < chunks_size - 1; ++i) {
 					const auto& target = chunks[i + 1];
 					if (target.previous)
 						--target.previous->next;
 					else
 						--start;
-					if (target.next && target.next)
+					if (target.next)
 						--target.next->previous;
 					chunks[i] = chunks[i + 1];
 				}
 				--chunks_size;
 				if (chunk - chunks > index)
 					--chunk;
-
-				if (chunk->next)
-					chunk->next->previous = chunk;
 			}
 		}
 		dump_info();
@@ -143,7 +146,7 @@ namespace alloc {
 	void remove_chunk(uptr offset) {
 		const auto chunk = chunk_for_address(offset);
 		if (chunk) {
-			serial(" - freeing {} bytes\n", chunk->size);
+			serial(" - freeing {} bytes {x}\n", chunk->size, offset);
 			chunk->used = false;
 			merge_chunks();
 		} else {
@@ -156,7 +159,8 @@ template <>
 struct Formatter<alloc::MemChunk> {
 	static void format(FuncPtr<void(char)> write, const alloc::MemChunk& chunk, const StringView&) {
 		// lmao
-		format_to(write, "chunk({},size={},prev={},next={},{})",
+		format_to(write, "chunk[{}]({x},size={},prev={},next={},{})",
+			&chunk - alloc::chunks,
 			chunk.offset, chunk.size, chunk.previous ? chunk.previous - alloc::chunks : -1,
 			chunk.next ? chunk.next - alloc::chunks : -1, chunk.used ? "used"_sv : "unused"_sv);
 	}
