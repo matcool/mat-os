@@ -4,7 +4,7 @@
 #include <lib/vector.hpp>
 
 constexpr auto FONT_WIDTH = 7;
-constexpr auto FONT_HEIGHT = 9;
+constexpr auto FONT_HEIGHT = 10;
 constexpr auto PIXEL_SIZE = 2;
 constexpr auto FONT_PIXEL_WIDTH = FONT_WIDTH * PIXEL_SIZE;
 constexpr auto FONT_PIXEL_HEIGHT = FONT_HEIGHT * PIXEL_SIZE;
