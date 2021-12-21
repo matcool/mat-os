@@ -125,29 +125,27 @@ public:
 
 	// TODO: maybe rename to resize? although id also have to change Vector::reserve to be consistent
 	void reserve(size_t capacity) {
-		if (capacity > m_capacity) {
-			auto new_data = new Element*[capacity];
-			for (size_t i = 0; i < m_capacity; ++i) {
-				auto element = m_elements[i];
-				while (element) {
-					const auto next = element->next;
-					element->next = nullptr;
-					auto& slot = new_data[hash(element->value) % capacity];
-					if (slot == nullptr) {
-						slot = element;
-					} else {
-						auto el = slot;
-						while (el->next)
-							el = el->next;
-						el->next = element;
-					}
-					element = next;
+		auto new_data = new Element*[capacity];
+		for (size_t i = 0; i < m_capacity; ++i) {
+			auto element = m_elements[i];
+			while (element) {
+				const auto next = element->next;
+				element->next = nullptr;
+				auto& slot = new_data[hash(element->value) % capacity];
+				if (slot == nullptr) {
+					slot = element;
+				} else {
+					auto el = slot;
+					while (el->next)
+						el = el->next;
+					el->next = element;
 				}
+				element = next;
 			}
-			delete m_elements;
-			m_capacity = capacity;
-			m_elements = new_data;
 		}
+		delete m_elements;
+		m_capacity = capacity;
+		m_elements = new_data;
 	}
 };
 
