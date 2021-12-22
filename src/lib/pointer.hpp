@@ -18,4 +18,10 @@ public:
 
 	const T& operator*() const { return *m_ptr; }
 	T& operator*() { return *m_ptr; }
+
+	OwnPtr& operator=(const OwnPtr& other) {
+		delete m_ptr;
+		m_ptr = other.m_ptr;
+		return *this;
+	}
 };

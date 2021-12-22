@@ -155,7 +155,7 @@ namespace {
 		K key;
 		V value;
 
-		bool operator==(const HashKeyValue& other) {
+		bool operator==(const HashKeyValue& other) const {
 			return key == other.key;
 		}
 	};
@@ -176,9 +176,14 @@ public:
 		return Parent::insert({ key, V() }).value;
 	}
 
+	// TODO: maybe just rewrite these here so i dont have to call the default ctor?
+
 	void remove(const K& key) {
-		// TODO: maybe just rewrite it here so i dont have to call the default ctor?
 		Parent::remove({ key, V() });
+	}
+
+	bool contains(const K& key) const {
+		return Parent::contains({ key, V() });
 	}
 };
 
