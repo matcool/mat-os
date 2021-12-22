@@ -103,47 +103,48 @@ void mouse_init() {
 	log("Mouse initialized");
 }
 
-const u32 mouse_sprite[13] = {
-	0b000000000000000001,
-	0b000000000000000101,
-	0b000000000000011101,
-	0b000000000001111101,
-	0b000000000111111101,
-	0b000000011111111101,
-	0b000001111111111101,
-	0b000111111111111101,
-	0b010111111111111101,
-	0b000001011111111101,
-	0b000000011101011101,
-	0b000001110100000101,
-	0b000000010000000000
+constexpr u32 EMPTY = 0;
+constexpr u32 BLACK = 0xFF000000;
+constexpr u32 WHITE = 0xFFFFFFFF;
+
+constexpr size_t MOUSE_WIDTH = 9;
+constexpr size_t MOUSE_HEIGHT = 13;
+
+const u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
+	BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK,
+	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, EMPTY, EMPTY,
+	BLACK, WHITE, BLACK, BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
+	BLACK, BLACK, EMPTY, EMPTY, BLACK, WHITE, BLACK, EMPTY, EMPTY,
+	EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, BLACK, EMPTY, EMPTY, EMPTY,
 };
 
 void mouse_draw() {
 	auto& screen = Screen::get();
 	// this can def be done with just one set of double for loops,
 	// however i am too lazy rn
-	for (u32 j = 0; j < 13; ++j) {
-		auto row = mouse_sprite[j];
-		for (u32 i = 0; i < 9; ++i) {
-			if (row & 0b11) {
+	for (u32 j = 0; j < MOUSE_HEIGHT; ++j) {
+		for (u32 i = 0; i < MOUSE_WIDTH; ++i) {
+			if (mouse_sprite[j * MOUSE_WIDTH + i]) {
 				const auto index = (prev_mouse_y + j) * screen.width + prev_mouse_x + i;
 				screen.buffer_a[index] = screen.buffer_b[index];
 			}
-			row >>= 2;
 		}
 	}
-	for (u32 j = 0; j < 13; ++j) {
-		auto row = mouse_sprite[j];
-		for (u32 i = 0; i < 9; ++i) {
-			const u8 b = row & 0b11;
-			if (b) {
-				const u32 color = b == 1 ? 0xFF000000 : 0xFFFFFFFF;
+	for (u32 j = 0; j < MOUSE_HEIGHT; ++j) {
+		for (u32 i = 0; i < MOUSE_WIDTH; ++i) {
+			if (const auto color = mouse_sprite[j * MOUSE_WIDTH + i]) {
 				const auto pixel_y = mouse_y + j;
 				const auto pixel_x = mouse_x + i;
 				screen.buffer_a[pixel_y * screen.width + pixel_x] = color;
 			}
-			row >>= 2;
 		}
 	}
 }
