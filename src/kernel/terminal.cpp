@@ -54,9 +54,9 @@ void terminal_draw_char(char c, u32 x, u32 y, u32 color, bool refresh = false) {
 	}
 }
 
-void terminal_put_entry_at(char c, size_t x, size_t y) {
+void terminal_put_entry_at(char c, size_t x, size_t y, bool refresh = false) {
 	buffer[y * width + x] = c;
-	terminal_draw_char(c, x, y, 0xFFFFFFFF, true);
+	terminal_draw_char(c, x, y, 0xFFFFFFFF, refresh);
 }
 
 void terminal_scroll_down() {
@@ -71,7 +71,7 @@ void terminal_scroll_down() {
 
 void terminal_put_char(char c) {
 	if (c != '\n')
-		terminal_put_entry_at(c, cursor_x, cursor_y);
+		terminal_put_entry_at(c, cursor_x, cursor_y, true);
 	const auto& screen = Screen::get();
 	if (c == '\n' || ++cursor_x == screen.width / FONT_PIXEL_WIDTH) {
 		cursor_x = 0;
@@ -88,6 +88,7 @@ void terminal_delete_char() {
 	}
 	--cursor_x;
 	terminal_put_entry_at(' ', cursor_x, cursor_y);
+	Screen::get().redraw();
 }
 
 void terminal_draw() {
