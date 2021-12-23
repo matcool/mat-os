@@ -4,6 +4,7 @@
 #include "math.hpp"
 #include "template-utils.hpp"
 #include "hash.hpp"
+#include "limits.hpp"
 
 class StringView : public Iterable<StringView> {
 	size_t m_size;
@@ -24,6 +25,16 @@ public:
 		for (size_t i = 0; i < m_size; ++i)
 			if (at(i) != other.at(i)) return false;
 		return true;
+	}
+
+	StringView sub(size_t start, size_t end = NumberLimit<size_t>::max) const {
+		if (end == NumberLimit<size_t>::max) end = m_size;
+		return StringView(m_data + start, end - start);
+	}
+
+	bool starts_with(const StringView& str) const {
+		if (m_size < str.size()) return false;
+		return sub(0, str.size()) == str;
 	}
 };
 
@@ -82,6 +93,10 @@ public:
 	const StringView sv() const { return StringView(data(), m_size); }
 	operator StringView() const { return sv(); }
 
+	bool operator==(const StringView& other) const {
+		return sv() == other;
+	}
+
 	// hehe copy paste from Vector
 	void reserve(const size_t size) {
 		if (size > m_capacity) {
@@ -107,6 +122,11 @@ public:
 		m_size = 0;
 		m_capacity = inline_size;
 		m_inline_data[0] = 0;
+	}
+
+	void pop() {
+		if (m_size)
+			data()[--m_size] = 0;
 	}
 };
 

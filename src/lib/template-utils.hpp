@@ -14,6 +14,12 @@ template <class T>
 concept is_destructible = requires { T::~T(); };
 
 template <class T>
+void destroy(T& value) {
+	if constexpr (is_destructible<T>)
+		value.~T();
+}
+
+template <class T>
 static constexpr bool is_integral = false;
 
 // mesmerizing
