@@ -19,3 +19,19 @@ constexpr auto max(T a, Args&&... values) {
 		return a > m ? a : m;
 	}
 }
+
+template <class T>
+struct Vec2 {
+	union {
+		T x, a, width;
+	};
+	union {
+		T y, b, height;
+	};
+
+	Vec2(T x, T y) : x(x), y(y) {}
+
+	bool operator==(const Vec2& other) const {
+		return x == other.x && y == other.y;
+	}
+};

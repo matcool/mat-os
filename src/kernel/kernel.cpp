@@ -18,15 +18,6 @@
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
 #endif
-extern "C" {
-	void* __dso_handle;
-
-	// TODO: do this properly Lol
-	int __cxa_atexit(void (*destructor) (void *), void *arg, void *dso) {
-
-		return 0;
-	}
-}
 
 extern "C" void kernel_main(MultibootInfo* multiboot) {
 	serial_init();
@@ -52,7 +43,7 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		screen.init(multiboot->framebuffer_width, multiboot->framebuffer_height, pixels);
 		terminal_init();
 	}
-	screen.redraw();
+	screen.clear();
 
 	serial("hello\n"_sv);
 

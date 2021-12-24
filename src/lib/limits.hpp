@@ -22,7 +22,7 @@ struct NumberLimit<u32> {
 template <>
 struct NumberLimit<i64> {
 	static constexpr auto max = 9223372036854775807;
-	static constexpr auto min = i64(-9223372036854775808);
+	// static constexpr auto min = i64(-9223372036854775808);
 };
 
 template <>

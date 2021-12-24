@@ -101,6 +101,11 @@ constexpr T&& forward(remove_ref<T>&& value) noexcept {
 	return static_cast<T&&>(value);
 }
 
+template <class T>
+constexpr remove_ref<T>&& move(T&& value) noexcept {
+	return static_cast<remove_ref<T>&&>(value);
+}
+
 namespace {
 	template <class T>
 	struct _unsigned_of { using type = T; };

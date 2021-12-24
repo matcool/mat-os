@@ -15,6 +15,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   -I../src \
   -I../src/lib \
   ../src/common.cpp \
+  ../src/kernel/cxa.cpp \
   ../src/kernel/kernel.cpp \
   ../src/kernel/terminal.cpp \
   ../src/kernel/stdio.cpp \
@@ -31,6 +32,7 @@ cd ..
 
 clang -T linker.ld -g -o build/matos.bin -ffreestanding -O2 -nostdlib \
   build/boot.o \
+  build/cxa.o \
   build/kernel.o \
   build/common.o \
   build/terminal.o \

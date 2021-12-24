@@ -45,6 +45,12 @@ public:
 		new (&m_data[m_size++]) T(value);
 	}
 
+	void push_back(T&& value) {
+		if (m_size >= m_capacity)
+			reserve(m_capacity + 8);
+		new (&m_data[m_size++]) T(forward<T>(value));
+	}
+
 	void clear() {
 		for (size_t i = 0; i < m_size; ++i)
 			destroy(m_data[i]);

@@ -53,6 +53,10 @@ void mouse_handler(InterruptFrame*) {
 			mouse_x = max(min(mouse_x, screen.width - 1), 0u);
 			mouse_y = max(min(mouse_y, screen.height - 1), 0u);
 			// screen.redraw();
+			if (left_down) {
+				screen.m_windows[0]->set_position(mouse_x, mouse_y);
+				screen.m_windows[0]->update_entire_thing_lol();
+			}
 			mouse_draw();
 		}
 	}
