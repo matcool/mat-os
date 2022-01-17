@@ -128,6 +128,9 @@ public:
 	// TODO: maybe rename to resize? although id also have to change Vector::reserve to be consistent
 	void reserve(size_t capacity) {
 		auto new_data = new Element*[capacity];
+		for (size_t i = 0; i < capacity; ++i)
+			new_data[i] = nullptr;
+
 		for (size_t i = 0; i < m_capacity; ++i) {
 			auto element = m_elements[i];
 			while (element) {

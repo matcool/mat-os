@@ -27,27 +27,45 @@ void Screen::redraw() {
 	// mouse_draw();
 }
 
-void Window::update_screen(u32 a, u32 b, u32 width, u32 height) {
+void Screen::refresh() {
+	for (const auto& rect : m_update_rects) {
+		for (u32 y = rect.pos.y; y < rect.size.height + rect.pos.y; ++y) {
+			for (u32 x = rect.pos.x; x < rect.size.width + rect.pos.x; ++x) {
+				const auto i = y * width + x;
+				buffer_a[i] = buffer_b[i];
+			}
+		}
+	}
+	// serial("update rects cleared\n");
+	m_update_rects.clear();
+	for (auto& window : m_windows) {
+		window->m_has_refreshed_move = false;
+	}
+}
+
+void Window::update_screen(const Vec2<u32> pos, const Vec2<u32> size) {
 	auto& screen = Screen::get();
-	for (u32 y = b; y < height + b; ++y) {
-		for (u32 x = a; x < width + a; ++x) {
+	for (u32 y = pos.y; y < size.height + pos.y; ++y) {
+		for (u32 x = pos.x; x < size.width + pos.x; ++x) {
 			screen.set_pixel(m_position.x + x, m_position.y + y, m_buffer[y * m_size.width + x]);
 		}
 	}
 	// TODO: not
-	screen.swap();
+	if (screen.m_update_rects.size() < 50)
+		screen.m_update_rects.push_back(Rect { m_position + pos, size });
 }
 
 void Window::update_entire_thing_lol() {
-	auto& screen = Screen::get();
 	if (m_prev_position != m_position) {
+		auto& screen = Screen::get();
 		// TODO: intersection with current pos to not set the same pixel twice
 		for (u32 y = 0; y < m_size.height; ++y) {
 			for (u32 x = 0; x < m_size.width; ++x) {
 				screen.set_pixel(m_prev_position.x + x, m_prev_position.y + y, 0xFF223344);
 			}
 		}
+		screen.m_update_rects.push_back(Rect { m_prev_position, m_size });
+		update_screen({ 0, 0 }, m_size);
+		m_prev_position = m_position;
 	}
-	update_screen(0, 0, m_size.width, m_size.height);
-	m_prev_position = m_position;
 }

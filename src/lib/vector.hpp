@@ -56,4 +56,12 @@ public:
 			destroy(m_data[i]);
 		m_size = 0;
 	}
+
+	void pop_back() {
+		if (m_size)
+			destroy(m_data[--m_size]);
+	}
+
+	bool empty() const { return !m_size; }
+	T& back() { return m_data[m_size - 1]; }
 };

@@ -14,6 +14,7 @@
 #include "mouse.hpp"
 #include "screen.hpp"
 #include <lib/hash-containers.hpp>
+#include "pit.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -27,6 +28,8 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	gdt_init();
 
 	pic_init();
+
+	pit_init();
 
 	keyboard_init();
 	mouse_init();
@@ -144,5 +147,11 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	terminal("---\n");
 	for (const auto& value : my_set) {
 		terminal("set value {}\n", value);
+	}
+
+	screen.swap();
+	while (true) {
+		screen.refresh();
+		sleep(32);
 	}
 }

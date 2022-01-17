@@ -27,6 +27,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   ../src/kernel/paging.cpp \
   ../src/kernel/mouse.cpp \
   ../src/kernel/screen.cpp \
+  ../src/kernel/pit.cpp \
   -c
 cd ..
 
@@ -45,6 +46,7 @@ clang -T linker.ld -g -o build/matos.bin -ffreestanding -O2 -nostdlib \
   build/paging.o \
   build/mouse.o \
   build/screen.o \
+  build/pit.o \
   -target i386-elf
 
 if grub-file --is-x86-multiboot build/matos.bin; then

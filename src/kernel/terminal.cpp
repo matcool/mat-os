@@ -5,7 +5,7 @@
 
 constexpr auto FONT_WIDTH = 7;
 constexpr auto FONT_HEIGHT = 10;
-constexpr auto PIXEL_SIZE = 1;
+constexpr auto PIXEL_SIZE = 2;
 constexpr auto FONT_PIXEL_WIDTH = FONT_WIDTH * PIXEL_SIZE;
 constexpr auto FONT_PIXEL_HEIGHT = FONT_HEIGHT * PIXEL_SIZE;
 
@@ -16,7 +16,6 @@ Vector<char> buffer;
 Window* terminal_window;
 
 void terminal_init() {
-	auto& screen = Screen::get();
 	terminal_window = new Window(10, 10, 500, 500);
 	Screen::get().m_windows.push_back(terminal_window);
 	width = terminal_window->size().width / FONT_PIXEL_WIDTH;
@@ -41,22 +40,15 @@ void terminal_draw_char(char c, u32 x, u32 y, u32 color, bool refresh = false) {
 						const auto pixel_y = y * FONT_PIXEL_HEIGHT + font_j * PIXEL_SIZE + offset_y;
 						const auto pixel_x = x * FONT_PIXEL_WIDTH + font_i * PIXEL_SIZE + offset_x;
 						terminal_window->set_pixel(pixel_x, pixel_y, color);
-						// screen.set_pixel(pixel_x, pixel_y, color);
 					}
 				}
 			}
 		}
 	}
-	// if (refresh)
-	// 	terminal_window->update_entire_thing_lol();
-	// if (refresh) {
-	// 	for (u32 py = 0; py < FONT_PIXEL_HEIGHT; ++py) {
-	// 		for (u32 px = 0; px < FONT_PIXEL_WIDTH; ++px) {
-	// 			const auto index = (y * FONT_PIXEL_HEIGHT + py) * screen.width + x * FONT_PIXEL_WIDTH + px;
-	// 			screen.buffer_a[index] = screen.buffer_b[index];
-	// 		}
-	// 	}
-	// }
+	if (refresh) {
+		terminal_window->update_screen({ x * FONT_PIXEL_WIDTH, y * FONT_PIXEL_HEIGHT },
+			{ FONT_PIXEL_WIDTH * PIXEL_SIZE, FONT_PIXEL_HEIGHT * PIXEL_SIZE });
+	}
 }
 
 void terminal_put_entry_at(char c, size_t x, size_t y, bool refresh = false) {
@@ -65,6 +57,7 @@ void terminal_put_entry_at(char c, size_t x, size_t y, bool refresh = false) {
 }
 
 void terminal_scroll_down() {
+	serial("scroll down called\n");
 	for (auto& x : terminal_window->buffer())
 		x = 0xFF000000;
 	--cursor_y;
@@ -72,7 +65,11 @@ void terminal_scroll_down() {
 		memcpy(&buffer[y * width], &buffer[(y + 1) * width], width);
 	for (u32 x = 0; x < width; ++x)
 		terminal_put_entry_at(' ', x, height - 1);
-	terminal_draw();
+	for (u32 y = 0; y < height; ++y) {
+		for (u32 x = 0; x < width; ++x) {
+			terminal_draw_char(buffer[y * width + x], x, y, 0xFFFFFFFF);
+		}
+	}
 	terminal_window->update_entire_thing_lol();
 }
 
@@ -94,13 +91,4 @@ void terminal_delete_char() {
 	}
 	--cursor_x;
 	terminal_put_entry_at(' ', cursor_x, cursor_y);
-	Screen::get().redraw();
-}
-
-void terminal_draw() {
-	for (u32 y = 0; y < height; ++y) {
-		for (u32 x = 0; x < width; ++x) {
-			terminal_draw_char(buffer[y * width + x], x, y, 0xFFFFFFFF);
-		}
-	}
 }

@@ -34,4 +34,8 @@ struct Vec2 {
 	bool operator==(const Vec2& other) const {
 		return x == other.x && y == other.y;
 	}
+
+	Vec2 operator+(const Vec2& other) const {
+		return { x + other.x, y + other.y };
+	}
 };

@@ -52,10 +52,8 @@ void mouse_handler(InterruptFrame*) {
 			auto& screen = Screen::get();
 			mouse_x = max(min(mouse_x, screen.width - 1), 0u);
 			mouse_y = max(min(mouse_y, screen.height - 1), 0u);
-			// screen.redraw();
 			if (left_down) {
 				screen.m_windows[0]->set_position(mouse_x, mouse_y);
-				screen.m_windows[0]->update_entire_thing_lol();
 			}
 			mouse_draw();
 		}
@@ -67,7 +65,7 @@ void mouse_send_command(u8 command) {
 	ps2_write(0xD4);
 	ps2_write_data(command);
 	const auto ans = ps2_read();
-	if (ans != 0xFA)
+	if (ans != 0xFA) [[unlikely]]
 		log("Mouse did not respond with ACK ({x})", ans);
 }
 
@@ -76,7 +74,7 @@ void mouse_set_rate(u8 rate) {
 	mouse_send_command(0xF3);
 	ps2_write_data(rate);
 	const auto ans = ps2_read();
-	if (ans != 0xFA)
+	if (ans != 0xFA) [[unlikely]]
 		log("Mouse did not respond with ACK ({x}) while trying to set rate to {}", ans, rate);
 }
 

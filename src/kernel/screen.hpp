@@ -6,12 +6,17 @@
 
 class Window;
 
+struct Rect {
+	Vec2<u32> pos, size;
+};
+
 class Screen {
 public:
 	u32 width, height;
 	u32* buffer_a;
 	u32* buffer_b;
 	Vector<OwnPtr<Window>> m_windows;
+	Vector<Rect> m_update_rects;
 
 	static auto& get() {
 		static Screen instance;
@@ -24,6 +29,7 @@ public:
 	void redraw();
 	void clear();
 	void swap();
+	void refresh();
 
 	// color is in the format 0xAARRGGB, although
 	// the alpha makes no sense in the context of a screen
@@ -38,11 +44,17 @@ protected:
 	// TODO: vec structs
 	Vec2<u32> m_position, m_prev_position;
 	Vec2<u32> m_size;
+	friend Screen;
+	bool m_has_refreshed_move = false;
 public:
 	Vector<u32> m_buffer;
 	virtual ~Window() = default;
 
 	void set_position(u32 x, u32 y) {
+		if (!m_has_refreshed_move) {
+			m_has_refreshed_move = true;
+			update_entire_thing_lol();
+		}
 		m_position = { x, y };
 	}
 
@@ -53,7 +65,7 @@ public:
 			m_buffer.push_back(0);
 	}
 
-	void update_screen(u32 a, u32 b, u32 width, u32 height);
+	void update_screen(const Vec2<u32> pos, const Vec2<u32> size);
 
 	void update_entire_thing_lol();
 

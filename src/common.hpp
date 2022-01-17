@@ -27,6 +27,14 @@ inline u8 inb(u16 port) {
 	return ret;
 }
 
+inline void cli() {
+	asm volatile("cli");
+}
+
+inline void sti() {
+	asm volatile("sti");
+}
+
 inline void io_wait() {
 	outb(0x80, 0);
 }
