@@ -59,6 +59,8 @@ class HashSet {
 public:
 	HashSet() : m_size(0), m_capacity(16) {
 		m_elements = new Element*[m_capacity];
+		for (size_t i = 0; i < m_capacity; ++i)
+			m_elements[i] = nullptr;
 	}
 	~HashSet() {
 		for (size_t i = 0; i < m_capacity; ++i) {
