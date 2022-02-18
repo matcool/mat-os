@@ -46,7 +46,7 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 		screen.init(multiboot->framebuffer_width, multiboot->framebuffer_height, pixels);
 		terminal_init();
 	}
-	screen.clear();
+	screen.redraw();
 
 	serial("hello\n"_sv);
 
@@ -147,11 +147,5 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	terminal("---\n");
 	for (const auto& value : my_set) {
 		terminal("set value {}\n", value);
-	}
-
-	screen.swap();
-	while (true) {
-		screen.refresh();
-		sleep(32);
 	}
 }

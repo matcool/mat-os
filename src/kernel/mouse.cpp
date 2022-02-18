@@ -52,9 +52,6 @@ void mouse_handler(InterruptFrame*) {
 			auto& screen = Screen::get();
 			mouse_x = max(min(mouse_x, screen.width - 1), 0u);
 			mouse_y = max(min(mouse_y, screen.height - 1), 0u);
-			if (left_down) {
-				screen.m_windows[0]->set_position(mouse_x, mouse_y);
-			}
 			mouse_draw();
 		}
 	}

@@ -11,5 +11,4 @@ only targets x86
 - my own stl
 - malloc that doesnt even using paging because i still dont understand paging
 - bad code
-- terrible graphical system that i will remove
 - c++20
