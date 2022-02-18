@@ -31,23 +31,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   -c
 cd ..
 
-clang -T linker.ld -g -o build/matos.bin -ffreestanding -O2 -nostdlib \
-  build/boot.o \
-  build/cxa.o \
-  build/kernel.o \
-  build/common.o \
-  build/terminal.o \
-  build/stdio.o \
-  build/pic.o \
-  build/gdt.o \
-  build/idt.o \
-  build/serial.o \
-  build/keyboard.o \
-  build/paging.o \
-  build/mouse.o \
-  build/screen.o \
-  build/pit.o \
-  -target i386-elf
+clang -T linker.ld -g -o build/matos.bin -ffreestanding -O2 -nostdlib build/*.o -target i386-elf
 
 if grub-file --is-x86-multiboot build/matos.bin; then
   echo multiboot confirmed
