@@ -121,3 +121,12 @@ namespace {
 
 template <integral T>
 using unsigned_of = typename _unsigned_of<T>::type;
+
+template <integral T>
+static constexpr bool is_signed = !is_same<T, unsigned_of<T>>;
+
+template <class T>
+static constexpr bool is_floating_point = is_any_of<T, float, double>;
+
+template <class T>
+concept number = is_floating_point<T> || is_integral<T>;

@@ -48,6 +48,10 @@ class HashSet {
 			return *this;
 		}
 
+		const HashIterator& operator++() const {
+			return (*this)++;
+		}
+
 		bool operator!=(const HashIterator& other) const {
 			return m_index != other.m_index || m_element != other.m_element;
 		}
@@ -83,6 +87,8 @@ public:
 	auto end() const { return HashIterator<const T>(m_capacity, nullptr, this); }
 
 	T& insert(const T& value) {
+		if (m_size >= m_capacity)
+			reserve(m_capacity * 2);
 		auto& slot = m_elements[index_for_value(value)];
 		if (slot == nullptr) {
 			++m_size;

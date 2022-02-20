@@ -20,6 +20,17 @@ constexpr auto max(T a, Args&&... values) {
 	}
 }
 
+template <number T>
+constexpr T abs(T value) {
+	if constexpr (is_floating_point<T> || is_signed<T>) {
+		if (value < 0)
+			return -value;
+		return value;
+	} else {
+		return value;
+	}
+}
+
 template <class T>
 struct Vec2 {
 	union {
