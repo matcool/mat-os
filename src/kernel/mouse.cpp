@@ -18,7 +18,7 @@ u8 cycle_counter = 0;
 u8 data_bytes[3];
 
 INTERRUPT
-void mouse_handler(InterruptFrame*) {
+void mouse_handler(kernel::InterruptFrame*) {
 	const auto status = inb(PS2_COMMAND_PORT);
 	// buffer is full, ignore
 	if ((status & 1) == 0) {
@@ -97,7 +97,7 @@ void mouse_init() {
 
 	mouse_send_command(0xF4);
 
-	idt_get_table()[0x20 + 12] = IDTEntry(isr_wrapper<&mouse_handler>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+	kernel::InterruptDescriptorTable::set_entry(0x20 + 12, kernel::isr_wrapper<&mouse_handler>);
 
 	log("Mouse initialized");
 }

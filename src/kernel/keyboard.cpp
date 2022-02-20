@@ -17,7 +17,7 @@ String current_input;
 void process_command(const StringView& str);
 
 INTERRUPT
-void keyboard_interrupt(InterruptFrame*) {
+void keyboard_interrupt(kernel::InterruptFrame*) {
 	auto scan_code = inb(PS2_DATA_PORT);
 	// serial("scan code: {x}\n", scan_code);
 	if (scan_code == 0xFA) {
@@ -71,7 +71,7 @@ void keyboard_init() {
 	for (i = 1; i < 10; ++i)
 		scan_code_map[i + 1] = '0' + i;
 
-	idt_get_table()[0x20 + 1] = IDTEntry(isr_wrapper<&keyboard_interrupt>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+	kernel::InterruptDescriptorTable::set_entry(0x21, kernel::isr_wrapper<&keyboard_interrupt>);
 	log("Keyboard initialized");
 }
 

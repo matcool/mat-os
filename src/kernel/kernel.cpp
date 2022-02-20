@@ -34,7 +34,9 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	keyboard_init();
 	mouse_init();
 
-	idt_init();
+	kernel::InterruptDescriptorTable::init();
+
+	serial("multiboot addr is {}\n", multiboot);
 
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,

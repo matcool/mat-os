@@ -37,7 +37,7 @@ section .bss
 align 16
 stack_bottom:
 ; 16 KiB
-times 16384	resb 0
+resb 16384
 stack_top:
 
 extern kernel_main

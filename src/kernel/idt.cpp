@@ -10,37 +10,35 @@ static struct {
 
 static_assert(sizeof(idt_register) == 6, "Zoink");
 
-static IDTEntry idt_table[256];
-
-IDTEntry* idt_get_table() { return idt_table; }
+static kernel::InterruptDescriptorTable::Entry idt_table[256];
 
 template <size_t N>
 INTERRUPT
-void fancy_interrupt(InterruptFrame* frame) {
+void fancy_interrupt(kernel::InterruptFrame* frame) {
 	serial("EIP: {x}\nESP: {x}\nhit interrupt {}\n", frame->eip, frame->esp, N);
 }
 
 template <size_t N>
 constexpr void gen_interrupts_lol() {
 	if (idt_table[N].attributes == 0)
-		idt_table[N] = IDTEntry(isr_wrapper<&fancy_interrupt<N>>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+		idt_table[N] = kernel::InterruptDescriptorTable::Entry(kernel::isr_wrapper<&fancy_interrupt<N>>, kernel::IDT_GATE | kernel::IDT_GATE_INTERRUPT, 8);
 	if constexpr (N != 0)
 		gen_interrupts_lol<N - 1>();
 }
 
 template <size_t N>
 INTERRUPT
-void fancy_exception(InterruptFrame* frame, u32 error_code) {
+void fancy_exception(kernel::InterruptFrame* frame, u32 error_code) {
 	serial("EIP: {x}\nESP: {x}\nError code: {}\nhit interrupt {}\n", frame->eip, frame->esp, error_code, N);
 }
 
 template <size_t N>
 void gen_exception() {
 	if (idt_table[N].attributes == 0)
-		idt_table[N] = IDTEntry(isr_wrapper<&fancy_exception<N>>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+		idt_table[N] = kernel::InterruptDescriptorTable::Entry(kernel::isr_wrapper<&fancy_exception<N>>, kernel::IDT_GATE | kernel::IDT_GATE_INTERRUPT, 0x08);
 }
 
-void idt_init() {
+void kernel::InterruptDescriptorTable::init() {
 	gen_exception<8>();
 	gen_exception<10>();
 	gen_exception<11>();
@@ -86,4 +84,8 @@ void idt_init() {
 	serial_put_hex(data.addr);
 	serial_put_string("\n");
 #endif
+}
+
+void kernel::InterruptDescriptorTable::set_entry(size_t index, void* function, u8 attributes, u16 selector) {
+	idt_table[index] = kernel::InterruptDescriptorTable::Entry(function, attributes, selector);
 }

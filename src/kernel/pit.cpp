@@ -9,7 +9,7 @@ constexpr u16 PIT_COMMAND_REG = 0x43;
 static u32 current_delay = 0;
 
 INTERRUPT
-void pit_interrupt(InterruptFrame*) {
+void pit_interrupt(kernel::InterruptFrame*) {
 	if (current_delay)
 		--current_delay;
 	pic_eoi(0);
@@ -27,7 +27,7 @@ void pit_set_value(u16 value) {
 }
 
 void pit_init() {
-	idt_get_table()[0x20] = IDTEntry(isr_wrapper<&pit_interrupt>, IDT_GATE | IDT_GATE_INTERRUPT, 0x08);
+	kernel::InterruptDescriptorTable::set_entry(0x20, kernel::isr_wrapper<&pit_interrupt>);
 
 	constexpr u8 CHANNEL = 0b00; // select channel 0
 	constexpr u8 ACCESS_MODE = 0b11; // low byte and high byte mode
