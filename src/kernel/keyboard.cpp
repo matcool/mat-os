@@ -13,9 +13,6 @@ char scan_code_map[256] = {0};
 bool shift_held = false;
 bool caps_lock = false;
 
-String current_input;
-void process_command(const StringView& str);
-
 INTERRUPT
 void keyboard_interrupt(kernel::InterruptFrame*) {
 	auto scan_code = inb(PS2_DATA_PORT);
@@ -28,16 +25,11 @@ void keyboard_interrupt(kernel::InterruptFrame*) {
 		if (scan_code == 0x2a) {
 			shift_held = !release;
 		} else if (!release) {
+			auto& dispatcher = KeyboardDispatcher::get();
 			if (scan_code == 0xe) {
-				if (current_input.size()) {
-					terminal_delete_char();
-					current_input.pop();
-				}
+				dispatcher.dispatch(8); // Backspace
 			} else if (scan_code == 0x1c) {
-				terminal_put_char('\n');
-				process_command(current_input);
-				current_input.clear();
-				terminal("\n\n$ "_sv);
+				dispatcher.dispatch('\n');
 			} else {
 				char c = scan_code_map[scan_code];
 				if (c) {
@@ -47,8 +39,7 @@ void keyboard_interrupt(kernel::InterruptFrame*) {
 						static const char shift_numbers[10] = {')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
 						c = shift_numbers[c - '0'];
 					}
-					terminal("{}", c);
-					current_input.push_back(c);
+					dispatcher.dispatch(c);
 				}
 			}
 		}
@@ -75,12 +66,17 @@ void keyboard_init() {
 	log("Keyboard initialized");
 }
 
-void process_command(const StringView& str) {
-	if (str == "hello"_sv) {
-		terminal("world");
-	} else if (str.starts_with("echo ")) {
-		terminal(str.sub(5));
-	} else {
-		terminal("Unknown command");
+static KeyboardDispatcher s_dispatcher;
+KeyboardDispatcher& KeyboardDispatcher::get() {
+	return s_dispatcher;
+}
+
+void KeyboardDispatcher::add_listener(Function<void(u8)> callback) {
+	m_listeners.push_back(callback);
+}
+
+void KeyboardDispatcher::dispatch(u8 key) {
+	for (auto& cb : m_listeners) {
+		cb(key);
 	}
 }

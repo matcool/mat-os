@@ -15,6 +15,7 @@
 #include "screen.hpp"
 #include <lib/hash-containers.hpp>
 #include "pit.hpp"
+#include "shell.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -37,6 +38,7 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	kernel::InterruptDescriptorTable::init();
 
 	serial("multiboot addr is {}\n", multiboot);
+	serial("mem_lower is {}, mem_upper is {}, diff is {}\n", multiboot->mem_lower, multiboot->mem_upper, multiboot->mem_upper - multiboot->mem_lower);
 
 	serial("multiboot info:\nflags: {x}\naddr: {x}\nwidth: {}\nheight: {}\n"_sv,
 		multiboot->flags,
@@ -150,4 +152,7 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	for (const auto& value : my_set) {
 		terminal("set value {}\n", value);
 	}
+
+	shell_init();
+
 }

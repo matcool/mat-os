@@ -28,6 +28,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   ../src/kernel/mouse.cpp \
   ../src/kernel/screen.cpp \
   ../src/kernel/pit.cpp \
+  ../src/kernel/shell.cpp \
   -c
 cd ..
 
