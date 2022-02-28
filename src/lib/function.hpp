@@ -1,5 +1,4 @@
 #pragma once
-#include "kernel/serial.hpp"
 #include "stl.hpp"
 #include "template-utils.hpp"
 
@@ -41,6 +40,11 @@ class Function<R(Args...)> {
 		CallableBase<R(Args...)>* m_callable;
 	};
 	bool m_inline;
+
+	auto get_callable() {
+		return m_inline ? static_cast<CallableBase<R(Args...)>*>(reinterpret_cast<void*>(m_inline_data)) : m_callable;
+	}
+
 public:
 	template <class T>
 	Function(T&& value) {
@@ -62,8 +66,7 @@ public:
 			delete m_callable;
 	}
 
-	R operator()(Args&&... args) {
-		auto callable = m_inline ? reinterpret_cast<CallableBase<R(Args...)>*>(m_inline_data) : m_callable;
-		return callable->call(forward<decltype(args)>(args)...);
+	R operator()(Args... args) {
+		return get_callable()->call(forward<decltype(args)>(args)...);
 	}
 };
