@@ -14,21 +14,8 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   -target i386-elf \
   -I../src \
   -I../src/lib \
-  ../src/common.cpp \
-  ../src/kernel/cxa.cpp \
-  ../src/kernel/kernel.cpp \
-  ../src/kernel/terminal.cpp \
-  ../src/kernel/stdio.cpp \
-  ../src/kernel/pic.cpp \
-  ../src/kernel/gdt.cpp \
-  ../src/kernel/idt.cpp \
-  ../src/kernel/serial.cpp \
-  ../src/kernel/keyboard.cpp \
-  ../src/kernel/paging.cpp \
-  ../src/kernel/mouse.cpp \
-  ../src/kernel/screen.cpp \
-  ../src/kernel/pit.cpp \
-  ../src/kernel/shell.cpp \
+  ../src/*.cpp \
+  ../src/kernel/*.cpp \
   -c
 cd ..
 

@@ -1,6 +1,5 @@
 #include "kernel.hpp"
 #include "terminal.hpp"
-#include "stdio.hpp"
 #include "serial.hpp"
 #include "idt.hpp"
 #include "pic.hpp"
