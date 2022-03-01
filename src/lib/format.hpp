@@ -127,7 +127,6 @@ void format_to(FuncPtr<void(char)> write, const StringView& string, Args&&... ar
 			}... };
 
 		size_t format_index = 0;
-		String format_options;
 		for (size_t i = 0; i < string.size(); ++i) {
 			const char c = string.at(i);
 			if (i != string.size() - 1) {
@@ -146,15 +145,14 @@ void format_to(FuncPtr<void(char)> write, const StringView& string, Args&&... ar
 							return;
 						}
 					} else {
-						format_options.clear();
 						++i;
+						size_t format_options_start = i;
 						while (next != '}') {
-							format_options.push_back(next);
 							if (++i >= string.size()) break; // error?
 							next = string[i];
 						}
 						if (format_index < sizeof...(Args))
-							partials[format_index++](StringView(format_options.data(), format_options.size()));
+							partials[format_index++](string.sub(format_options_start, i));
 					}
 					continue;
 				} else if (c == '}' && next == '}') {
