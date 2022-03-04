@@ -133,3 +133,13 @@ static constexpr bool is_floating_point = is_any_of<T, float, double>;
 
 template <class T>
 concept number = is_floating_point<T> || is_integral<T>;
+
+// TODO: better name
+template <auto N>
+using smallest_type_for_indexing = ternary_t<N < 256, u8, ternary_t<N < 65536, u16, ternary_t<N < 4294967296, u32, u64>>>;
+
+template <class T>
+concept is_default_constructible = requires { T::T(); };
+
+template <class T>
+struct TypeIdentity { using type = T; };

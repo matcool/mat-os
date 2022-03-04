@@ -15,6 +15,7 @@
 #include <lib/hash-containers.hpp>
 #include "pit.hpp"
 #include "shell.hpp"
+#include "variant.hpp"
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -151,6 +152,13 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	for (const auto& value : my_set) {
 		terminal("set value {}\n", value);
 	}
+
+	Variant<int, const char*, bool> my_var = 23;
+	terminal("the index is {}, contains {}\n", my_var.index(), my_var.as<0>());
+	my_var = "hello there!";
+	terminal("the index is {}, contains {}\n", my_var.index(), my_var.as<1>());
+	my_var = false;
+	terminal("the index is {}, contains {}\n", my_var.index(), my_var.as<2>());
 
 	shell_init();
 
