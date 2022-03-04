@@ -89,6 +89,9 @@ using remove_cv = typename _remove_cv<T>::type;
 template <class T>
 using remove_ref = typename _remove_ref<T>::type;
 
+template <class T>
+using remove_cvref = remove_cv<remove_ref<T>>;
+
 // TODO: maybe put this in another header, stl puts it in <utility>
 
 template <class T>

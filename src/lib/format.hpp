@@ -73,7 +73,7 @@ struct Formatter<T> {
 };
 
 template <class T>
-requires is_any_of<T, StringView, char*, String>
+requires is_any_of<T, StringView, const char*, char*, String>
 struct Formatter<T> {
 	static void format(FuncPtr<void(char)> write, const StringView& value, const StringView&) {
 		for (const char c : value)
@@ -105,7 +105,7 @@ struct Formatter<char> {
 };
 
 template <class T>
-requires is_pointer<T> && (!is_same<T, char*>)
+requires is_pointer<T> && (!is_any_of<T, char*, const char*>)
 struct Formatter<T> {
 	static void format(FuncPtr<void(char)> write, const T value, const StringView&) {
 		Formatter<uptr>::format(write, reinterpret_cast<uptr>(value), "x"_sv);
@@ -123,7 +123,7 @@ void format_to(FuncPtr<void(char)> write, const StringView& string, Args&&... ar
 	} else {
 		Function<void(const StringView&)> partials[sizeof...(Args)] =
 			{ [&write, &args](const StringView& options) {
-				Formatter<remove_cv<remove_ref<decltype(args)>>>::format(write, forward<decltype(args)>(args), options);
+				Formatter<remove_cvref<decltype(args)>>::format(write, forward<decltype(args)>(args), options);
 			}... };
 
 		size_t format_index = 0;
