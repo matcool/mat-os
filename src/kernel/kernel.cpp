@@ -15,7 +15,8 @@
 #include <lib/hash-containers.hpp>
 #include "pit.hpp"
 #include "shell.hpp"
-#include "variant.hpp"
+#include <lib/variant.hpp>
+#include <lib/result.hpp>
 
 #if defined(__linux__) || !defined(__i386__)
 	#error "Compilation options are incorrect"
@@ -159,6 +160,25 @@ extern "C" void kernel_main(MultibootInfo* multiboot) {
 	terminal("the index is {}, contains {}\n", my_var.index(), my_var.as<1>());
 	my_var = false;
 	terminal("the index is {}, contains {}\n", my_var.index(), my_var.as<2>());
+
+	{
+		const auto result_test = [](int x) -> Result<int> {
+			if (x < 10) return x;
+			else return make_error("The value is too big!"_sv);
+		};
+
+		const auto a = result_test(3);
+		if (a.is_ok())
+			terminal("got ok Result: {}\n", a.ok());
+		else
+			terminal("got error Result: {}\n", a.error());
+
+		auto b = result_test(13);
+		if (b.is_ok())
+			terminal("got ok Result: {}\n", b.ok());
+		else
+			terminal("got error Result: {}\n", b.error());
+	}
 
 	shell_init();
 
