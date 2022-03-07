@@ -9,6 +9,8 @@ class Result {
 		T m_value_ok;
 		E m_value_error;
 	};
+	// TODO: reconsider const here as it disallows move and assignment
+	// although i have no plan of having mutable Result
 	const bool m_success;
 public:
 	Result() = delete;
@@ -18,13 +20,18 @@ public:
 	constexpr Result(bool, E&& value) : m_value_error(forward<E>(value)), m_success(false) {}
 	constexpr Result(bool, const E& value) : m_value_error(value), m_success(false) {}
 
-	bool is_ok() const { return m_success; }
-	bool is_error() const { return !m_success; }
+	constexpr bool is_ok() const { return m_success; }
+	constexpr bool is_error() const { return !m_success; }
 
-	T& ok() { return m_value_ok; }
-	const T& ok() const { return m_value_ok; }
-	E& error() { return m_value_error; }
-	const E& error() const { return m_value_error; }
+	constexpr operator bool() const { return m_success; }
+
+	[[nodiscard]] constexpr T& ok() { return m_value_ok; }
+	[[nodiscard]] constexpr const T& ok() const { return m_value_ok; }
+	[[nodiscard]] constexpr E& error() { return m_value_error; }
+	[[nodiscard]] constexpr const E& error() const { return m_value_error; }
+
+	[[nodiscard]] constexpr T& operator*() { return m_value_ok; }
+	[[nodiscard]] constexpr const T& operator*() const { return m_value_ok; }
 
 	constexpr ~Result() {
 		if (m_success)
