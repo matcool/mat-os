@@ -1,21 +1,7 @@
 #pragma once
-#include <stddef.h>
-#include <stdint.h>
+#include "types.hpp"
 
 #define PACKED __attribute__((packed))
-
-// TODO: maybe split these types into another file
-
-using u8 = uint8_t;
-using i8 = int8_t;
-using u16 = uint16_t;
-using i16 = int16_t;
-using u32 = uint32_t;
-using i32 = int32_t;
-using u64 = uint64_t;
-using i64 = int64_t;
-
-using uptr = uintptr_t;
 
 inline void outb(u16 port, u8 value) {
 	asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
