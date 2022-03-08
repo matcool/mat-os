@@ -23,7 +23,6 @@ struct Callable<T, R(Args...)> : CallableBase<R(Args...)> {
 	T m_value;
 
 	Callable(const T& value) : m_value(value) {}
-	Callable(T&& value) : m_value(value) {}
 
 	virtual R call(Args... args) override {
 		return m_value(args...);
@@ -49,7 +48,7 @@ public:
 	template <class T>
 	Function(T&& value) {
 		using C = Callable<T, R(Args...)>;
-		if (sizeof(C) > 24) {
+		if constexpr (sizeof(C) > 24) {
 			m_inline = false;
 			m_callable = new C(value);
 		} else {
