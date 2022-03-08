@@ -11,7 +11,7 @@ struct Iterator {
 		return *this;
 	}
 
-	bool operator!=(const Iterator& other) {
+	bool operator!=(const Iterator& other) const {
 		return m_index != other.m_index;
 	}
 

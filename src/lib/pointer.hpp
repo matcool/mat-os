@@ -11,7 +11,7 @@ public:
 	}
 	OwnPtr(T* ptr) : m_ptr(ptr) {}
 
-	~OwnPtr() { if (m_ptr) delete m_ptr; }
+	~OwnPtr() { delete m_ptr; }
 
 	const T* data() const { return m_ptr; }
 	T* data() { return m_ptr; }
@@ -22,7 +22,7 @@ public:
 	const T& operator*() const { return *m_ptr; }
 	T& operator*() { return *m_ptr; }
 
-	OwnPtr& operator=(const OwnPtr& other) {
+	OwnPtr& operator=(OwnPtr&& other) {
 		if (m_ptr)
 			delete m_ptr;
 		m_ptr = other.m_ptr;
