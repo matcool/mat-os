@@ -14,3 +14,4 @@ i686-elf
 src
 -I
 src/lib
+-DMAT_OS=1

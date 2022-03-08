@@ -16,6 +16,7 @@ clang -std=c++20 -g -c -nostdlib -ffreestanding -fno-builtin -fno-exceptions -fn
   -I../src/lib \
   ../src/*.cpp \
   ../src/kernel/*.cpp \
+  -DMAT_OS=1 \
   -c
 cd ..
 
