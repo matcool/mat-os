@@ -123,7 +123,7 @@ namespace alloc {
 
 template <>
 struct Formatter<alloc::MemChunk> {
-	static void format(FuncPtr<void(char)> write, const alloc::MemChunk& chunk, const StringView&) {
+	static void format(auto write, const alloc::MemChunk& chunk, const StringView&) {
 		// lmao
 		format_to(write, "chunk[{}]({x},size={},prev={},next={},{})",
 			&chunk - alloc::chunks,

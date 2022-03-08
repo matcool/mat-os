@@ -1,5 +1,4 @@
 #pragma once
-#include "kernel/serial.hpp"
 #include "stl.hpp"
 #include "string.hpp"
 #include "template-utils.hpp"
@@ -23,7 +22,7 @@ namespace {
 
 template <integral T>
 struct Formatter<T> {
-	static void format(FuncPtr<void(char)> write, T value, const StringView& options) {
+	static void format(auto write, T value, const StringView& options) {
 		// if (value == 0) return write('0');
 		const bool neg = value < 0;
 		if (neg) value = -value;
@@ -75,7 +74,7 @@ struct Formatter<T> {
 template <class T>
 requires is_any_of<T, StringView, const char*, char*, String>
 struct Formatter<T> {
-	static void format(FuncPtr<void(char)> write, const StringView& value, const StringView&) {
+	static void format(auto write, const StringView& value, const StringView&) {
 		for (const char c : value)
 			write(c);
 	}
@@ -83,7 +82,7 @@ struct Formatter<T> {
 
 template <size_t N>
 struct Formatter<char[N]> {
-	static void format(FuncPtr<void(char)> write, const char (&value)[N], const StringView&) {
+	static void format(auto write, const char (&value)[N], const StringView&) {
 		// N goes up to the null terminator, which we don't care eabout
 		for (size_t i = 0; i < N - 1; ++i)
 			write(value[i]);
@@ -92,14 +91,14 @@ struct Formatter<char[N]> {
 
 template <>
 struct Formatter<bool> {
-	static void format(FuncPtr<void(char)> write, const bool value, const StringView&) {
+	static void format(auto write, const bool value, const StringView&) {
 		Formatter<StringView>::format(write, value ? "true"_sv : "false"_sv, ""_sv);
 	}
 };
 
 template <>
 struct Formatter<char> {
-	static void format(FuncPtr<void(char)> write, const char value, const StringView&) {
+	static void format(auto write, const char value, const StringView&) {
 		write(value);
 	}
 };
@@ -107,13 +106,17 @@ struct Formatter<char> {
 template <class T>
 requires is_pointer<T> && (!is_any_of<T, char*, const char*>)
 struct Formatter<T> {
-	static void format(FuncPtr<void(char)> write, const T value, const StringView&) {
+	static void format(auto write, const T value, const StringView&) {
 		Formatter<uptr>::format(write, reinterpret_cast<uptr>(value), "x"_sv);
 	}
 };
 
-template <class... Args>
-void format_to(FuncPtr<void(char)> write, const StringView& string, Args&&... args) {
+template <class F>
+concept FormatToFunc = requires(F&& f, char c) { f(c); };
+
+template <class F, class... Args>
+requires FormatToFunc<F>
+void format_to(F&& write, const StringView& string, Args&&... args) {
 	// if no extra args are given just write out the raw string
 	// should i remove the unused {} ?
 	// i dunno
