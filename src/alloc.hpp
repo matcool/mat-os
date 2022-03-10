@@ -11,4 +11,6 @@ namespace alloc {
 		MemChunk* next;
 		bool used;
 	};
+
+	MemChunk* get_chunks();
 }

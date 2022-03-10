@@ -119,6 +119,10 @@ namespace alloc {
 			serial("improper free? ({x})\n", offset);
 		}
 	}
+
+	MemChunk* get_chunks() {
+		return start;
+	}
 }
 
 template <>
