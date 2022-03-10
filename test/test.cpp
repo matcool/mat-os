@@ -94,9 +94,12 @@ TEST_CASE(format) {
 	ASSERT_EQ(format("Hello {}."_sv, "world"_sv), "Hello world."_sv);
 	ASSERT_EQ(
 		format("Numbers: {} {x} {b} {} {x} {b}"_sv, 135, 135, 135, -30, -30, -30),
-		"Numbers: 135 0x87 0b10000111 -30 -0x1E -0b11110"_sv
+		"Numbers: 135 87 10000111 -30 -1e -11110"_sv
 	);
 	ASSERT_EQ(format("Hello {{}} {{hello}} {{ world {} }} {}"_sv, "world"_sv, 42), "Hello {} {hello} { world world } 42"_sv);
+
+	ASSERT_EQ(format("{02} {02x} {02} {05}"_sv, 5, 10, 13, 13), "05 0a 13 00013"_sv);
+	ASSERT_EQ(format("{03x} {x} {X}"_sv, -1, 0x1ab, 0x1ab), "-01 1ab 1AB"_sv);
 }
 
 TEST_CASE(string_utils) {
