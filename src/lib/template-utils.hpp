@@ -52,11 +52,8 @@ static constexpr bool is_same = false;
 template <class T>
 static constexpr bool is_same<T, T> = true;
 
-template <class T, class U, class... Ts>
-static constexpr bool is_any_of = is_same<T, U> ? true : is_any_of<T, Ts...>;
-
-template <class T, class U>
-static constexpr bool is_any_of<T, U> = is_same<T, U>;
+template <class T, class... Ts>
+static constexpr bool is_any_of = (is_same<T, Ts> || ...);
 
 template <class T>
 static constexpr bool is_pointer = false;
