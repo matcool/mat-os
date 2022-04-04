@@ -8,8 +8,10 @@ class Vector : public Iterable<Vector<T>> {
 	size_t m_size, m_capacity;
 	T* m_data;
 public:
-	Vector(size_t capacity = 3) : m_size(0), m_capacity(capacity),
+	Vector(size_t capacity) : m_size(0), m_capacity(capacity),
 		m_data(capacity ? reinterpret_cast<T*>(operator new(sizeof(T) * m_capacity)) : nullptr) {}
+
+	Vector() : Vector(0) {}
 
 	~Vector() {
 		for (size_t i = 0; i < m_size; ++i)
