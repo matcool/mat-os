@@ -5,6 +5,7 @@
 #include "function.hpp"
 #include "vector.hpp"
 #include "string.hpp"
+#include "utils.hpp"
 
 template <class T>
 struct Formatter {
@@ -175,3 +176,10 @@ void format_to(F&& write, const StringView& string, Args&&... args) {
 		}
 	}
 }
+
+template <class T, class U>
+struct Formatter<Pair<T, U>> {
+	static void format(auto write, const Pair<T, U>& pair, const StringView&) {
+		format_to(write, "{{{},{}}}"_sv, pair.first, pair.second);
+	}
+};
