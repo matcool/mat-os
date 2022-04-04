@@ -7,6 +7,7 @@
 #include <lib/hash-containers.hpp>
 #include <lib/variant.hpp>
 #include <lib/result.hpp>
+#include <lib/template-utils.hpp>
 
 TEST_CASE(string) {
 	String str = "hello";
@@ -27,6 +28,21 @@ TEST_CASE(string) {
 		(void) c;
 		ASSERT(false && "String is supposed to be empty!");
 	}
+}
+
+TEST_CASE(string_view) {
+	ASSERT_EQ("hello", "hello"_sv);
+
+	StringView str = "hello there, world!";
+
+	ASSERT_EQ(str.size(), 19);
+	ASSERT_EQ(str.find(' '), 5);
+	ASSERT_EQ(str.find(','), 11);
+	ASSERT_EQ(str.find('?'), size_t(-1));
+	Pair<StringView, StringView> pair{"hello"_sv, "there, world!"_sv};
+	ASSERT_EQ(str.split_once(' '), pair);
+	pair = {"hello there, world!"_sv, ""_sv};
+	ASSERT_EQ(str.split_once('?'), pair);
 }
 
 TEST_CASE(vector) {
@@ -56,6 +72,10 @@ TEST_CASE(vector) {
 
 	ASSERT_EQ(vec.size(), 8);
 	ASSERT_EQ(vec[5], 27);
+
+	// TODO: fix is_default_constructible
+	Vector<int> because_this_clearly_works;
+	// ASSERT(is_default_constructible<Vector<int>>);
 }
 
 TEST_CASE(optional) {
@@ -100,6 +120,8 @@ TEST_CASE(format) {
 
 	ASSERT_EQ(format("{02} {02x} {02} {05}"_sv, 5, 10, 13, 13), "05 0a 13 00013"_sv);
 	ASSERT_EQ(format("{03x} {x} {X}"_sv, -1, 0x1ab, 0x1ab), "-01 1ab 1AB"_sv);
+
+	ASSERT_EQ(format("foo {{{},{}}} bar"_sv, 12, 34), "foo {12,34} bar"_sv);
 }
 
 TEST_CASE(string_utils) {
