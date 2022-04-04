@@ -5,6 +5,7 @@
 #include "../alloc.hpp"
 #include <lib/template-utils.hpp>
 #include <lib/string-utils.hpp>
+#include "filesystem.hpp"
 
 String command;
 
@@ -67,6 +68,25 @@ void execute_command(const StringView& command) {
 			}
 			ptr += 16;
 			terminal_put_char('\n');
+		}
+	} else if (command == "ls"_sv) {
+		const auto files = kernel::filesystem::get_files();
+		for (const auto& file : files) {
+			terminal("{} - {} bytes\n"_sv, file.name, file.data.size());
+		}
+	} else if (command.starts_with("cat "_sv)) {
+		const auto file = kernel::filesystem::get_file(command.sub(4));
+		if (file) {
+			for (const auto c : file.value()->data)
+				terminal_put_char(c);
+		}
+	} else if (command.starts_with("put "_sv)) {
+		const auto args = command.sub(4);
+		const auto [name, text] = args.split_once(' ');
+		const auto file_or = kernel::filesystem::get_file(name);
+		const auto file = file_or ? file_or.value() : kernel::filesystem::add_file(name);
+		for (const auto i : text) {
+			file->data.push_back(i);
 		}
 	}
 }
