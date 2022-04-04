@@ -5,6 +5,7 @@
 #include "template-utils.hpp"
 #include "hash.hpp"
 #include "limits.hpp"
+#include "utils.hpp"
 
 class StringView : public Iterable<StringView> {
 	size_t m_size;
@@ -35,6 +36,18 @@ public:
 	bool starts_with(const StringView& str) const {
 		if (m_size < str.size()) return false;
 		return sub(0, str.size()) == str;
+	}
+
+	size_t find(const char c) const {
+		for (size_t i = 0; i < m_size; ++i)
+			if (m_data[i] == c) return i;
+		return -1;
+	}
+
+	Pair<StringView, StringView> split_once(const char c) const {
+		const auto pos = find(c);
+		if (pos == size_t(-1)) return { *this, StringView("", 0) };
+		return { sub(0, pos), sub(pos + 1) };
 	}
 };
 
@@ -72,6 +85,15 @@ public:
 	BasicString(const char* str) : BasicString(StringView(str)) {}
 	BasicString() : m_size(0), m_capacity(inline_size) {
 		m_inline_data[0] = 0;
+	}
+
+	BasicString(BasicString&& other) : m_size(other.m_size), m_capacity(other.m_capacity) {
+		if (other.is_inline())
+			copy(other.m_inline_data, other.m_inline_data + other.m_size + 1, m_inline_data);
+		else
+			m_data = other.m_data;
+		other.m_size = 0;
+		other.m_capacity = inline_size;
 	}
 
 	~BasicString() {
