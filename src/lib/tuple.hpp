@@ -1,6 +1,7 @@
 #pragma once
 #include "stl.hpp"
 #include "template-utils.hpp"
+#include "utils.hpp"
 
 template <class...>
 struct Tuple;
@@ -30,9 +31,29 @@ public:
 	template <size_t i>
 	auto& at() {
 		if constexpr (i == 0) return m_value;
-		return m_next.template at<i - 1>();
+		else return m_next.template at<i - 1>();
 	};
 
 	template <size_t i>
-	auto at() const { return at<i>(); };
+	const auto& at() const { return at<i>(); };
+
+	template <class... Args>
+	auto& operator=(const Tuple<Args...>& args) {
+		m_value = args.template at<0>();
+		if constexpr (sizeof...(Ts))
+			m_next = args.m_next;
+		return *this;
+	}
+
+	template <class A, class B>
+	auto& operator=(const Pair<A, B>& pair) {
+		m_value = pair.first;
+		this->template at<1>() = pair.second;
+		return *this;
+	}
 };
+
+template <class... Args>
+auto ref_tuple(Args&... args) {
+	return Tuple<Args&...>{args...};
+}
