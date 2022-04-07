@@ -20,3 +20,36 @@ T parse_int(const StringView& str, const u8 base = 10) {
 	}
 	return value;
 }
+
+// TODO: make it return result?
+template <class T>
+T parse_int_literal(StringView str) {
+	T value = 0;
+	const auto size = str.size();
+	u8 base = 10;
+	if (size == 0) return value;
+	if (str[0] == '0') {
+		if (size >= 3) {
+			switch (str[1]) {
+				case 'x':
+				case 'X':
+					base = 16;
+					break;
+				case 'b':
+				case 'B':
+					base = 2;
+					break;
+				case 'o':
+				case 'O':
+					base = 8;
+					break;
+				// uhh error
+			}
+			str = str.sub(2);
+		} else {
+			// uhh error
+		}
+	}
+
+	return parse_int<T>(str, base);
+}
