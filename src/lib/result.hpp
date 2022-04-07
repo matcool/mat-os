@@ -4,7 +4,8 @@
 #include "string.hpp"
 
 template <class T, class E = StringView>
-class Result {
+class [[nodiscard]] Result {
+protected:
 	union {
 		T m_value_ok;
 		E m_value_error;
@@ -23,15 +24,21 @@ public:
 	constexpr bool is_ok() const { return m_success; }
 	constexpr bool is_error() const { return !m_success; }
 
-	constexpr operator bool() const { return m_success; }
+	explicit constexpr operator bool() const { return m_success; }
 
 	[[nodiscard]] constexpr T& ok() { return m_value_ok; }
 	[[nodiscard]] constexpr const T& ok() const { return m_value_ok; }
 	[[nodiscard]] constexpr E& error() { return m_value_error; }
 	[[nodiscard]] constexpr const E& error() const { return m_value_error; }
 
+	// to be consistent with Optional
+	[[nodiscard]] constexpr T& value() { return m_value_ok; }
+	[[nodiscard]] constexpr const T& value() const { return m_value_ok; }
+
 	[[nodiscard]] constexpr T& operator*() { return m_value_ok; }
 	[[nodiscard]] constexpr const T& operator*() const { return m_value_ok; }
+	[[nodiscard]] constexpr T* operator->() { return &m_value_ok; }
+	[[nodiscard]] constexpr const T* operator->() const { return &m_value_ok; }
 
 	constexpr ~Result() {
 		if (m_success)
@@ -42,11 +49,22 @@ public:
 };
 
 namespace {
+	struct VoidResult {};
+}
+
+template <class E>
+class [[nodiscard]] Result<void, E> : public Result<VoidResult, E> {
+public:
+	Result() : Result(VoidResult{}) {}
+	using Result<VoidResult, E>::Result;
+};
+
+
+namespace {
 	template <class E>
 	struct ResultError {
 		E m_value;
 
-		ResultError(E&& value) : m_value(move<E>(value)) {}
 		ResultError(const E& value) : m_value(value) {}
 
 		template <class T, class U>
