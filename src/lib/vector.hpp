@@ -2,6 +2,7 @@
 #include "stl.hpp"
 #include "iterator.hpp"
 #include "template-utils.hpp"
+#include "utils.hpp"
 
 template <class T>
 class Vector : public Iterable<Vector<T>> {
@@ -13,10 +14,18 @@ public:
 
 	Vector() : Vector(0) {}
 
+	Vector(const Vector& other) : m_size(other.m_size), m_capacity(m_size), m_data(nullptr) {
+		if (m_size) {
+			m_data = reinterpret_cast<T*>(operator new(sizeof(T) * m_capacity));
+			copy(other.begin(), other.end(), m_data);
+		}
+	}
+
 	~Vector() {
 		for (size_t i = 0; i < m_size; ++i)
 			destroy(m_data[i]);
 		// note its not delete[]
+		// because i avoid new[] as it always initializes every element
 		delete m_data;
 	}
 
