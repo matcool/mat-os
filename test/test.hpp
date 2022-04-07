@@ -22,7 +22,7 @@ void print(Args&&... args) {
 }
 
 inline Vector<Pair<StringView, Function<void()>>> test_cases;
-inline void add_test_case(const StringView name, const Function<void()> func) {
+inline void add_test_case(const StringView name, const Function<void()>& func) {
 	test_cases.push_back({ name, func });
 }
 

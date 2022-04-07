@@ -43,6 +43,10 @@ TEST_CASE(string_view) {
 	ASSERT_EQ(str.split_once(' '), pair);
 	pair = {"hello there, world!"_sv, ""_sv};
 	ASSERT_EQ(str.split_once('?'), pair);
+
+	str = " \r \vfoo bar\n\t \f  ";
+	ASSERT_EQ(str.trim_left(), "foo bar\n\t \f  "_sv);
+	ASSERT_EQ(str.trim_right(), " \r \vfoo bar"_sv);
 }
 
 TEST_CASE(vector) {
@@ -71,6 +75,12 @@ TEST_CASE(vector) {
 		i += 1;
 
 	ASSERT_EQ(vec.size(), 8);
+	ASSERT_EQ(vec[5], 27);
+
+	{
+		auto vec_copy = vec;
+		ASSERT_EQ(vec_copy[5], 27);
+	}
 	ASSERT_EQ(vec[5], 27);
 
 	// TODO: fix is_default_constructible
