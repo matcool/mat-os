@@ -7,6 +7,16 @@
 #include "limits.hpp"
 #include "utils.hpp"
 
+// TODO: maybe make this not inline?
+inline bool is_whitespace(const char ch) {
+	return ch == ' '
+	|| ch == '\n'
+	|| ch == '\t'
+	|| ch == '\r'
+	|| ch == '\f' // line feed
+	|| ch == '\v'; // vertical tab
+}
+
 class StringView : public Iterable<StringView> {
 	size_t m_size;
 	const char* m_data;
@@ -27,6 +37,8 @@ public:
 			if (at(i) != other.at(i)) return false;
 		return true;
 	}
+
+	explicit operator bool() const { return m_size; }
 
 	StringView sub(size_t start, size_t end = NumberLimit<size_t>::max) const {
 		if (end == NumberLimit<size_t>::max) end = m_size;
@@ -49,6 +61,56 @@ public:
 		if (pos == size_t(-1)) return { *this, StringView("", 0) };
 		return { sub(0, pos), sub(pos + 1) };
 	}
+
+	auto split_iter(const char split) const {
+		struct SplitIterator {
+			StringView cur, rest;
+			char split;
+			void next(const StringView& str) {
+				const auto [a, b] = str.split_once(split);
+				cur = a;
+				rest = b;
+			}
+			SplitIterator(const StringView str, const char split) : split(split) {
+				next(str);
+			}
+			auto& operator++() {
+				next(rest);
+				return *this;
+			}
+			auto operator*() {
+				return cur;
+			}
+			bool operator!=(int) {
+				return cur || rest;
+			}
+		};
+		struct SplitWrapper {
+			StringView str;
+			char split;
+			auto begin() { return SplitIterator(str, split); }
+			auto end() { return 0; }
+		};
+		return SplitWrapper { *this, split };
+	}
+
+	StringView trim_left() const {
+		for (size_t i = 0; i < m_size; ++i) {
+			if (!is_whitespace(m_data[i])) return sub(i);
+		}
+		// if all of it is whitespace then return an empty string
+		return StringView("", 0);
+	}
+
+	StringView trim_right() const {
+		for (size_t i = m_size; i; --i) {
+			if (!is_whitespace(m_data[i - 1])) return sub(0, i);
+		}
+		// if all of it is whitespace then return an empty string
+		return StringView("", 0);
+	}
+
+	auto trim() const { return trim_left().trim_right(); }
 };
 
 inline constexpr StringView operator "" _sv(const char* data, size_t len) {
@@ -122,11 +184,11 @@ public:
 	// hehe copy paste from Vector
 	void reserve(const size_t size) {
 		if (size > m_capacity) {
-			auto new_location = operator new(sizeof(T) * (size + 1));
+			auto new_location = new T[size + 1];
 			memcpy(new_location, data(), sizeof(T) * m_size);
 			if (!is_inline())
 				delete[] m_data;
-			m_data = reinterpret_cast<T*>(new_location);
+			m_data = new_location;
 			m_capacity = size;
 		}
 	}
