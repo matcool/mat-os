@@ -33,14 +33,11 @@ class HashSet {
 
 		void until_next() {
 			while (!m_element && m_index < m_set->m_capacity) {
-				m_element = m_set->m_elements[++m_index];
+				m_element = m_set->m_elements[m_index++];
 			}
 			if (m_index == m_set->m_capacity) m_element = nullptr;
 		}
 
-		// this would be const if i didnt use it for the
-		// hashmap, in most other cases you dont want to modify
-		// this since it would change the hash
 		HashIterator& operator++() {
 			if (m_element)
 				m_element = m_element->next;
@@ -48,6 +45,7 @@ class HashSet {
 			return *this;
 		}
 
+		// TODO: uh
 		const HashIterator& operator++() const {
 			return (*this)++;
 		}
@@ -154,7 +152,7 @@ public:
 				element = next;
 			}
 		}
-		delete m_elements;
+		delete[] m_elements;
 		m_capacity = capacity;
 		m_elements = new_data;
 	}
