@@ -12,7 +12,7 @@ public:
 	constexpr Optional(const T& value) : m_value(value), m_has_value(true) {}
 	constexpr Optional(T&& value) : m_value(value), m_has_value(true) {}
 
-	constexpr operator bool() const { return m_has_value; }
+	explicit constexpr operator bool() const { return m_has_value; }
 	constexpr bool has_value() const { return m_has_value; }
 
 	[[nodiscard]] constexpr T& value() { return m_value; }
