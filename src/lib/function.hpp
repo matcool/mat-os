@@ -11,8 +11,12 @@ struct CallableBase;
 
 template <class R, class... Args>
 struct CallableBase<R(Args...)> {
-	virtual ~CallableBase() {}
 	virtual R call(Args... args) = 0;
+	virtual ~CallableBase() {}
+	// copies into an uninitialized pointer
+	virtual void copy_into(void*) const = 0;
+	// allocates a new one
+	virtual CallableBase* clone() const = 0;
 };
 
 template <class T, class F>
@@ -26,6 +30,14 @@ struct Callable<T, R(Args...)> : CallableBase<R(Args...)> {
 
 	virtual R call(Args... args) override {
 		return m_value(args...);
+	}
+
+	virtual void copy_into(void* ptr) const override {
+		new (ptr) Callable(*this);
+	}
+
+	virtual Callable* clone() const override {
+		return new Callable(*this);
 	}
 };
 
@@ -44,8 +56,24 @@ class Function<R(Args...)> {
 		return m_inline ? static_cast<CallableBase<R(Args...)>*>(reinterpret_cast<void*>(m_inline_data)) : m_callable;
 	}
 
+	auto get_callable() const {
+		return m_inline ? static_cast<const CallableBase<R(Args...)>*>(reinterpret_cast<const void*>(m_inline_data)) : m_callable;
+	}
+
 public:
+	Function(const Function& other) : m_inline(other.m_inline) {
+		auto* callable = other.get_callable();
+		if (m_inline) {
+			callable->copy_into(m_inline_data);
+		} else {
+			m_callable = callable->clone();
+		}
+	}
+
+	// TODO: move ctor?
+
 	template <class T>
+	requires (!is_same<remove_cvref<T>, Function>)
 	Function(T&& value) {
 		using C = Callable<T, R(Args...)>;
 		if constexpr (sizeof(C) > 24) {
