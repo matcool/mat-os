@@ -29,6 +29,17 @@ public:
 		delete m_data;
 	}
 
+	Vector& operator=(const Vector& other) {
+		// TODO: maybe operator= on each element instead?
+		clear(); // doesnt deallocate
+		reserve(other.m_size);
+		m_size = other.m_size;
+		for (size_t i = 0; i < m_size; ++i) {
+			new (&m_data[i]) T(other[i]);
+		}
+		return *this;
+	}
+
 	size_t size() const { return m_size; }
 	size_t capacity() const { return m_capacity; }
 

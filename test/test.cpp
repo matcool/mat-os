@@ -83,6 +83,14 @@ TEST_CASE(vector) {
 	}
 	ASSERT_EQ(vec[5], 27);
 
+	Vector<int> foo_vec;
+	foo_vec.push_back(1);
+	foo_vec.push_back(2);
+	foo_vec.push_back(3);
+	foo_vec = vec;
+	ASSERT_EQ(foo_vec.size(), vec.size());
+	ASSERT_EQ(foo_vec[3], vec[3]);
+
 	// TODO: fix is_default_constructible
 	Vector<int> because_this_clearly_works;
 	// ASSERT(is_default_constructible<Vector<int>>);
