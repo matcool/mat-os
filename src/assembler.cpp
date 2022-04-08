@@ -1,27 +1,9 @@
-#ifndef MAT_OS
-#include <string.h>
-#include <iostream>
-#include <new>
-#else
-#include "common.hpp"
-#endif
+#include "assembler.hpp"
 
-#include <lib/string.hpp>
 #include <lib/format.hpp>
-#include <lib/vector.hpp>
-#include <lib/function.hpp>
 #include <lib/utils.hpp>
-#include <lib/tuple.hpp>
 #include <lib/optional.hpp>
 #include <lib/string-utils.hpp>
-#include <lib/result.hpp>
-
-template <class... Args>
-void print(Args&&... args) {
-#ifndef MAT_OS
-	format_to([](char c) { std::cout.put(c); }, args...);
-#endif
-}
 
 enum class Register {
 	eax,
@@ -255,7 +237,6 @@ Result<Vector<u8>> assemble(const StringView& src) {
 		line = line.trim();
 		if (!line) continue;
 		if (line.starts_with("//"_sv)) continue;
-		const auto size = output.size();
 		const auto [name, params] = line.split_once(' ');
 		// TODO: tolower them
 		if (name == "nop"_sv) {
@@ -289,15 +270,12 @@ Result<Vector<u8>> assemble(const StringView& src) {
 			}
 		} else if (name == "pop"_sv) {
 			const auto op_result = parse_operand(params.trim());
-			if (!op_result) {
-				print("parsing operand failed with {}\n"_sv, op_result.error());
-				continue;
-			}
+			if (!op_result) return make_error(op_result.error());
 			const auto op = op_result.ok();
 			if (op.type == Operand::Type::REGISTER) {
 				output.push_back(0x58 + u8(op.reg) - u8(Register::eax));
 			} else if (op.type == Operand::Type::IMMEDIATE) {
-				// assert false
+				return make_error("invalid operand"_sv);
 			} else {
 				output.push_back(0x8F);
 				const auto result = encode_modrm(output, op, 0);
@@ -339,40 +317,9 @@ Result<Vector<u8>> assemble(const StringView& src) {
 			}
 		} else {
 			if (name.trim())
-				print("unhandled instruction `{}`\n", name);
+				// print("unhandled instruction `{}`\n", name);
 			continue;
 		}
-		// pretty stuff
-		print("\x1b[35;1m{}\x1b[0m {} ", name, params);
-		for (size_t i = 0; i < 40 - (name.size() + params.size() + 1); ++i)
-			print(" "_sv);
-		for (size_t i = size; i < output.size(); ++i) {
-			print("{:02X} ", output[i]);
-		}
-		print("\n");
 	}
 	return output;
-}
-
-int main() {
-	const StringView src = R"(
-
-mov eax, 69
-ret
-
-	)"_sv;
-
-	const auto result = assemble(src);
-	if (!result) {
-		print("assembling failed: {}\n", result.error());
-		return 1;
-	}
-
-	print("\noutput is: ");
-	for (auto v : result.ok()) {
-		print("{:02X} ", v);
-	}
-	print("\n");
-
-	return 0;
 }

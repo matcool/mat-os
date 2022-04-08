@@ -6,6 +6,7 @@
 #include <lib/template-utils.hpp>
 #include <lib/string-utils.hpp>
 #include "filesystem.hpp"
+#include "../assembler.hpp"
 
 String command;
 
@@ -87,6 +88,27 @@ void execute_command(const StringView& command) {
 		const auto file = file_or ? file_or.value() : kernel::filesystem::add_file(name);
 		for (const auto i : text) {
 			file->data.push_back(i);
+		}
+		file->data.push_back('\n');
+	} else if (name == "run"_sv) {
+		const auto file = kernel::filesystem::get_file(args);
+		if (file) {
+			auto* const main = reinterpret_cast<int(__cdecl*)()>(file.value()->data.data());
+			const auto result = main();
+			terminal("\nProgram returned {}\n", result);
+		}
+	} else if (name == "asm"_sv) {
+		const auto file = kernel::filesystem::get_file(args);
+		if (file) {
+			const auto& data = file.value()->data;
+			const StringView str(reinterpret_cast<const char*>(data.data()), data.size());
+			const auto result = assemble(str);
+			if (!result) {
+				terminal("Assembling failed with error: {}\n", result.error());
+			} else {
+				auto* const out_file = kernel::filesystem::add_file("out");
+				out_file->data = result.value();
+			}
 		}
 	}
 }
