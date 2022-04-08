@@ -43,9 +43,10 @@ T parse_num(StringView str) {
 }
 
 void execute_command(const StringView& command) {
-	if (command.starts_with("echo ")) {
-		terminal(command.sub(5));
-	} else if (command == "mem") {
+	const auto [name, args] = command.split_once(' ');
+	if (name == "echo"_sv) {
+		terminal("{}", args);
+	} else if (name == "mem") {
 		size_t total = 0, used = 0;
 		for (auto chunk = alloc::get_chunks(); chunk; chunk = chunk->next) {
 			if (chunk->used)
@@ -53,12 +54,12 @@ void execute_command(const StringView& command) {
 			total += chunk->size;
 		}
 		terminal("Memory info:\nUsed: {} ({}%)\nAvailable: {}"_sv, used, 100 * used / total, total);
-	} else if (command.starts_with("alloc ")) {
-		const auto value = parse_num<size_t>(command.sub(6));
+	} else if (name == "alloc"_sv) {
+		const auto value = parse_num<size_t>(args);
 		auto ptr = malloc(value);
 		terminal("Allocated {} bytes at {}"_sv, value, ptr);
-	} else if (command.starts_with("view ")) {
-		auto ptr = parse_num<uptr>(command.sub(5));
+	} else if (name == "view"_sv) {
+		auto ptr = parse_num<uptr>(args);
 		terminal("got ptr 0x{x}\n"_sv, ptr);
 		for (u32 j = 0; j < 4; ++j) {
 			terminal("{08x} | "_sv, ptr);
@@ -69,19 +70,18 @@ void execute_command(const StringView& command) {
 			ptr += 16;
 			terminal_put_char('\n');
 		}
-	} else if (command == "ls"_sv) {
+	} else if (name == "ls"_sv) {
 		const auto files = kernel::filesystem::get_files();
 		for (const auto& file : files) {
 			terminal("{} - {} bytes\n"_sv, file.name, file.data.size());
 		}
-	} else if (command.starts_with("cat "_sv)) {
-		const auto file = kernel::filesystem::get_file(command.sub(4));
+	} else if (name == "cat"_sv) {
+		const auto file = kernel::filesystem::get_file(args);
 		if (file) {
 			for (const auto c : file.value()->data)
 				terminal_put_char(c);
 		}
-	} else if (command.starts_with("put "_sv)) {
-		const auto args = command.sub(4);
+	} else if (name == "put"_sv) {
 		const auto [name, text] = args.split_once(' ');
 		const auto file_or = kernel::filesystem::get_file(name);
 		const auto file = file_or ? file_or.value() : kernel::filesystem::add_file(name);
