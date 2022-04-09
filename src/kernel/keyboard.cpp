@@ -13,12 +13,17 @@ char scan_code_map[256] = {0};
 bool shift_held = false;
 bool caps_lock = false;
 
+// TODO: pause key code is 6 bytes :-)
+u32 multi_byte_code = 0;
+
 INTERRUPT
 void keyboard_interrupt(kernel::InterruptFrame*) {
 	auto scan_code = inb(PS2_DATA_PORT);
-	// serial("scan code: {x}\n", scan_code);
+	// serial("scan code: {02x}\n", scan_code);
 	if (scan_code == 0xFA) {
 
+	} else if (scan_code == 0xE0) {
+		multi_byte_code = scan_code;
 	} else {
 		const bool release = scan_code & 0x80;
 		scan_code &= ~0x80;
@@ -26,10 +31,22 @@ void keyboard_interrupt(kernel::InterruptFrame*) {
 			shift_held = !release;
 		} else if (!release) {
 			auto& dispatcher = KeyboardDispatcher::get();
-			if (scan_code == 0xe) {
-				dispatcher.dispatch(8); // Backspace
+			if (multi_byte_code) {
+				if (multi_byte_code == 0xE0) {
+					if (scan_code == 0x4B)
+						dispatcher.dispatch(Key::LEFT_ARROW);
+					else if (scan_code == 0x48)
+						dispatcher.dispatch(Key::UP_ARROW);
+					else if (scan_code == 0x4D)
+						dispatcher.dispatch(Key::RIGHT_ARROW);
+					else if (scan_code == 0x50)
+						dispatcher.dispatch(Key::DOWN_ARROW);
+				}
+				multi_byte_code = 0;
+			} else if (scan_code == 0xe) {
+				dispatcher.dispatch(Key::BACKSPACE); // Backspace
 			} else if (scan_code == 0x1c) {
-				dispatcher.dispatch('\n');
+				dispatcher.dispatch(Key::ENTER);
 			} else {
 				char c = scan_code_map[scan_code];
 				if (c) {
@@ -39,7 +56,7 @@ void keyboard_interrupt(kernel::InterruptFrame*) {
 						static const char shift_numbers[10] = {')', '!', '@', '#', '$', '%', '^', '&', '*', '('};
 						c = shift_numbers[c - '0'];
 					}
-					dispatcher.dispatch(c);
+					dispatcher.dispatch(Key(c));
 				}
 			}
 		}
@@ -71,11 +88,11 @@ KeyboardDispatcher& KeyboardDispatcher::get() {
 	return s_dispatcher;
 }
 
-void KeyboardDispatcher::add_listener(Function<void(u8)> callback) {
+void KeyboardDispatcher::add_listener(Function<void(Key)> callback) {
 	m_listeners.push_back(callback);
 }
 
-void KeyboardDispatcher::dispatch(u8 key) {
+void KeyboardDispatcher::dispatch(Key key) {
 	for (auto& cb : m_listeners) {
 		cb(key);
 	}

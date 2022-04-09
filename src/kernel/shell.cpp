@@ -115,20 +115,21 @@ void execute_command(const StringView& command) {
 
 void shell_init() {
 	terminal("\n\n$ "_sv);
-	KeyboardDispatcher::get().add_listener([](u8 key) {
-		if (key == '\n') {
+	KeyboardDispatcher::get().add_listener([](const Key key) {
+		if (key == Key::ENTER) {
 			terminal_put_char('\n');
 			execute_command(command);
 			command.clear();
 			terminal("\n\n$ "_sv);
-		} else if (key == 8) {
+		} else if (key == Key::BACKSPACE) {
 			if (command.size()) {
 				command.pop();
 				terminal_delete_char();
 			}
-		} else {
-			command.push_back(key);
-			terminal_put_char(key);
+		} else if (to_underlying(key) < 128) {
+			const char ch = static_cast<char>(key);
+			command.push_back(ch);
+			terminal_put_char(ch);
 		}
 	});
 }
