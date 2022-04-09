@@ -73,7 +73,10 @@ public:
 	// TODO: move ctor?
 
 	template <class T>
-	requires (!is_same<remove_cvref<T>, Function>)
+	requires requires (T foo, Args... args) {
+		{ foo(args...) } -> same_as<R>;
+		!is_same<remove_cvref<T>, Function>;
+	}
 	Function(T&& value) {
 		using C = Callable<T, R(Args...)>;
 		if constexpr (sizeof(C) > 24) {
