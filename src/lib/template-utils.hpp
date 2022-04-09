@@ -52,6 +52,9 @@ static constexpr bool is_same = false;
 template <class T>
 static constexpr bool is_same<T, T> = true;
 
+template <class T, class U>
+concept same_as = is_same<T, U>;
+
 template <class T, class... Ts>
 static constexpr bool is_any_of = (is_same<T, Ts> || ...);
 
@@ -140,3 +143,22 @@ concept is_default_constructible = requires { T::T(); };
 
 template <class T>
 struct TypeIdentity { using type = T; };
+
+#if defined(__clang__)
+
+template <class T>
+concept is_enum = __is_enum(T);
+
+template <is_enum T>
+using underlying_type = __underlying_type(T);
+
+#else
+
+static_assert(false, "uhhh implement the above :-)");
+
+#endif
+
+template <is_enum Enum>
+auto to_underlying(const Enum value) {
+	return static_cast<underlying_type<Enum>>(value);
+}
