@@ -70,7 +70,18 @@ public:
 		}
 	}
 
-	// TODO: move ctor?
+	Function(Function&& other) : m_inline(other.m_inline) {
+		auto* callable = other.get_callable();
+		if (m_inline) {
+			callable->copy_into(m_inline_data);
+			using C = CallableBase<R(Args...)>;
+			reinterpret_cast<C*>(m_inline_data)->~C();
+			other.m_inline = false;
+		} else {
+			m_callable = callable;
+		}
+		other.m_callable = nullptr;
+	}
 
 	template <class T>
 	requires requires (T foo, Args... args) {
