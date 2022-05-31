@@ -6,8 +6,8 @@
 
 template <class T>
 class Vector : public Iterable<Vector<T>> {
-	size_t m_size, m_capacity;
-	T* m_data;
+	size_t m_size{0u}, m_capacity{0u};
+	T* m_data = nullptr;
 public:
 	Vector(size_t capacity) : m_size(0), m_capacity(capacity),
 		m_data(capacity ? reinterpret_cast<T*>(operator new(sizeof(T) * m_capacity)) : nullptr) {}
@@ -53,10 +53,17 @@ public:
 
 	void reserve(const size_t size) {
 		if (size > m_capacity) {
-			auto new_location = operator new(sizeof(T) * size);
-			memcpy(new_location, (void*)m_data, sizeof(T) * m_size);
-			delete m_data;
-			m_data = reinterpret_cast<T*>(new_location);
+			T* new_location = reinterpret_cast<T*>(operator new(sizeof(T) * size));
+			if (m_data) {
+				for (size_t i = 0; i < m_size; ++i) {
+					new (&new_location[i]) T(move(m_data[i]));
+					m_data[i].~T();
+				}
+				// TODO: use memcpy for trivial T
+				// memcpy(new_location, static_cast<void*>(m_data), sizeof(T) * m_size);
+				delete m_data;
+			}
+			m_data = new_location;
 			m_capacity = size;
 		}
 	}
