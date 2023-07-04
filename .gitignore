@@ -4,3 +4,4 @@
 *.hdd
 build/
 .vscode/
+.cache/
