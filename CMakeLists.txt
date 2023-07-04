@@ -10,7 +10,12 @@ set(CMAKE_C_FLAGS ${COMMON_C_CXX_FLAGS})
 set(CMAKE_CXX_FLAGS "${COMMON_C_CXX_FLAGS} -fno-exceptions -fno-rtti -fmodules-ts")
 add_link_options("LINKER:-T,${CMAKE_CURRENT_SOURCE_DIR}/kernel/linker.ld")
 
-add_executable(${PROJECT_NAME} kernel/serial.cpp kernel/kernel.cpp kernel/cxa.cpp)
+add_executable(${PROJECT_NAME}
+	kernel/serial.cpp
+	kernel/kernel.cpp
+	kernel/cxa.cpp
+	kernel/idt.cpp
+)
 
 target_compile_features(${PROJECT_NAME} PUBLIC cxx_std_20)
 

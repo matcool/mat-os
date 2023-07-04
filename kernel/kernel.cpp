@@ -3,6 +3,7 @@
 #include <stl/format.hpp>
 #include "intrinsics.hpp"
 #include "serial.hpp"
+#include "idt.hpp"
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -43,6 +44,8 @@ extern "C" void _start() {
 		}
 		serial::fmtln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
 	}
+
+	idt::init();
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
