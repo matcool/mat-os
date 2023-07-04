@@ -94,4 +94,10 @@ using to_unsigned = typename STL_NS_IMPL::to_unsigned<Int>::type;
 
 }
 
+template <class First, class Second>
+struct Pair {
+	First first;
+	Second second;
+};
+
 }

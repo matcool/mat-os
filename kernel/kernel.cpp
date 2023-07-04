@@ -17,7 +17,7 @@ extern "C" void _start() {
 
 	serial::put("Hello\n");
 
-	mat::format_to(&serial::put_char, "Hello {} world {}|{}|{}|{}\n", true, false, 20, 0, -13);
+	mat::format_to(&serial::put_char, "Regular 50: {}, Hex 50: {:x}, Regular 10: {}\n", 50, 50, 10);
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
