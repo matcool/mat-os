@@ -28,10 +28,9 @@ struct Formatter<Func, Int> {
 	static void format(Func& func, Int value, StringView spec) {
 		types::to_unsigned<Int> absolute_value = value;
 		
-		bool negative = false;
 		if (types::is_signed<Int> && value < 0) {
-			negative = true;
 			absolute_value = -value;
+			func('-');
 		}
 
 		const int base = spec == "x" ? 16 : 10;
@@ -46,10 +45,6 @@ struct Formatter<Func, Int> {
 			absolute_value /= base;
 			buffer[--index] = digits[digit];
 		} while (absolute_value != 0);
-
-		if (negative) {
-			buffer[--index] = '-';
-		}
 
 		for (; index < sizeof(buffer); ++index) {
 			func(buffer[index]);
