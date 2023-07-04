@@ -1,5 +1,6 @@
 #include <limine/limine.h>
 #include <stl/types.hpp>
+#include <stl/format.hpp>
 #include "intrinsics.hpp"
 #include "serial.hpp"
 
@@ -15,6 +16,8 @@ extern "C" void _start() {
 	serial::init();
 
 	serial::put("Hello\n");
+
+	mat::format_to(&serial::put_char, "Hello {} world {}|{}|{}|{}\n", true, false, 20, 0, -13);
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();

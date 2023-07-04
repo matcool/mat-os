@@ -7,7 +7,8 @@ namespace kernel::serial {
 
 void init();
 
-void put(u8 value);
+void put_byte(u8 value);
+void put_char(char value);
 void put(mat::StringView str);
 
 }

@@ -14,13 +14,17 @@ namespace kernel::serial {
 		outb(COM1 + 4, 0x0B); // IRQs enabled, RTS/DSR set
 	}
 
-	void put(u8 value) {
+	void put_byte(u8 value) {
 		outb(COM1, value);
+	}
+
+	void put_char(char value) {
+		put_byte(value);
 	}
 
 	void put(mat::StringView str) {
 		for (char c : str) {
-			put(c);
+			put_char(c);
 		}
 	}
 }

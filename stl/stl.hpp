@@ -1,5 +1,5 @@
 #pragma once
 
-#define STL_NAMESPACE_NAME mat
-
-#define STL_NS namespace STL_NAMESPACE_NAME
+// name for the stl namespace
+#define STL_NS mat
+#define STL_NS_IMPL impl_detail

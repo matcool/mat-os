@@ -3,7 +3,7 @@
 #include "stl.hpp"
 #include "types.hpp"
 
-STL_NS {
+namespace STL_NS {
 
 class StringView {
 	char const* m_data = nullptr;
@@ -21,6 +21,8 @@ public:
 
 	const char* begin() const { return m_data; }
 	const char* end() const { return m_data + m_size; }
+
+	char operator[](usize index) const { return m_data[index]; }
 };
 
 }
