@@ -1,14 +1,9 @@
-export module serial;
-
-import types;
+#include "serial.hpp"
+#include "intrinsics.hpp"
 
 static constexpr u16 COM1 = 0x3F8;
 
-inline void outb(u16 port, u8 value) {
-    asm volatile("outb %0, %1" : : "a"(value), "Nd"(port));
-}
-
-export namespace serial {
+namespace kernel::serial {
     void init() {
         outb(COM1 + 1, 0x00); // Disable all interrupts
         outb(COM1 + 3, 0x80); // Enable DLAB (set baud rate divisor)
@@ -22,4 +17,10 @@ export namespace serial {
     void put(u8 value) {
         outb(COM1, value);
     }
+
+	void put(mat::StringView str) {
+		for (char c : str) {
+			put(c);
+		}
+	}
 }
