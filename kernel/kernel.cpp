@@ -4,8 +4,14 @@
 #include "intrinsics.hpp"
 #include "serial.hpp"
 
-static volatile struct limine_framebuffer_request framebuffer_request = {
+static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
+	.revision = 0,
+	.response = nullptr,
+};
+
+static volatile limine_memmap_request memmap_request = {
+	.id = LIMINE_MEMMAP_REQUEST,
 	.revision = 0,
 	.response = nullptr,
 };
@@ -17,7 +23,26 @@ extern "C" void _start() {
 
 	serial::put("Hello\n");
 
-	mat::format_to(&serial::put_char, "Regular 50: {}, Hex 50: {:x}, Regular 10: {}\n", 50, 50, 10);
+	serial::fmtln("Regular 50: {}, Hex 50: {:x}, Regular 10: {}", 50, 50, 10);
+
+	if (!memmap_request.response)
+		halt();
+
+	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
+		auto* entry = memmap_request.response->entries[i];
+		mat::StringView type = "?";
+		switch (entry->type) {
+			case LIMINE_MEMMAP_USABLE: type = "USABLE"; break;
+			case LIMINE_MEMMAP_RESERVED: type = "RESERVED"; break;
+			case LIMINE_MEMMAP_ACPI_RECLAIMABLE: type = "ACPI_RECLAIMABLE"; break;
+			case LIMINE_MEMMAP_ACPI_NVS: type = "ACPI_NVS"; break;
+			case LIMINE_MEMMAP_BAD_MEMORY: type = "BAD_MEMORY"; break;
+			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: type = "BOOTLOADER_RECLAIMABLE"; break;
+			case LIMINE_MEMMAP_KERNEL_AND_MODULES: type = "KERNEL_AND_MODULES"; break;
+			case LIMINE_MEMMAP_FRAMEBUFFER: type = "FRAMEBUFFER"; break;
+		}
+		serial::fmtln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
+	}
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
@@ -26,11 +51,16 @@ extern "C" void _start() {
 	auto* framebuffer = framebuffer_request.response->framebuffers[0];
 
 	// Note: we assume the framebuffer model is RGB with 32-bit pixels.
-	for (usize i = 0; i < framebuffer->height; i++) {
-		u32 *fb_ptr = (u32*)framebuffer->address;
-		const usize x = i;
-		const usize y = i;
-		fb_ptr[y * (framebuffer->pitch / 4) + x] = 0xffffff;
+	auto* const fb_ptr = (u32*)framebuffer->address;
+	const auto stride = framebuffer->pitch / 4;
+	for (usize y = 0; y < framebuffer->height; y++) {
+		for (usize x = 0; x < framebuffer->width; x++) {
+			u8 blue = ((x * y) >> 8) & 0xFF;
+			u8 red = 0;
+			u8 green = 0;
+			u32 color = (red << 16) | (green << 8) | blue;
+			fb_ptr[y * stride + x] = color;
+		}
 	}
 
 	halt();

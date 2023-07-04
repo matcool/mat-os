@@ -57,6 +57,15 @@ struct Formatter<Func, Int> {
 	}
 };
 
+template <FormatOutFunc Func>
+struct Formatter<Func, StringView> {
+	static void format(Func& func, StringView value) {
+		for (auto c : value) {
+			func(c);
+		}
+	}
+};
+
 template <FormatOutFunc Func, class... Args>
 void format_to(Func func, StringView str, const Args&... args) {
 	if constexpr (sizeof...(Args) == 0) {
