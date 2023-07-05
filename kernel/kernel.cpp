@@ -19,6 +19,10 @@ static volatile limine_memmap_request memmap_request = {
 
 using namespace kernel;
 
+void triggering_interrupt() {
+	volatile int x = 23 / 0;
+}
+
 extern "C" void _start() {
 	serial::init();
 
@@ -29,6 +33,7 @@ extern "C" void _start() {
 	if (!memmap_request.response)
 		halt();
 
+#if 0
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
 		auto* entry = memmap_request.response->entries[i];
 		mat::StringView type = "?";
@@ -44,6 +49,7 @@ extern "C" void _start() {
 		}
 		serial::fmtln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
 	}
+#endif
 
 	idt::init();
 
@@ -66,5 +72,7 @@ extern "C" void _start() {
 		}
 	}
 
-	halt();
+	serial::fmtln("pre int 3");
+	triggering_interrupt();
+	serial::fmtln("post int 3");
 }
