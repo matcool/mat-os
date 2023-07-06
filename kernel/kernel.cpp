@@ -18,12 +18,6 @@ static volatile limine_memmap_request memmap_request = {
 	.response = nullptr,
 };
 
-void trigger_interrupt() {
-	volatile int* x = nullptr;
-	*x = 10;
-	// volatile int y = *x;
-}
-
 using namespace kernel;
 
 extern "C" void _start() {
@@ -65,16 +59,14 @@ extern "C" void _start() {
 	const auto stride = framebuffer->pitch / 4;
 	for (usize y = 0; y < framebuffer->height; y++) {
 		for (usize x = 0; x < framebuffer->width; x++) {
-			u8 blue = ((x * y) >> 8) & 0xFF;
-			u8 red = 0;
-			u8 green = 0;
+			u8 blue = 255 - (x * (y + 400) >> 8 & 0xFF) / 2;
+			u8 red = blue / 2;
+			u8 green = blue / 2;
 			u32 color = (red << 16) | (green << 8) | blue;
 			fb_ptr[y * stride + x] = color;
 		}
 	}
 
 	kdbgln("Finished");
-	trigger_interrupt();
-	kdbgln("yup");
 	halt();
 }
