@@ -18,6 +18,12 @@ static volatile limine_memmap_request memmap_request = {
 	.response = nullptr,
 };
 
+void trigger_interrupt() {
+	volatile int* x = nullptr;
+	*x = 10;
+	// volatile int y = *x;
+}
+
 using namespace kernel;
 
 extern "C" void _start() {
@@ -68,5 +74,7 @@ extern "C" void _start() {
 	}
 
 	kdbgln("Finished");
+	trigger_interrupt();
+	kdbgln("yup");
 	halt();
 }
