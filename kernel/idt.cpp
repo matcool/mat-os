@@ -1,9 +1,9 @@
 #include "idt.hpp"
 #include <stl/types.hpp>
-#include "serial.hpp"
+#include "log.hpp"
 
 void cool_function() {
-	kernel::serial::fmtln("whats up!");
+	kdbgln("whats up!");
 }
 
 struct IDTEntry {
@@ -55,17 +55,7 @@ void kernel::idt::init() {
 	idt_register.size = sizeof(idt_table) - 1;
 	idt_register.addr = &idt_table[0];
 
-	serial::fmtln("Real has size {}, addr is {:x}", idt_register.size, reinterpret_cast<uptr>(idt_register.addr));
-
 	asm volatile("lidt %0; sti" : : "m"(idt_register));
 
-	serial::fmtln("IDT initialized");
-
-	// sanity checking
-
-	decltype(idt_register) copy;
-
-	asm volatile("sidt %0" : : "m"(copy));
-
-	serial::fmtln("Copy has size {}, addr is {:x}", copy.size, reinterpret_cast<uptr>(copy.addr));
+	kdbgln("IDT initialized");
 }
