@@ -7,7 +7,7 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Use CMake
 - [X] Serial output
 - [X] Working IDT
-- [ ] Page frame allocator
+- [X] Page frame allocator
 - [ ] Virtual memory allocator
 - [ ] PS/2 keyboard input
 - [ ] PS/2 mouse input
