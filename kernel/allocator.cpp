@@ -43,9 +43,29 @@ void bitmap_set_index(usize index, bool value) {
 	}
 }
 
+void debug_print_memmap() {
+	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
+		auto* entry = memmap_request.response->entries[i];
+		mat::StringView type = "?";
+		switch (entry->type) {
+			case LIMINE_MEMMAP_USABLE: type = "USABLE"; break;
+			case LIMINE_MEMMAP_RESERVED: type = "RESERVED"; break;
+			case LIMINE_MEMMAP_ACPI_RECLAIMABLE: type = "ACPI_RECLAIMABLE"; break;
+			case LIMINE_MEMMAP_ACPI_NVS: type = "ACPI_NVS"; break;
+			case LIMINE_MEMMAP_BAD_MEMORY: type = "BAD_MEMORY"; break;
+			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: type = "BOOTLOADER_RECLAIMABLE"; break;
+			case LIMINE_MEMMAP_KERNEL_AND_MODULES: type = "KERNEL_AND_MODULES"; break;
+			case LIMINE_MEMMAP_FRAMEBUFFER: type = "FRAMEBUFFER"; break;
+		}
+		kdbgln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
+	}
+}
+
 void kernel::alloc::init() {
 	if (!memmap_request.response || !hhdm_request.response)
 		halt();
+
+	debug_print_memmap();
 
 	hhdm_base = hhdm_request.response->offset;
 
@@ -81,7 +101,7 @@ void kernel::alloc::init() {
 		}
 	}
 	if (!bitmap_array_ptr) {
-		kdbgln("[ERROR] Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
+		kdbgln("[PANIC] Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
 		halt();
 	}
 
@@ -96,4 +116,73 @@ void kernel::alloc::init() {
 	}
 
 	kdbgln("The bitmap array occupies {} KiB of space", bitmap_array_size / 1024);
+}
+
+bool bitmap_get_index(usize index) {
+	static constexpr auto entry_bits = sizeof(u64) * 8;
+	const usize array_index = index / entry_bits;
+	const u64 bit_index = index % entry_bits;
+	const u64 bit_mask = 1 << bit_index;
+	return bitmap_array_ptr[array_index] & bit_mask;
+}
+
+// both of these implementations are incredibly inefficient, but they should at least work
+
+void* kernel::alloc::allocate_page() {
+	usize page_index = 0;
+	uptr page_address = 0;
+	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
+		auto* entry = memmap_request.response->entries[i];
+		if (entry->type == LIMINE_MEMMAP_USABLE) {
+			// start with size = PAGE_SIZE because we want to skip regions
+			// smaller than the page size. so size ends up being the end of the page
+			for (auto size = PAGE_SIZE; size <= entry->length; size += PAGE_SIZE) {
+				if (!bitmap_get_index(page_index)) {
+					page_address = entry->base + size - PAGE_SIZE;
+					break;
+				}
+				page_index++;
+			}
+			if (page_address) break;
+		}
+	}
+	
+	if (!page_address) {
+		kdbgln("[PANIC] Couldn't allocate a single page");
+		halt();
+	}
+
+	bitmap_set_index(page_index, true);
+	return reinterpret_cast<void*>(physical_to_virtual(page_address));
+}
+
+void kernel::alloc::free_page(void* pointer) {
+	const auto address = reinterpret_cast<uptr>(pointer);
+	if (address % PAGE_SIZE != 0) {
+		kdbgln("[PANIC] Tried to free misaligned page ({:x})", address);
+		halt();
+	}
+
+	const auto page_address = virtual_to_physical(address);
+	usize page_index = 0;
+	bool found = false;
+	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
+		auto* entry = memmap_request.response->entries[i];
+		if (entry->type == LIMINE_MEMMAP_USABLE) {
+			if (page_address >= entry->base && page_address < entry->base + entry->length) {
+				page_index += (page_address - entry->base) / PAGE_SIZE;
+				found = true;
+				break;
+			} else {
+				page_index += entry->length / PAGE_SIZE;
+			}
+		}
+	}
+
+	if (!found) {
+		kdbgln("[PANIC] Couldn't find page to free ({:x})", address);
+		halt();
+	}
+
+	bitmap_set_index(page_index, false);
 }

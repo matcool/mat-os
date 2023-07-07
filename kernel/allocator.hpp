@@ -10,6 +10,9 @@ namespace alloc {
 
 void init();
 
+void* allocate_page();
+void free_page(void* addr);
+
 }
 
 }

@@ -26,6 +26,20 @@ extern "C" void _start() {
 
 	alloc::init();
 
+	void* page = alloc::allocate_page();
+	void* page2 = alloc::allocate_page();
+
+	kdbgln("addr of page: {:x}", (uptr)page);
+	kdbgln("another page: {:x}", (uptr)page2);
+
+	alloc::free_page(page);
+
+	page = alloc::allocate_page();
+	kdbgln("new page: {:x}", (uptr)page);
+	void* page3 = alloc::allocate_page();
+	kdbgln("page 3: {:x}", (uptr)page3);
+
+
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
 	}
