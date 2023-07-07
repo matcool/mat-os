@@ -5,15 +5,10 @@
 #include "serial.hpp"
 #include "idt.hpp"
 #include "log.hpp"
+#include "allocator.hpp"
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
-	.revision = 0,
-	.response = nullptr,
-};
-
-static volatile limine_memmap_request memmap_request = {
-	.id = LIMINE_MEMMAP_REQUEST,
 	.revision = 0,
 	.response = nullptr,
 };
@@ -27,26 +22,9 @@ extern "C" void _start() {
 
 	kdbgln("Regular 50: {}, Hex 50: {:x}, Regular 10: {}", 50, 50, 10);
 
-	if (!memmap_request.response)
-		halt();
-
-	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
-		auto* entry = memmap_request.response->entries[i];
-		mat::StringView type = "?";
-		switch (entry->type) {
-			case LIMINE_MEMMAP_USABLE: type = "USABLE"; break;
-			case LIMINE_MEMMAP_RESERVED: type = "RESERVED"; break;
-			case LIMINE_MEMMAP_ACPI_RECLAIMABLE: type = "ACPI_RECLAIMABLE"; break;
-			case LIMINE_MEMMAP_ACPI_NVS: type = "ACPI_NVS"; break;
-			case LIMINE_MEMMAP_BAD_MEMORY: type = "BAD_MEMORY"; break;
-			case LIMINE_MEMMAP_BOOTLOADER_RECLAIMABLE: type = "BOOTLOADER_RECLAIMABLE"; break;
-			case LIMINE_MEMMAP_KERNEL_AND_MODULES: type = "KERNEL_AND_MODULES"; break;
-			case LIMINE_MEMMAP_FRAMEBUFFER: type = "FRAMEBUFFER"; break;
-		}
-		kdbgln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
-	}
-
 	idt::init();
+
+	alloc::init();
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
@@ -67,6 +45,6 @@ extern "C" void _start() {
 		}
 	}
 
-	kdbgln("Finished");
+	kdbgln("Finished, halting");
 	halt();
 }
