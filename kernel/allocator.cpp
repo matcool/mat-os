@@ -2,6 +2,7 @@
 #include "allocator.hpp"
 #include "log.hpp"
 #include "intrinsics.hpp"
+#include <stl/span.hpp>
 #include <stl/math.hpp>
 
 static volatile limine_memmap_request memmap_request = {
@@ -29,19 +30,43 @@ static uptr virtual_to_physical(uptr virtual_address) {
 	return virtual_address - hhdm_base;
 }
 
-u64* bitmap_array_ptr = nullptr;
-
-void bitmap_set_index(usize index, bool value) {
-	static constexpr auto entry_bits = sizeof(u64) * 8;
-	const usize array_index = index / entry_bits;
-	const u64 bit_index = index % entry_bits;
-	const u64 bit_mask = 1 << bit_index;
-	if (value) {
-		bitmap_array_ptr[array_index] |= bit_mask;
-	} else {
-		bitmap_array_ptr[array_index] &= ~bit_mask;
+// Represents all the physical pages in the system,
+// using a single bit for each.
+class PageBitmap {
+	using ElementType = u64;
+	static constexpr auto bits_per_element = sizeof(ElementType) * 8;
+	mat::Span<ElementType> m_data;
+public:
+	PageBitmap(void* address, usize byte_size)
+		: m_data(reinterpret_cast<ElementType*>(address), byte_size / sizeof(ElementType)) {}
+	PageBitmap() : PageBitmap(nullptr, 0) {}
+	
+	void set(usize index, bool value) {
+		const auto array_index = index / bits_per_element;
+		const auto bit_index = index % bits_per_element;
+		const ElementType bit_mask = 1 << bit_index;
+		if (value) {
+			m_data[array_index] |= bit_mask;
+		} else {
+			m_data[array_index] &= ~bit_mask;
+		}
 	}
-}
+
+	bool get(usize index) const {
+		const auto array_index = index / bits_per_element;
+		const auto bit_index = index % bits_per_element;
+		const ElementType bit_mask = 1 << bit_index;
+		return m_data[array_index] & bit_mask;
+	}
+
+	void clear() {
+		for (auto& value : m_data) {
+			value = 0;
+		}
+	}
+};
+
+PageBitmap bitmap;
 
 void debug_print_memmap() {
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
@@ -89,41 +114,33 @@ void kernel::alloc::init() {
 	// iterate through the entries again to try to find space
 	// keep track of how many pages we skipped
 	usize skipped_pages = 0;
+	void* bitmap_array_addr = nullptr;
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
 		auto* entry = memmap_request.response->entries[i];
 		if (entry->type == LIMINE_MEMMAP_USABLE) {
 			if (entry->length >= bitmap_array_size) {
-				bitmap_array_ptr = reinterpret_cast<u64*>(physical_to_virtual(entry->base));
+				bitmap_array_addr = reinterpret_cast<void*>(physical_to_virtual(entry->base));
 				break;
 			} else {
 				skipped_pages += entry->length / PAGE_SIZE;
 			}
 		}
 	}
-	if (!bitmap_array_ptr) {
+	if (!bitmap_array_addr) {
 		kdbgln("[PANIC] Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
 		halt();
 	}
 
-	// zero out the array
-	for (usize i = 0; i < (bitmap_array_size / sizeof(u64)); ++i) {
-		bitmap_array_ptr[i] = 0;
-	}
+	bitmap = PageBitmap(bitmap_array_addr, bitmap_array_size);
+
+	bitmap.clear();
 
 	// set the bits occupied by the bitmap array itself
 	for (usize i = 0; i < bitmap_page_size; ++i) {
-		bitmap_set_index(i + skipped_pages, true);
+		bitmap.set(i + skipped_pages, true);
 	}
 
 	kdbgln("The bitmap array occupies {} KiB of space", bitmap_array_size / 1024);
-}
-
-bool bitmap_get_index(usize index) {
-	static constexpr auto entry_bits = sizeof(u64) * 8;
-	const usize array_index = index / entry_bits;
-	const u64 bit_index = index % entry_bits;
-	const u64 bit_mask = 1 << bit_index;
-	return bitmap_array_ptr[array_index] & bit_mask;
 }
 
 // both of these implementations are incredibly inefficient, but they should at least work
@@ -137,7 +154,7 @@ void* kernel::alloc::allocate_page() {
 			// start with size = PAGE_SIZE because we want to skip regions
 			// smaller than the page size. so size ends up being the end of the page
 			for (auto size = PAGE_SIZE; size <= entry->length; size += PAGE_SIZE) {
-				if (!bitmap_get_index(page_index)) {
+				if (!bitmap.get(page_index)) {
 					page_address = entry->base + size - PAGE_SIZE;
 					break;
 				}
@@ -152,7 +169,7 @@ void* kernel::alloc::allocate_page() {
 		halt();
 	}
 
-	bitmap_set_index(page_index, true);
+	bitmap.set(page_index, true);
 	return reinterpret_cast<void*>(physical_to_virtual(page_address));
 }
 
@@ -184,5 +201,5 @@ void kernel::alloc::free_page(void* pointer) {
 		halt();
 	}
 
-	bitmap_set_index(page_index, false);
+	bitmap.set(page_index, false);
 }
