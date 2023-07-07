@@ -35,10 +35,12 @@ void bitmap_set_index(usize index, bool value) {
 	static constexpr auto entry_bits = sizeof(u64) * 8;
 	const usize array_index = index / entry_bits;
 	const u64 bit_index = index % entry_bits;
-	u64 bit_mask = 1 << bit_index;
-	if (value)
-		bit_mask = ~bit_mask;
-	bitmap_array_ptr[array_index] &= bit_mask;
+	const u64 bit_mask = 1 << bit_index;
+	if (value) {
+		bitmap_array_ptr[array_index] |= bit_mask;
+	} else {
+		bitmap_array_ptr[array_index] &= ~bit_mask;
+	}
 }
 
 void kernel::alloc::init() {
