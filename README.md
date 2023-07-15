@@ -18,3 +18,12 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [ ] Drawing to the screen
 - [ ] Begin windowing system
 - [ ] A basic in-memory filesystem
+- [ ] GUI system
+
+### Apps
+- [ ] Use ELF for apps?
+- [ ] A simple text editor
+- [ ] File explorer app
+
+### Misc
+- [ ] QOI image support
