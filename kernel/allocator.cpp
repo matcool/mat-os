@@ -176,7 +176,7 @@ void* kernel::alloc::allocate_page() {
 void kernel::alloc::free_page(void* pointer) {
 	const auto address = reinterpret_cast<uptr>(pointer);
 	if (address % PAGE_SIZE != 0) {
-		kdbgln("[PANIC] Tried to free misaligned page ({:x})", address);
+		kdbgln("[PANIC] Tried to free misaligned page ({})", pointer);
 		halt();
 	}
 

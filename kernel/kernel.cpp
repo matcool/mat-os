@@ -20,7 +20,8 @@ extern "C" void _start() {
 
 	serial::put("Hello\n");
 
-	kdbgln("Regular 50: {}, Hex 50: {:x}, Regular 10: {}", 50, 50, 10);
+	kdbgln("Regular 50: {}, Hex -50: {:#x}, Regular 10: {}", 50, -50, 10);
+	kdbgln("does it work? {} {}", true, "i guess");
 
 	idt::init();
 
@@ -29,15 +30,15 @@ extern "C" void _start() {
 	void* page = alloc::allocate_page();
 	void* page2 = alloc::allocate_page();
 
-	kdbgln("addr of page: {:x}", (uptr)page);
-	kdbgln("another page: {:x}", (uptr)page2);
+	kdbgln("addr of page: {}", page);
+	kdbgln("another page: {}", page2);
 
 	alloc::free_page(page);
 
 	page = alloc::allocate_page();
-	kdbgln("new page: {:x}", (uptr)page);
+	kdbgln("new page: {}", page);
 	void* page3 = alloc::allocate_page();
-	kdbgln("page 3: {:x}", (uptr)page3);
+	kdbgln("page 3: {}", page3);
 
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
@@ -58,6 +59,10 @@ extern "C" void _start() {
 			fb_ptr[y * stride + x] = color;
 		}
 	}
+
+	kdbgln("CR0: {:#032b}", get_cr0());
+	kdbgln("CR3: {:#032b}", get_cr3());
+	kdbgln("CR4: {:#032b}", get_cr4());
 
 	kdbgln("Finished, halting");
 	halt();
