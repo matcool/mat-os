@@ -37,9 +37,9 @@ struct Formatter;
 // Invoke the formatter for a given type, with optional spec.
 // If the formatter does not take in a spec, it is unused.
 template <class Type, FormatOutFunc Func>
-void formatter_as(Func& func, Type value, StringView spec = "") {
-	using Fmter = Formatter<Func, Type>;
-	if constexpr (requires(Func& func, Type value, StringView str) { Fmter::format(func, value, str); }) {
+void formatter_as(Func func, Type value, StringView spec = "") {
+	using Fmter = Formatter<Func, types::decay<Type>>;
+	if constexpr (requires(Func func, Type value, StringView str) { Fmter::format(func, value, str); }) {
 		Fmter::format(func, value, spec);
 	} else {
 		Fmter::format(func, value);
@@ -48,14 +48,14 @@ void formatter_as(Func& func, Type value, StringView spec = "") {
 
 template <FormatOutFunc Func>
 struct Formatter<Func, bool> {
-	static void format(Func& func, bool value) {
+	static void format(Func func, bool value) {
 		formatter_as(func, value ? "true" : "false");
 	}
 };
 
 template <FormatOutFunc Func, concepts::integral Int>
 struct Formatter<Func, Int> {
-	static void format(Func& func, Int value, StringView str_spec) {
+	static void format(Func func, Int value, StringView str_spec) {
 		const auto spec = parse_format_spec(str_spec);
 
 		types::to_unsigned<Int> absolute_value = value;
@@ -100,9 +100,10 @@ struct Formatter<Func, Int> {
 	}
 };
 
-template <FormatOutFunc Func>
-struct Formatter<Func, StringView> {
-	static void format(Func& func, StringView value) {
+template <FormatOutFunc Func, class StringLike>
+requires types::is_one_of<StringLike, StringView, const char*, char*>
+struct Formatter<Func, StringLike> {
+	static void format(Func func, StringView value) {
 		for (auto c : value) {
 			func(c);
 		}
@@ -114,7 +115,7 @@ struct Formatter<Func, StringView> {
 // The format string follows the python-like {} formatting,
 // where {} is the placeholder for a value of any (formattable) type.
 template <FormatOutFunc Func, class... Args>
-void format_to(Func func, StringView str, const Args&... args) {
+void format_to(Func func, StringView str, Args... args) {
 	// no formatting arguments provided, just return the whole string
 	if constexpr (sizeof...(Args) == 0) {
 		for (char c : str) {
@@ -133,10 +134,10 @@ void format_to(Func func, StringView str, const Args&... args) {
 		
 		// array of function pointers, capable of formatting each argument
 		// takes in a void* as to be type-erased
-		using InnerFunc = void(*)(Func&, const void*, StringView);
+		using InnerFunc = void(*)(Func, const void*, StringView);
 		InnerFunc arg_funcs[] = {
-			+[](Func& func, const void* arg, StringView spec) {
-				formatter_as<types::decay<Args>>(func, *reinterpret_cast<const Args*>(arg), spec);
+			+[](Func func, const void* arg, StringView spec) {
+				formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
 			}...
 		};
 		

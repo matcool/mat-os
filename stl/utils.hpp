@@ -44,6 +44,7 @@ template <class T> struct remove_ptr<T*> { using type = T; };
 
 template <class T> struct remove_array { using type = T; };
 template <class T, usize N> struct remove_array<T[N]> { using type = T*; };
+template <class T, usize N> struct remove_array<T(&)[N]> { using type = T*; };
 
 template <class T> struct to_signed { using type = T; };
 template <> struct to_signed<u8>  { using type = i8; };
@@ -72,13 +73,16 @@ template <class T>
 using remove_ptr = typename STL_NS_IMPL::remove_ptr<T>::type;
 
 template <class T>
-using decay = typename STL_NS_IMPL::remove_array<remove_cv_ref<T>>::type;
+using decay = remove_cv_ref<typename STL_NS_IMPL::remove_array<T>::type>;
 
 template <class T, class V>
 static constexpr bool is_same = false;
 
 template <class T>
 static constexpr bool is_same<T, T> = true;
+
+template <class T, class... Others>
+static constexpr bool is_one_of = (is_same<T, Others> || ...);
 
 template <concepts::integral Int>
 static constexpr bool is_signed = is_same<Int, typename STL_NS_IMPL::to_signed<Int>::type>;
