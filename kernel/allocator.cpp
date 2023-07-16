@@ -125,7 +125,7 @@ void kernel::alloc::init() {
 
 // both of these implementations are incredibly inefficient, but they should at least work
 
-void* kernel::alloc::allocate_page() {
+kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 	usize page_index = 0;
 	uptr page_address = 0;
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
@@ -150,24 +150,22 @@ void* kernel::alloc::allocate_page() {
 	}
 
 	bitmap.set(page_index, true);
-	return PhysicalAddress(page_address).to_virtual().ptr();
+	return PhysicalAddress(page_address);
 }
 
-void kernel::alloc::free_page(void* pointer) {
-	const auto address = reinterpret_cast<uptr>(pointer);
-	if (address % PAGE_SIZE != 0) {
-		kdbgln("[PANIC] Tried to free misaligned page ({})", pointer);
+void kernel::alloc::free_physical_page(PhysicalAddress addr) {;
+	if (addr.value() % PAGE_SIZE != 0) {
+		kdbgln("[PANIC] Tried to free misaligned page ({:#x})", addr.value());
 		halt();
 	}
 
-	const auto page_address = VirtualAddress(address).to_physical().value();
 	usize page_index = 0;
 	bool found = false;
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
 		auto* entry = memmap_request.response->entries[i];
 		if (entry->type == LIMINE_MEMMAP_USABLE) {
-			if (page_address >= entry->base && page_address < entry->base + entry->length) {
-				page_index += (page_address - entry->base) / PAGE_SIZE;
+			if (addr.value() >= entry->base && addr.value() < entry->base + entry->length) {
+				page_index += (addr.value() - entry->base) / PAGE_SIZE;
 				found = true;
 				break;
 			} else {
@@ -177,9 +175,17 @@ void kernel::alloc::free_page(void* pointer) {
 	}
 
 	if (!found) {
-		kdbgln("[PANIC] Couldn't find page to free ({:x})", address);
+		kdbgln("[PANIC] Couldn't find page to free ({:#x})", addr.value());
 		halt();
 	}
 
 	bitmap.set(page_index, false);
+}
+
+void* kernel::alloc::allocate_page() {
+	return allocate_physical_page().to_virtual().ptr();
+}
+
+void kernel::alloc::free_page(void* addr) {
+	free_physical_page(VirtualAddress(reinterpret_cast<uptr>(addr)).to_physical());
 }
