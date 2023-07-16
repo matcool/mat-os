@@ -44,6 +44,10 @@ public:
 		return *c_str == 0;
 	}
 
+	operator bool() const {
+		return size();
+	}
+
 	StringView slice(usize start, usize end = -1) const {
 		if (end == usize(-1)) end = size();
 		return StringView(data() + start, data() + end);
@@ -58,6 +62,22 @@ public:
 
 	Pair<StringView, StringView> split_once(usize index) const {
 		return { slice(0, index), slice(index + 1) };
+	}
+
+	// Peeks the first char from the string. useful for parsing
+	char peek_one() const {
+		// TODO: error?
+		if (!size()) return 0;
+		return (*this)[0];
+	}
+
+	// Takes the first char from the string, mutating it. useful for parsing
+	char take_one() {
+		if (!size()) return 0;
+		const auto c = peek_one();
+		m_data++;
+		m_size--;
+		return c;
 	}
 };
 
@@ -75,5 +95,8 @@ Int parse_int(StringView str) {
 	}
 	return negative ? -value : value;
 }
+
+// Returns whether a character is a decimal digit (0-9)
+bool is_digit(char c);
 
 }

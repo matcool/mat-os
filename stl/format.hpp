@@ -7,25 +7,57 @@
 
 namespace STL_NS {
 
+// TODO: maybe make a format namespace?
+
+enum class FormatPadType : u8 {
+	None,
+	Zero,
+};
+
+struct FormatSpec {
+	u32 pad_amount = 0;
+	// either nothing, 'b', 'o' or 'x', resulting in bases 10, 2, 8 and 16 respectively
+	u8 base = 10;
+	// type of padding, either nothing or '0'
+	FormatPadType pad_type = FormatPadType::None;
+	// '#', will show a base prefix such as 0b or 0x
+	bool base_prefix = false;
+};
+
+// Parses a format specifier. Currently only supports the following format:
+// (#)?(0\d*)?([box])?
+FormatSpec parse_format_spec(StringView str_spec);
+
 template <class T>
 concept FormatOutFunc = requires(T& func, char c) { func(c); };
 
 template <FormatOutFunc Func, class Type>
 struct Formatter;
 
+// Invoke the formatter for a given type, with optional spec.
+// If the formatter does not take in a spec, it is unused.
+template <class Type, FormatOutFunc Func>
+void formatter_as(Func& func, Type value, StringView spec = "") {
+	using Fmter = Formatter<Func, Type>;
+	if constexpr (requires(Func& func, Type value, StringView str) { Fmter::format(func, value, str); }) {
+		Fmter::format(func, value, spec);
+	} else {
+		Fmter::format(func, value);
+	}
+}
+
 template <FormatOutFunc Func>
 struct Formatter<Func, bool> {
 	static void format(Func& func, bool value) {
-		StringView str = value ? "true" : "false";
-		for (char c : str) {
-			func(c);
-		}
+		formatter_as(func, value ? "true" : "false");
 	}
 };
 
 template <FormatOutFunc Func, concepts::integral Int>
 struct Formatter<Func, Int> {
-	static void format(Func& func, Int value, StringView spec) {
+	static void format(Func& func, Int value, StringView str_spec) {
+		const auto spec = parse_format_spec(str_spec);
+
 		types::to_unsigned<Int> absolute_value = value;
 		
 		if (types::is_signed<Int> && value < 0) {
@@ -33,7 +65,16 @@ struct Formatter<Func, Int> {
 			func('-');
 		}
 
-		const int base = spec == "x" ? 16 : 10;
+		if (spec.base_prefix && spec.base != 10) {
+			func('0');
+			if (spec.base == 2) {
+				func('b');
+			} else if (spec.base == 8) {
+				func('o');
+			} else if (spec.base == 16) {
+				func('x');
+			}
+		}
 		
 		static constexpr char digits[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
 
@@ -41,10 +82,17 @@ struct Formatter<Func, Int> {
 		usize index = sizeof(buffer);
 
 		do {
-			const auto digit = absolute_value % base;
-			absolute_value /= base;
+			const auto digit = absolute_value % spec.base;
+			absolute_value /= spec.base;
 			buffer[--index] = digits[digit];
 		} while (absolute_value != 0);
+
+		if (spec.pad_type == FormatPadType::Zero) {
+			auto size = sizeof(buffer) - index;
+			for (auto i = size; i < spec.pad_amount; ++i) {
+				func('0');
+			}
+		}
 
 		for (; index < sizeof(buffer); ++index) {
 			func(buffer[index]);
@@ -88,12 +136,7 @@ void format_to(Func func, StringView str, const Args&... args) {
 		using InnerFunc = void(*)(Func&, const void*, StringView);
 		InnerFunc arg_funcs[] = {
 			+[](Func& func, const void* arg, StringView spec) {
-				using Fmter = Formatter<Func, types::decay<Args>>;
-				if constexpr (requires(Func& func, Args value, StringView str) { Fmter::format(func, value, str); }) {
-					Fmter::format(func, *reinterpret_cast<const Args*>(arg), spec);
-				} else {
-					Fmter::format(func, *reinterpret_cast<const Args*>(arg));
-				}
+				formatter_as<types::decay<Args>>(func, *reinterpret_cast<const Args*>(arg), spec);
 			}...
 		};
 		
