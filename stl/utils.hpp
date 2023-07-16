@@ -84,6 +84,12 @@ static constexpr bool is_same<T, T> = true;
 template <class T, class... Others>
 static constexpr bool is_one_of = (is_same<T, Others> || ...);
 
+template <class T>
+static constexpr bool is_pointer = false;
+
+template <class T>
+static constexpr bool is_pointer<T*> = true;
+
 template <concepts::integral Int>
 static constexpr bool is_signed = is_same<Int, typename STL_NS_IMPL::to_signed<Int>::type>;
 

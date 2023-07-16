@@ -110,6 +110,14 @@ struct Formatter<Func, StringLike> {
 	}
 };
 
+template <FormatOutFunc Func, class Pointer>
+requires (types::is_pointer<Pointer> && !types::is_one_of<Pointer, const char*, char*>)
+struct Formatter<Func, Pointer> {
+	static void format(Func func, Pointer ptr) {
+		formatter_as(func, reinterpret_cast<uptr>(ptr), "#016x");
+	}
+};
+
 // Formats a given format string into an output function,
 // which accepts each character at a time.
 // The format string follows the python-like {} formatting,
