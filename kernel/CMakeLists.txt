@@ -6,6 +6,7 @@ add_executable(kernel
 	cxa.cpp
 	idt.cpp
 	allocator.cpp
+	paging.cpp
 )
 
 target_link_libraries(kernel limine stl)

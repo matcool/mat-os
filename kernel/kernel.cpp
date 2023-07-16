@@ -6,6 +6,7 @@
 #include "idt.hpp"
 #include "log.hpp"
 #include "allocator.hpp"
+#include "paging.hpp"
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -24,6 +25,8 @@ extern "C" void _start() {
 	kdbgln("does it work? {} {}", true, "i guess");
 
 	idt::init();
+
+	paging::init();
 
 	alloc::init();
 
@@ -59,10 +62,6 @@ extern "C" void _start() {
 			fb_ptr[y * stride + x] = color;
 		}
 	}
-
-	kdbgln("CR0: {:#032b}", get_cr0());
-	kdbgln("CR3: {:#032b}", get_cr3());
-	kdbgln("CR4: {:#032b}", get_cr4());
 
 	kdbgln("Finished, halting");
 	halt();

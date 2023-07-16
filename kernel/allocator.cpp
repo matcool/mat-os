@@ -4,31 +4,13 @@
 #include "intrinsics.hpp"
 #include <stl/span.hpp>
 #include <stl/math.hpp>
+#include "paging.hpp"
 
 static volatile limine_memmap_request memmap_request = {
 	.id = LIMINE_MEMMAP_REQUEST,
 	.revision = 0,
 	.response = nullptr,
 };
-
-// limine maps physical memory -> virtual memory by just adding a higher half base
-// this is constant except for when KASLR is on, so use this to get it
-static volatile limine_hhdm_request hhdm_request = {
-	.id = LIMINE_HHDM_REQUEST,
-	.revision = 0,
-	.response = nullptr,
-};
-uptr hhdm_base;
-
-// Maps a physical address to virtual address, assuming limine's memory mapping
-static uptr physical_to_virtual(uptr physical_address) {
-	return physical_address + hhdm_base;
-}
-
-// Maps a virtual address to physical address, assuming limine's memory mapping
-static uptr virtual_to_physical(uptr virtual_address) {
-	return virtual_address - hhdm_base;
-}
 
 // Represents all the physical pages in the system,
 // using a single bit for each.
@@ -87,12 +69,10 @@ void debug_print_memmap() {
 }
 
 void kernel::alloc::init() {
-	if (!memmap_request.response || !hhdm_request.response)
+	if (!memmap_request.response)
 		halt();
 
-	debug_print_memmap();
-
-	hhdm_base = hhdm_request.response->offset;
+	// debug_print_memmap();
 
 	usize usable_memory = 0;
 
@@ -119,7 +99,7 @@ void kernel::alloc::init() {
 		auto* entry = memmap_request.response->entries[i];
 		if (entry->type == LIMINE_MEMMAP_USABLE) {
 			if (entry->length >= bitmap_array_size) {
-				bitmap_array_addr = reinterpret_cast<void*>(physical_to_virtual(entry->base));
+				bitmap_array_addr = PhysicalAddress(entry->base).to_virtual().ptr();
 				break;
 			} else {
 				skipped_pages += entry->length / PAGE_SIZE;
@@ -170,7 +150,7 @@ void* kernel::alloc::allocate_page() {
 	}
 
 	bitmap.set(page_index, true);
-	return reinterpret_cast<void*>(physical_to_virtual(page_address));
+	return PhysicalAddress(page_address).to_virtual().ptr();
 }
 
 void kernel::alloc::free_page(void* pointer) {
@@ -180,7 +160,7 @@ void kernel::alloc::free_page(void* pointer) {
 		halt();
 	}
 
-	const auto page_address = virtual_to_physical(address);
+	const auto page_address = VirtualAddress(address).to_physical().value();
 	usize page_index = 0;
 	bool found = false;
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
