@@ -17,6 +17,8 @@ public:
 	VirtualAddress to_virtual() const;
 
 	auto value() const { return m_value; }
+
+	PhysicalAddress operator+(uptr offset) const;
 };
 
 class VirtualAddress {
@@ -40,6 +42,8 @@ uptr physical_to_virtual(uptr physical_address);
 
 // Maps a virtual address to physical address, assuming limine's memory mapping
 uptr virtual_to_physical(uptr virtual_address);
+
+void explore_addr(uptr value);
 
 }
 

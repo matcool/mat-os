@@ -43,6 +43,8 @@ extern "C" void _start() {
 	void* page3 = alloc::allocate_page();
 	kdbgln("page 3: {}", page3);
 
+	paging::explore_addr((uptr)page);
+	paging::explore_addr((uptr)framebuffer_request.response);
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();

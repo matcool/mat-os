@@ -72,7 +72,7 @@ void kernel::alloc::init() {
 	if (!memmap_request.response)
 		halt();
 
-	// debug_print_memmap();
+	debug_print_memmap();
 
 	usize usable_memory = 0;
 
