@@ -1,4 +1,5 @@
 #include <stl/types.hpp>
+#include <stl/array.hpp>
 #include <kernel/idt.hpp>
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
@@ -79,8 +80,86 @@ static_assert(sizeof(IDTEntry) == 16);
 	pop %%r11; \
 	pop %%r10;"
 
-static void kernel_interrupt_handler(u64 which, u64 error_code) {
-	kdbgln("Ouchie! got into interrupt {}, with error code {:x}", which, error_code);
+struct Registers {
+	// in reverse order that they were pushed in
+	u64 rsi;
+	u64 rdx;
+	u64 rdi;
+	u64 rcx;
+	u64 rbx;
+	u64 rbp;
+	u64 rax;
+	u64 r9;
+	u64 r8;
+	u64 r15;
+	u64 r14;
+	u64 r13;
+	u64 r12;
+	u64 r11;
+	u64 r10;
+	// pushed by the cpu
+	u64 rip;
+	u64 cs;
+	u64 rflags;
+	u64 rsp;
+};
+
+enum class InterruptId : u64 {
+	DivideZero = 0,
+	NMI = 2,
+	Breakpoint = 3,
+	InvalidOpcode = 6,
+	DoubleFault = 8,
+	GeneralProtectionFault = 13,
+	PageFault = 14,
+};
+
+static mat::StringView get_interrupt_name(u64 idx) {
+	const auto names = mat::make_array<mat::StringView>(
+		"Divide by 0",
+		"Reserved",
+		"NMI Interrupt",
+		"Breakpoint (INT3)",
+		"Overflow (INTO)",
+		"Bounds range exceeded (BOUND)",
+		"Invalid opcode (UD2)",
+		"Device not available (WAIT/FWAIT)",
+		"Double fault",
+		"Coprocessor segment overrun",
+		"Invalid TSS",
+		"Segment not present",
+		"Stack-segment fault",
+		"General protection fault",
+		"Page fault",
+		"Reserved",
+		"x87 FPU error",
+		"Alignment check",
+		"Machine check",
+		"SIMD Floating-Point Exception"
+	);
+	if (idx < names.size()) {
+		return names[idx];
+	} else {
+		return "Unknown";
+	}
+}
+
+// which - rdi
+// error_code - rsi
+// regs - rdx
+static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs) {
+	kdbgln("[INT] {}, with error code {:x}", get_interrupt_name(which), error_code);
+	const auto id = static_cast<InterruptId>(which);
+	if (id == InterruptId::PageFault) {
+		kdbgln("[page fault] {} on {} at {:#08x} by {}",
+			error_code & 1 ? "Page-protection violation" : "Non-present page",
+			error_code & 0b10 ? "write" : "read",
+			get_cr2(),
+			error_code & 0b100 ? "user" : "kernel"
+		);
+	}
+	kdbgln("rip - {:#x}", regs->rip);
+	kdbgln("rsp - {:#x}", regs->rsp);
 	halt();
 }
 
@@ -93,20 +172,24 @@ template <u64 Number>
 	asm(PUSH_REGS R"asm(
 		movq %0, %%rdi
 		xor %%rsi, %%rsi
+		movq %%rsp, %%rdx
 		call *%1
 	)asm" POP_REGS "iretq" : /* output */ : "i"(Number), "m"(kernel_interrupt_handler_ptr));
 }
 
+// a place to store the error code before the registers are saved
+u64 error_code_storage;
+
 template <u64 Number>
 [[gnu::naked]] void raw_interrupt_error_handler() {
-	// This pushes 15 registers
-	// so error code will be [esp + 15 * 8]
-	// [esp + 120] so 120(%esp) in ugly syntax
-	asm(PUSH_REGS R"asm(
+	// pops off the error code first,
+	// so that the stack looks the same to a non error handler
+	asm("popq %2;\n\t" PUSH_REGS R"asm(
 		movq %0, %%rdi
-		movq 120(%%esp), %%rsi
+		movq %2, %%rsi
+		movq %%rsp, %%rdx
 		call *%1
-	)asm" POP_REGS "iretq" : /* output */ : "i"(Number), "m"(kernel_interrupt_handler_ptr));
+	)asm" POP_REGS "iretq" : /* output */ : "i"(Number), "m"(kernel_interrupt_handler_ptr), "m"(error_code_storage));
 }
 
 void kernel::idt::init() {

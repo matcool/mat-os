@@ -19,6 +19,12 @@ inline u64 get_cr0() {
 	return value;
 }
 
+inline u64 get_cr2() {
+	u64 value;
+	asm("movq %%cr2, %0" : "=r"(value));
+	return value;
+}
+
 inline u64 get_cr3() {
 	u64 value;
 	asm("movq %%cr3, %0" : "=r"(value));

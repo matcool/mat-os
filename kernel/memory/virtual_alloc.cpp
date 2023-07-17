@@ -27,7 +27,7 @@ void* kernel::alloc::allocate_pages(usize count) {
 void kernel::alloc::free_page(void* addr) {
 	const auto value = reinterpret_cast<uptr>(addr);
 	if (value < BASE_ADDRESS || !allocated_pages) {
-		panic("Tried to free invalid address ({:})", addr);
+		panic("Tried to free invalid address ({})", addr);
 	}
 	if (value == BASE_ADDRESS + (allocated_pages - 1) * PAGE_SIZE) {
 		kdbgln("Freeing top most page");

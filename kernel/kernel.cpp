@@ -42,6 +42,8 @@ extern "C" void _start() {
 	alloc::free_page(page);
 	// should work since its the top most page
 	alloc::free_page(page2);
+	// crash
+	// reinterpret_cast<u64*>(page2)[0] = 0x69696969;
 
 	page = alloc::allocate_page();
 	kdbgln("new page: {}", page);
