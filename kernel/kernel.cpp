@@ -7,6 +7,7 @@
 #include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
+#include <kernel/ps2/controller.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -55,6 +56,8 @@ extern "C" void _start() {
 	// the two virtual addresses should be different, but both point to the same
 	// physical address
 	paging::explore_addr((uptr)&_start);
+
+	ps2::init();
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();

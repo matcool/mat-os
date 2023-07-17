@@ -3,6 +3,7 @@
 #include <kernel/idt.hpp>
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/ps2/controller.hpp>
 
 struct IDTEntry {
 	u16 offset1;
@@ -110,6 +111,7 @@ enum class InterruptId : u64 {
 	Breakpoint = 3,
 	InvalidOpcode = 6,
 	DoubleFault = 8,
+	SegmentNotPresent = 11,
 	GeneralProtectionFault = 13,
 	PageFault = 14,
 };
@@ -148,7 +150,7 @@ static mat::StringView get_interrupt_name(u64 idx) {
 // error_code - rsi
 // regs - rdx
 static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs) {
-	kdbgln("[INT] {}, with error code {:x}", get_interrupt_name(which), error_code);
+	kdbgln("[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code);
 	const auto id = static_cast<InterruptId>(which);
 	if (id == InterruptId::PageFault) {
 		kdbgln("[page fault] {} on {} at {:#08x} by {}",
@@ -156,6 +158,14 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 			error_code & 0b10 ? "write" : "read",
 			get_cr2(),
 			error_code & 0b100 ? "user" : "kernel"
+		);
+	} else if (id == InterruptId::SegmentNotPresent) {
+		const auto table = error_code >> 1 & 0b11;
+		static constexpr const char* names[] = { "GDT", "IDT", "LDT", "IDT" };
+		kdbgln("The fault occurred {}, in the {} at index {:#x}",
+			error_code & 1 ? "externally" : "internally",
+			names[table],
+			error_code >> 3 >> 1 // doubled for some reason?
 		);
 	}
 	kdbgln("rip - {:#x}", regs->rip);
@@ -205,6 +215,11 @@ void kernel::idt::init() {
 	([] <u64... Values> {
 		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_error_handler<Values>))), ...);
 	}).operator()<8, 10, 11, 12, 13, 14>();
+
+	// setup handlers for IRQs
+	([] <u64... Values> {
+		((idt_table[PIC_IRQ_OFFSET + Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<PIC_IRQ_OFFSET + Values>))), ...);
+	}).operator()<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>();
 
 	idt_register.size = sizeof(idt_table) - 1;
 	idt_register.addr = &idt_table[0];
