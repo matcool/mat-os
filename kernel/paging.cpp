@@ -44,67 +44,80 @@ kernel::PhysicalAddress kernel::PhysicalAddress::operator+(uptr offset) const {
 	return PhysicalAddress(value() + offset);
 }
 
-class PageTableEntry {
-	u64 m_value;
-
-	constexpr bool get_bit(u64 idx) const { return m_value & (1 << idx); }
-	constexpr void set_bit(u64 idx, bool value) { mat::math::set_bit(m_value, idx, value); }
-public:
-	PageTableEntry(u64 value) : m_value(value) {}
-
-	auto value() const { return m_value; }
-	auto& value() { return m_value; }
-
-	auto addr() const {
-		static constexpr auto mask = ((u64(1) << 52) - 1) & ~((u64(1) << 12) - 1);
-		return kernel::PhysicalAddress(m_value & mask);
-	}
-
-	auto* follow() const {
-		return reinterpret_cast<PageTableEntry*>(addr().to_virtual().ptr());
-	}
-
-	// P flag, must be true if the entry should be used.
-	bool is_present() const { return get_bit(0); }
-	void set_present(bool value) { set_bit(0, value); }
-
-	// R/W flag, if true then the page is writable.
-	bool is_writable() const { return get_bit(1); }
-	void set_writable(bool value) { set_bit(1, value); }
-
-	// U/S flag, if true then this page is accessible to userspace apps.
-	bool is_user() const { return get_bit(2); }
-	void set_user(bool value) { set_bit(2, value); }
-
-	// PS flag, if true then this entry points to a page larger than 4 KiB,
-	// either 2 MiB or 1 GiB. If this is a PT entry then this is not PS, but PAT
-	bool is_ps() const { return get_bit(7); }
-	void set_ps(bool value) { set_bit(7, value); }
-
-	bool is_execution_disabled() const { return get_bit(63); }
-	void set_execution_disabled(bool value) { set_bit(63, value); }
-
-	// get available bits in the entry, which the cpu ignores.
-	// if this is an entry that points to a page, then some bits may be used
-	// if PGE or PKS are enabled.
-	u16 get_available() const {
-		//      11 bits                4 bits                1 bit
-		return (value() >> 52 << 5) | (value() >> 8 << 1) | (value() >> 6);
-	}
-	void set_available(u16 value) {
-		set_bit(6, value & 1);
-		m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | (value & 0b11110);
-		m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (value >> 5);
-	}
-};
-
 template <class Func>
-struct mat::Formatter<Func, PageTableEntry> {
-	static void format(Func func, PageTableEntry entry) {
+struct mat::Formatter<Func, kernel::paging::PageTableEntry> {
+	static void format(Func func, kernel::paging::PageTableEntry entry) {
 		mat::format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, addr={:#08x}], raw={:#x}",
 			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.addr().value(), entry.value());
 	}
 };
+
+namespace kernel::paging {
+
+constexpr bool PageTableEntry::get_bit(u64 idx) const {
+	return m_value & (1 << idx);
+}
+
+constexpr void PageTableEntry::set_bit(u64 idx, bool value) {
+	mat::math::set_bit(m_value, idx, value);
+}
+
+kernel::PhysicalAddress PageTableEntry::addr() const {
+	static constexpr auto mask = ((u64(1) << 52) - 1) & ~((u64(1) << 12) - 1);
+	return kernel::PhysicalAddress(m_value & mask);
+}
+
+PageTableEntry* PageTableEntry::follow() const {
+	return reinterpret_cast<PageTableEntry*>(addr().to_virtual().ptr());
+}
+
+bool PageTableEntry::is_present() const {
+	return get_bit(0);
+}
+void PageTableEntry::set_present(bool value) {
+	set_bit(0, value);
+}
+
+bool PageTableEntry::is_writable() const {
+	return get_bit(1);
+}
+void PageTableEntry::set_writable(bool value) {
+	set_bit(1, value);
+}
+
+bool PageTableEntry::is_user() const {
+	return get_bit(2);
+}
+void PageTableEntry::set_user(bool value) {
+	set_bit(2, value);
+}
+
+bool PageTableEntry::is_ps() const {
+	return get_bit(7);
+}
+void PageTableEntry::set_ps(bool value) {
+	set_bit(7, value);
+}
+
+bool PageTableEntry::is_execution_disabled() const {
+	return get_bit(63);
+}
+void PageTableEntry::set_execution_disabled(bool value) {
+	set_bit(63, value);
+}
+
+u16 PageTableEntry::get_available() const {
+	//      11 bits                4 bits                1 bit
+	return (value() >> 52 << 5) | (value() >> 8 << 1) | (value() >> 6);
+}
+
+void PageTableEntry::set_available(u16 value) {
+	set_bit(6, value & 1);
+	m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | (value & 0b11110);
+	m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (value >> 5);
+}
+
+}
 
 void kernel::paging::init() {
 	if (!hhdm_request.response)

@@ -35,6 +35,48 @@ public:
 
 namespace paging {
 
+class PageTableEntry {
+	u64 m_value;
+
+	constexpr bool get_bit(u64 idx) const;
+	constexpr void set_bit(u64 idx, bool value);
+public:
+	PageTableEntry(u64 value) : m_value(value) {}
+
+	auto value() const { return m_value; }
+	auto& value() { return m_value; }
+
+	PhysicalAddress addr() const;
+
+	PageTableEntry* follow() const;
+
+	// P flag, must be true if the entry should be used.
+	bool is_present() const;
+	void set_present(bool value);
+
+	// R/W flag, if true then the page is writable.
+	bool is_writable() const;
+	void set_writable(bool value);
+
+	// U/S flag, if true then this page is accessible to userspace apps.
+	bool is_user() const;
+	void set_user(bool value);
+
+	// PS flag, if true then this entry points to a page larger than 4 KiB,
+	// either 2 MiB or 1 GiB. If this is a PT entry then this is not PS, but PAT
+	bool is_ps() const;
+	void set_ps(bool value);
+
+	bool is_execution_disabled() const;
+	void set_execution_disabled(bool value);
+
+	// get available bits in the entry, which the cpu ignores.
+	// if this is an entry that points to a page, then some bits may be used
+	// if PGE or PKS are enabled.
+	u16 get_available() const;
+	void set_available(u16 value);
+};
+
 void init();
 
 // Maps a physical address to virtual address, assuming limine's memory mapping
