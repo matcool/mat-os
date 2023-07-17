@@ -1,24 +1,18 @@
 #include <stl/math.hpp>
-#include <kernel/ps2/controller.hpp>
+#include <kernel/device/pic.hpp>
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
 
-static constexpr u16 PS2_DATA_PORT = 0x60;
-static constexpr u16 PS2_COM_PORT = 0x64;
+static constexpr u8 ICW1_ICW4 = 0x01; // Indicates that ICW4 will be present
+static constexpr u8 ICW1_INIT = 0x10; // Initialization - required!
+static constexpr u8 ICW4_8086 = 0x01; // 8086/88 (MCS-80/85) mode
 
 static void io_wait() {
 	// does nothing
 	outb(0x80, 0);
 }
 
-static constexpr u16 PIC1_COM_PORT = 0x20;
-static constexpr u16 PIC1_DATA_PORT = PIC1_COM_PORT + 1;
-static constexpr u16 PIC2_COM_PORT = 0xA0;
-static constexpr u16 PIC2_DATA_PORT = PIC2_COM_PORT + 1;
-
-static constexpr u8 ICW1_ICW4 = 0x01; // Indicates that ICW4 will be present
-static constexpr u8 ICW1_INIT = 0x10; // Initialization - required!
-static constexpr u8 ICW4_8086 = 0x01; // 8086/88 (MCS-80/85) mode
+using namespace kernel;
 
 static void remap_pic(u8 offset1, u8 offset2) {
 	const auto mask1 = inb(PIC1_DATA_PORT);
@@ -69,14 +63,11 @@ void set_irq_mask(u8 irq_index, bool enabled) {
 	outb(port, mask);
 }
 
-void kernel::ps2::init() {
+void kernel::pic::init() {
 	remap_pic(PIC_IRQ_OFFSET, PIC_IRQ_OFFSET + 8);
-	
+
 	// enable ps/2 keyboard
 	set_irq_mask(1, true);
 
 	kdbgln("PIC initialized");
-	while (true) {
-		asm volatile("hlt");
-	}
 }

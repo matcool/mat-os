@@ -1,9 +1,9 @@
 #include <stl/types.hpp>
-#include <stl/array.hpp>
 #include <kernel/idt.hpp>
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
-#include <kernel/ps2/controller.hpp>
+#include <kernel/device/pic.hpp>
+#include <kernel/device/ps2.hpp>
 
 struct IDTEntry {
 	u16 offset1;
@@ -117,32 +117,30 @@ enum class InterruptId : u64 {
 };
 
 static mat::StringView get_interrupt_name(u64 idx) {
-	const auto names = mat::make_array<mat::StringView>(
-		"Divide by 0",
-		"Reserved",
-		"NMI Interrupt",
-		"Breakpoint (INT3)",
-		"Overflow (INTO)",
-		"Bounds range exceeded (BOUND)",
-		"Invalid opcode (UD2)",
-		"Device not available (WAIT/FWAIT)",
-		"Double fault",
-		"Coprocessor segment overrun",
-		"Invalid TSS",
-		"Segment not present",
-		"Stack-segment fault",
-		"General protection fault",
-		"Page fault",
-		"Reserved",
-		"x87 FPU error",
-		"Alignment check",
-		"Machine check",
-		"SIMD Floating-Point Exception"
-	);
-	if (idx < names.size()) {
-		return names[idx];
-	} else {
-		return "Unknown";
+	switch (idx) {
+		case 0x0: return "Divide by 0";
+		case 0x1: return "Reserved";
+		case 0x2: return "NMI Interrupt";
+		case 0x3: return "Breakpoint (INT3)";
+		case 0x4: return "Overflow (INTO)";
+		case 0x5: return "Bounds range exceeded (BOUND)";
+		case 0x6: return "Invalid opcode (UD2)";
+		case 0x7: return "Device not available (WAIT/FWAIT)";
+		case 0x8: return "Double fault";
+		case 0x9: return "Coprocessor segment overrun";
+		case 0xa: return "Invalid TSS";
+		case 0xb: return "Segment not present";
+		case 0xc: return "Stack-segment fault";
+		case 0xd: return "General protection fault";
+		case 0xe: return "Page fault";
+		case 0xf: return "Reserved";
+		case 0x10: return "x87 FPU error";
+		case 0x11: return "Alignment check";
+		case 0x12: return "Machine check";
+		case 0x13: return "SIMD Floating-Point Exception";
+		case kernel::PIC_IRQ_OFFSET + 1: return "Keyboard";
+		default:
+			return "Unknown";
 	}
 }
 
@@ -160,13 +158,14 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 			error_code & 0b100 ? "user" : "kernel"
 		);
 	} else if (id == InterruptId::SegmentNotPresent) {
-		const auto table = error_code >> 1 & 0b11;
-		static constexpr const char* names[] = { "GDT", "IDT", "LDT", "IDT" };
 		kdbgln("The fault occurred {}, in the {} at index {:#x}",
 			error_code & 1 ? "externally" : "internally",
-			names[table],
+			error_code & 0b10 ? "IDT" : "GDT",
 			error_code >> 3 >> 1 // doubled for some reason?
 		);
+	} else if (which == kernel::PIC_IRQ_OFFSET + 1) {
+		kernel::ps2::handle_keyboard();
+		return;
 	}
 	kdbgln("rip - {:#x}", regs->rip);
 	kdbgln("rsp - {:#x}", regs->rsp);

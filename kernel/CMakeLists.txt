@@ -10,7 +10,8 @@ add_executable(kernel
 	memory/virtual_alloc.cpp
 	memory/address.cpp
 	memory/page_entry.cpp
-	ps2/controller.cpp
+	device/pic.cpp
+	device/ps2.cpp
 )
 
 target_link_libraries(kernel limine stl)
