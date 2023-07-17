@@ -81,6 +81,9 @@ public:
 	// if PGE or PKS are enabled.
 	u16 get_available() const;
 	void set_available(u16 value);
+
+	// clears the entry, setting it to 0
+	void clear();
 };
 
 void init();
@@ -96,6 +99,12 @@ void explore_addr(uptr value);
 // Maps a physical page to a virtual address.
 // TODO: add flags, and maybe page size
 void map_page(VirtualAddress virt, PhysicalAddress phys);
+
+// Unmaps a page, making it not present.
+void unmap_page(VirtualAddress virt);
+
+// Invalidates the TLB cache for a certain page.
+void invalidate_cache(VirtualAddress virt);
 
 }
 

@@ -130,6 +130,10 @@ void PageTableEntry::set_available(u16 value) {
 	m_value = (m_value & ~(bit_mask<u64>(11) << 52)) | (u64(value) >> 5 << 52);
 }
 
+void PageTableEntry::clear() {
+	m_value = 0;
+}
+
 }
 
 void kernel::paging::init() {
@@ -260,4 +264,47 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 	entry.set_user(true);
 	entry.set_execution_disabled(false);
 	entry.set_addr(phys);
+
+	invalidate_cache(virt);
+}
+
+void kernel::paging::unmap_page(VirtualAddress virt) {
+	auto* entries = get_base_entries();
+
+	static constexpr auto mask9 = bit_mask<u64>(9);
+
+	const auto index_pml4 = virt.value() >> 39 & mask9;
+	const auto index_pdp = virt.value() >> 30 & mask9;
+	const auto index_pd = virt.value() >> 21 & mask9;
+	const auto index_pt = virt.value() >> 12 & mask9;
+
+	const auto follow_or_panic = [&](PageTableEntry& entry) {
+		// check if not present, or if its a big page, which we dont support
+		if (!entry.is_present() || entry.is_ps()) {
+			panic("Tried to access missing page table ({:#x})", virt.value());
+		}
+		return entry.follow();
+	};
+
+	auto& entry_pml4 = entries[index_pml4];
+	auto& entry_pdp = follow_or_panic(entry_pml4)[index_pdp];
+	auto& entry_pd = follow_or_panic(entry_pdp)[index_pd];
+	auto& entry = follow_or_panic(entry_pd)[index_pt];
+
+	if (!entry.is_present()) {
+		panic("Tried to access missing page entry ({:#x})", virt.value());
+	}
+	if (entry.get_available() != MAT_MAPPED_MAGIC) {
+		panic("Tried to access page thats not ours ({:#x})", virt.value());
+	}
+
+	entry.clear();
+	invalidate_cache(virt);
+
+	kdbgln("entry is now {}", entry);
+}
+
+void kernel::paging::invalidate_cache(VirtualAddress virt) {
+	const auto value = virt.value();
+	asm volatile("invlpg %0" : : "m"(value));
 }
