@@ -9,7 +9,7 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Working IDT
 - [X] Page frame allocator
 - [ ] A better page frame allocator
-- [ ] Paging.
+- [X] Paging (though basic)
 - [ ] Virtual memory allocator
 - [ ] PS/2 keyboard input
 - [ ] Working timer (to time the screen)
