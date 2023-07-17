@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stl/types.hpp>
-#include "paging.hpp"
+#include <kernel/memory/paging.hpp>
 
 namespace kernel {
 

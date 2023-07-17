@@ -1,7 +1,7 @@
 #pragma once
 
-#include "serial.hpp"
-#include "intrinsics.hpp"
+#include <kernel/serial.hpp>
+#include <kernel/intrinsics.hpp>
 
 // Kernel specific debug logging functions. Defaults to using serial output
 #define kdbg(...) kernel::serial::fmt(__VA_ARGS__)

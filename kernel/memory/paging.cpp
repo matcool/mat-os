@@ -1,12 +1,12 @@
-#include "paging.hpp"
-#include "kernel/allocator.hpp"
-#include "log.hpp"
-#include "intrinsics.hpp"
 #include <limine/limine.h>
 #include <stl/format.hpp>
 #include <stl/span.hpp>
 #include <stl/math.hpp>
 #include <stl/memory.hpp>
+#include <kernel/memory/allocator.hpp>
+#include <kernel/memory/paging.hpp>
+#include <kernel/log.hpp>
+#include <kernel/intrinsics.hpp>
 
 using mat::math::bit_mask;
 

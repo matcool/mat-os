@@ -1,7 +1,7 @@
-#include "idt.hpp"
 #include <stl/types.hpp>
-#include "log.hpp"
-#include "intrinsics.hpp"
+#include <kernel/idt.hpp>
+#include <kernel/log.hpp>
+#include <kernel/intrinsics.hpp>
 
 struct IDTEntry {
 	u16 offset1;

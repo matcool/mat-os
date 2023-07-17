@@ -1,10 +1,10 @@
 #include <limine/limine.h>
-#include "allocator.hpp"
-#include "log.hpp"
-#include "intrinsics.hpp"
 #include <stl/span.hpp>
 #include <stl/math.hpp>
-#include "paging.hpp"
+#include <kernel/memory/allocator.hpp>
+#include <kernel/memory/paging.hpp>
+#include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
 
 static volatile limine_memmap_request memmap_request = {
 	.id = LIMINE_MEMMAP_REQUEST,

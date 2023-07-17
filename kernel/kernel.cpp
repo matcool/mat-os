@@ -1,12 +1,12 @@
 #include <limine/limine.h>
 #include <stl/types.hpp>
 #include <stl/format.hpp>
-#include "intrinsics.hpp"
-#include "serial.hpp"
-#include "idt.hpp"
-#include "log.hpp"
-#include "allocator.hpp"
-#include "paging.hpp"
+#include <kernel/intrinsics.hpp>
+#include <kernel/serial.hpp>
+#include <kernel/idt.hpp>
+#include <kernel/log.hpp>
+#include <kernel/memory/allocator.hpp>
+#include <kernel/memory/paging.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,

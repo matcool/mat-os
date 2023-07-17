@@ -1,5 +1,5 @@
-#include "serial.hpp"
-#include "intrinsics.hpp"
+#include <kernel/serial.hpp>
+#include <kernel/intrinsics.hpp>
 
 static constexpr u16 COM1 = 0x3F8;
 
