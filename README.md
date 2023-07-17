@@ -8,10 +8,10 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Serial output
 - [X] Working IDT
 - [X] Physical page allocator (very inefficient)
-- [ ] A better Physical page allocator
+- - [ ] A better Physical page allocator
 - [X] Paging (though basic)
 - [X] Virtual page allocator (bump allocator, can't free)
-- [ ] A better virtual page allocator
+- - [ ] A better virtual page allocator
 - [ ] PS/2 keyboard input
 - [ ] Working timer (to time the screen)
 - [X] Working screen
