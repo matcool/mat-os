@@ -11,7 +11,8 @@ void send_pic_eoi(u8 irq) {
 }
 
 void kernel::ps2::handle_keyboard() {
-	kdbgln("ps2 data port has {:02x}", inb(PS2_DATA_PORT));
+	const auto byte = inb(PS2_DATA_PORT);
+	kdbg(" {:02x}", byte);
 	
 	send_pic_eoi(1);
 }

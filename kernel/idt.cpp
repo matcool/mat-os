@@ -148,28 +148,34 @@ static mat::StringView get_interrupt_name(u64 idx) {
 // error_code - rsi
 // regs - rdx
 static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs) {
-	kdbgln("[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code);
-	const auto id = static_cast<InterruptId>(which);
-	if (id == InterruptId::PageFault) {
-		kdbgln("[page fault] {} on {} at {:#08x} by {}",
-			error_code & 1 ? "Page-protection violation" : "Non-present page",
-			error_code & 0b10 ? "write" : "read",
-			get_cr2(),
-			error_code & 0b100 ? "user" : "kernel"
-		);
-	} else if (id == InterruptId::SegmentNotPresent) {
-		kdbgln("The fault occurred {}, in the {} at index {:#x}",
-			error_code & 1 ? "externally" : "internally",
-			error_code & 0b10 ? "IDT" : "GDT",
-			error_code >> 3 >> 1 // doubled for some reason?
-		);
-	} else if (which == kernel::PIC_IRQ_OFFSET + 1) {
-		kernel::ps2::handle_keyboard();
-		return;
+	if (which < kernel::PIC_IRQ_OFFSET) {
+		kdbgln("[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code);
+		const auto id = static_cast<InterruptId>(which);
+		if (id == InterruptId::PageFault) {
+			kdbgln("[page fault] {} on {} at {:#08x} by {}",
+				error_code & 1 ? "Page-protection violation" : "Non-present page",
+				error_code & 0b10 ? "write" : "read",
+				get_cr2(),
+				error_code & 0b100 ? "user" : "kernel"
+			);
+		} else if (id == InterruptId::SegmentNotPresent) {
+			kdbgln("The fault occurred {}, in the {} at index {:#x}",
+				error_code & 1 ? "externally" : "internally",
+				error_code & 0b10 ? "IDT" : "GDT",
+				error_code >> 3 >> 1 // doubled for some reason?
+			);
+		}
+		kdbgln("rip - {:#x}", regs->rip);
+		kdbgln("rsp - {:#x}", regs->rsp);
+		halt();
+	} else {
+		if (which == kernel::PIC_IRQ_OFFSET + 1) {
+			kernel::ps2::handle_keyboard();
+		} else {
+			kdbgln("[INT] ({:#x}) Unknown IRQ {}, error code {:#x}", which, which - kernel::PIC_IRQ_OFFSET, error_code);
+			halt();
+		}
 	}
-	kdbgln("rip - {:#x}", regs->rip);
-	kdbgln("rsp - {:#x}", regs->rsp);
-	halt();
 }
 
 // couldnt figure out how to just directly call it,
