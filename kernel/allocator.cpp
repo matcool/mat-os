@@ -26,12 +26,7 @@ public:
 	void set(usize index, bool value) {
 		const auto array_index = index / bits_per_element;
 		const auto bit_index = index % bits_per_element;
-		const ElementType bit_mask = 1 << bit_index;
-		if (value) {
-			m_data[array_index] |= bit_mask;
-		} else {
-			m_data[array_index] &= ~bit_mask;
-		}
+		mat::math::set_bit(m_data[array_index], bit_index, value);
 	}
 
 	bool get(usize index) const {
