@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stl/types.hpp>
+#include <stl/format.hpp>
 
 namespace kernel {
 
@@ -27,7 +28,9 @@ class VirtualAddress {
 	uptr m_value;
 public:
 	explicit VirtualAddress(uptr value) : m_value(value) {}
-	VirtualAddress() : VirtualAddress(0) {}
+	// Any pointer is a valid virtual address
+	explicit VirtualAddress(const void* addr) : VirtualAddress(reinterpret_cast<uptr>(addr)) {}
+	VirtualAddress() : VirtualAddress(uptr(0)) {}
 	VirtualAddress(PhysicalAddress);
 
 	PhysicalAddress to_physical() const;
@@ -88,10 +91,10 @@ public:
 
 void init();
 
-// Maps a physical address to virtual address, assuming limine's memory mapping
+// Maps a physical address to virtual address, using limine's HHDM mapping
 uptr physical_to_virtual(uptr physical_address);
 
-// Maps a virtual address to physical address, assuming limine's memory mapping
+// Maps a virtual address to physical address, assuming limine's HHDM mapping
 uptr virtual_to_physical(uptr virtual_address);
 
 void explore_addr(uptr value);
@@ -108,5 +111,12 @@ void invalidate_cache(VirtualAddress virt);
 
 }
 
-
 }
+
+template <class Func>
+struct mat::Formatter<Func, kernel::paging::PageTableEntry> {
+	static void format(Func func, kernel::paging::PageTableEntry entry) {
+		mat::format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
+			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.get_available(), entry.addr().value(), entry.value());
+	}
+};

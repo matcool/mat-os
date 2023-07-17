@@ -8,6 +8,8 @@ add_executable(kernel
 	memory/physical_alloc.cpp
 	memory/paging.cpp
 	memory/virtual_alloc.cpp
+	memory/address.cpp
+	memory/page_entry.cpp
 )
 
 target_link_libraries(kernel limine stl)
