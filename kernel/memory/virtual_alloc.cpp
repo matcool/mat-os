@@ -24,6 +24,16 @@ void* kernel::alloc::allocate_pages(usize count) {
 	return addr.ptr();
 }
 
-void kernel::alloc::free_page(void*) {
-	kdbgln("hehe sorry cant free");
+void kernel::alloc::free_page(void* addr) {
+	const auto value = reinterpret_cast<uptr>(addr);
+	if (value < BASE_ADDRESS || !allocated_pages) {
+		panic("Tried to free invalid address ({:})", addr);
+	}
+	if (value == BASE_ADDRESS + (allocated_pages - 1) * PAGE_SIZE) {
+		kdbgln("Freeing top most page");
+		allocated_pages--;
+		paging::unmap_page(VirtualAddress(value));
+	} else {
+		kdbgln("hehe sorry cant free");
+	}
 }

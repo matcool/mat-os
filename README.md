@@ -7,10 +7,11 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Use CMake
 - [X] Serial output
 - [X] Working IDT
-- [X] Page frame allocator
-- [ ] A better page frame allocator
+- [X] Physical page allocator (very inefficient)
+- [ ] A better Physical page allocator
 - [X] Paging (though basic)
-- [ ] Virtual memory allocator
+- [X] Virtual page allocator (bump allocator, can't free)
+- [ ] A better virtual page allocator
 - [ ] PS/2 keyboard input
 - [ ] Working timer (to time the screen)
 - [X] Working screen
