@@ -102,8 +102,7 @@ void kernel::alloc::init() {
 		}
 	}
 	if (!bitmap_array_addr) {
-		kdbgln("[PANIC] Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
-		halt();
+		panic("Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
 	}
 
 	bitmap = PageBitmap(bitmap_array_addr, bitmap_array_size);
@@ -140,8 +139,7 @@ kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 	}
 	
 	if (!page_address) {
-		kdbgln("[PANIC] Couldn't allocate a single page");
-		halt();
+		panic("Couldn't allocate a single page");
 	}
 
 	bitmap.set(page_index, true);
@@ -150,8 +148,7 @@ kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 
 void kernel::alloc::free_physical_page(PhysicalAddress addr) {;
 	if (addr.value() % PAGE_SIZE != 0) {
-		kdbgln("[PANIC] Tried to free misaligned page ({:#x})", addr.value());
-		halt();
+		panic("Tried to free misaligned page ({:#x})", addr.value());
 	}
 
 	usize page_index = 0;
@@ -170,8 +167,7 @@ void kernel::alloc::free_physical_page(PhysicalAddress addr) {;
 	}
 
 	if (!found) {
-		kdbgln("[PANIC] Couldn't find page to free ({:#x})", addr.value());
-		halt();
+		panic("Couldn't find page to free ({:#x})", addr.value());
 	}
 
 	bitmap.set(page_index, false);

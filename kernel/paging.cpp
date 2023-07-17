@@ -250,9 +250,8 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 	auto& entry = allocate_entry_and_follow(entry_pd)[index_pt];
 
 	if (entry.is_present() && entry.get_available() == MAT_MAPPED_MAGIC) {
-		kdbgln("[PANIC] Tried to map to address that was already mapped! ({:#x} trying to {:#x}, but is {:#x})",
+		panic("Tried to map to address that was already mapped! ({:#x} trying to {:#x}, but is {:#x})",
 			virt.value(), phys.value(), entry.addr().value());
-		halt();
 	}
 
 	entry.set_available(MAT_MAPPED_MAGIC);
