@@ -176,11 +176,3 @@ void kernel::alloc::free_physical_page(PhysicalAddress addr) {;
 
 	bitmap.set(page_index, false);
 }
-
-void* kernel::alloc::allocate_page() {
-	return allocate_physical_page().to_virtual().ptr();
-}
-
-void kernel::alloc::free_page(void* addr) {
-	free_physical_page(VirtualAddress(reinterpret_cast<uptr>(addr)).to_physical());
-}

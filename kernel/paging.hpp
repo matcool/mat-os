@@ -12,6 +12,7 @@ class PhysicalAddress {
 	uptr m_value;
 public:
 	explicit PhysicalAddress(uptr value) : m_value(value) {}
+	PhysicalAddress() : PhysicalAddress(0) {}
 	PhysicalAddress(VirtualAddress);
 
 	// Converts to a HHDM virtual address
@@ -26,12 +27,15 @@ class VirtualAddress {
 	uptr m_value;
 public:
 	explicit VirtualAddress(uptr value) : m_value(value) {}
+	VirtualAddress() : VirtualAddress(0) {}
 	VirtualAddress(PhysicalAddress);
 
 	PhysicalAddress to_physical() const;
 
 	auto value() const { return m_value; }
 	void* ptr() const { return reinterpret_cast<void*>(m_value); }
+
+	VirtualAddress operator+(uptr offset) const;
 };
 
 namespace paging {

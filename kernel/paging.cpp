@@ -46,6 +46,10 @@ kernel::PhysicalAddress kernel::PhysicalAddress::operator+(uptr offset) const {
 	return PhysicalAddress(value() + offset);
 }
 
+kernel::VirtualAddress kernel::VirtualAddress::operator+(uptr offset) const {
+	return VirtualAddress(value() + offset);
+}
+
 template <class Func>
 struct mat::Formatter<Func, kernel::paging::PageTableEntry> {
 	static void format(Func func, kernel::paging::PageTableEntry entry) {
@@ -114,14 +118,14 @@ void PageTableEntry::set_execution_disabled(bool value) {
 }
 
 u16 PageTableEntry::get_available() const {
-	return (value() >> 47 & 0b1111111111100000) | (value() >> 7 & 0b11110) | (value() >> 6 & 1);
+	// leave out last bit as it can be the Dirty bit for PT entries
+	return (value() >> 47 & 0b1111111111100000) | (value() >> 7 & 0b11110); // | (value() >> 6 & 1);
 }
 
 void PageTableEntry::set_available(u16 value) {
 	// set_bit(6, value & 1);
 	m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | ((u64(value) & 0b11110) << 7);
 	m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (u64(value) >> 5 << 52);
-	// m_value = 0x69;
 }
 
 }

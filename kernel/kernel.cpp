@@ -31,7 +31,9 @@ extern "C" void _start() {
 	alloc::init();
 
 	void* page = alloc::allocate_page();
-	void* page2 = alloc::allocate_page();
+	void* page2 = alloc::allocate_pages(3);
+	reinterpret_cast<u64*>(page2)[0] = 0x69696969;
+	reinterpret_cast<u64*>(page2)[2] = 0x4201337;
 
 	kdbgln("addr of page: {}", page);
 	kdbgln("another page: {}", page2);
