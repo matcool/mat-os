@@ -8,6 +8,8 @@
 #include <stl/math.hpp>
 #include <stl/memory.hpp>
 
+using mat::math::bit_mask;
+
 // limine maps physical memory -> virtual memory by just adding a higher half base
 // this is constant except for when KASLR is on, so use this to get it
 static volatile limine_hhdm_request hhdm_request = {
@@ -75,7 +77,7 @@ kernel::PhysicalAddress PageTableEntry::addr() const {
 
 void PageTableEntry::set_addr(PhysicalAddress addr) {
 	const auto value = addr.value();
-	m_value = (m_value & ~(mat::math::bit_mask<u64>(48 - 12) << 12)) | (value & ~mat::math::bit_mask<u64>(12) & mat::math::bit_mask<u64>(48));
+	m_value = (m_value & ~(bit_mask<u64>(48 - 12) << 12)) | (value & ~bit_mask<u64>(12) & bit_mask<u64>(48));
 }
 
 PageTableEntry* PageTableEntry::follow() const {
@@ -124,8 +126,8 @@ u16 PageTableEntry::get_available() const {
 
 void PageTableEntry::set_available(u16 value) {
 	// set_bit(6, value & 1);
-	m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | ((u64(value) & 0b11110) << 7);
-	m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (u64(value) >> 5 << 52);
+	m_value = (m_value & ~(bit_mask<u64>(4) << 8)) | ((u64(value) & 0b11110) << 7);
+	m_value = (m_value & ~(bit_mask<u64>(11) << 52)) | (u64(value) >> 5 << 52);
 }
 
 }
@@ -156,7 +158,7 @@ void kernel::paging::explore_addr(uptr target_addr) {
 
 	PhysicalAddress phys_addr(0);
 
-	static constexpr auto mask9 = mat::math::bit_mask<u64>(9);
+	static constexpr auto mask9 = bit_mask<u64>(9);
 
 	auto& pml4 = entries[target_addr >> 39 & mask9];
 	kdbgln("PML4 = {}", pml4);
@@ -168,7 +170,7 @@ void kernel::paging::explore_addr(uptr target_addr) {
 		// 1 GiB pages
 		kdbgln("Stopping early, this is a 1 GiB page");
 		auto phys_page = pdpt.addr();
-		phys_addr = phys_page + (target_addr & mat::math::bit_mask<u64>(30));
+		phys_addr = phys_page + (target_addr & bit_mask<u64>(30));
 	} else {
 		auto& pd = pdpt.follow()[target_addr >> 21 & mask9];
 		kdbgln("  PD = {}", pd);
@@ -177,14 +179,14 @@ void kernel::paging::explore_addr(uptr target_addr) {
 			// 2 MiB pages
 			kdbgln("Stopping early, this is a 2 MiB page");
 			auto phys_page = pd.addr();
-			phys_addr = phys_page + (target_addr & mat::math::bit_mask<u64>(21));
+			phys_addr = phys_page + (target_addr & bit_mask<u64>(21));
 		} else {
 			auto& pt = pd.follow()[target_addr >> 12 & mask9];
 			kdbgln("  PT = {}", pt);
 
 			// 4 KiB pages
 			auto phys_page = pt.addr();
-			phys_addr = phys_page + (target_addr & mat::math::bit_mask<u64>(12));
+			phys_addr = phys_page + (target_addr & bit_mask<u64>(12));
 		}
 	}
 
@@ -215,7 +217,7 @@ static constexpr u16 MAT_MAPPED_MAGIC = 0xf3f0;
 void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 	auto* entries = get_base_entries();
 
-	static constexpr auto mask9 = mat::math::bit_mask<u64>(9);
+	static constexpr auto mask9 = bit_mask<u64>(9);
 
 	const auto index_pml4 = virt.value() >> 39 & mask9;
 	const auto index_pdp = virt.value() >> 30 & mask9;
@@ -224,11 +226,9 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 
 	// allocates a page table if its not present
 	static constexpr auto allocate_entry_and_follow = [](PageTableEntry& entry) {
-		// kdbgln("at entry {}", entry);
 		// check if this is a big page too, in which case we create a new
 		// table anyways, since we only care about 4 kib pages
 		if (!entry.is_present() || entry.is_ps()) {
-			// kdbgln("going in!");
 			entry.set_available(MAT_TABLE_MAGIC);
 			entry.set_present(true);
 			entry.set_writable(true);
@@ -240,7 +240,6 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 			mat::memset(page.to_virtual().ptr(), 0, PAGE_SIZE);
 			
 			entry.set_addr(page);
-			// kdbgln("entry now is {}, page is {:#x}", entry, page.value());
 		}
 		return entry.follow();
 	};
@@ -262,6 +261,4 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 	entry.set_user(true);
 	entry.set_execution_disabled(false);
 	entry.set_addr(phys);
-
-	// kdbgln("final entry is now {}", entry);
 }
