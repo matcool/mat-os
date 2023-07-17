@@ -1,10 +1,12 @@
 #include "paging.hpp"
+#include "kernel/allocator.hpp"
 #include "log.hpp"
 #include "intrinsics.hpp"
 #include <limine/limine.h>
 #include <stl/format.hpp>
 #include <stl/span.hpp>
 #include <stl/math.hpp>
+#include <stl/memory.hpp>
 
 // limine maps physical memory -> virtual memory by just adding a higher half base
 // this is constant except for when KASLR is on, so use this to get it
@@ -47,8 +49,8 @@ kernel::PhysicalAddress kernel::PhysicalAddress::operator+(uptr offset) const {
 template <class Func>
 struct mat::Formatter<Func, kernel::paging::PageTableEntry> {
 	static void format(Func func, kernel::paging::PageTableEntry entry) {
-		mat::format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, addr={:#08x}], raw={:#x}",
-			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.addr().value(), entry.value());
+		mat::format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
+			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.get_available(), entry.addr().value(), entry.value());
 	}
 };
 
@@ -65,6 +67,11 @@ constexpr void PageTableEntry::set_bit(u64 idx, bool value) {
 kernel::PhysicalAddress PageTableEntry::addr() const {
 	static constexpr auto mask = ((u64(1) << 52) - 1) & ~((u64(1) << 12) - 1);
 	return kernel::PhysicalAddress(m_value & mask);
+}
+
+void PageTableEntry::set_addr(PhysicalAddress addr) {
+	const auto value = addr.value();
+	m_value = (m_value & ~(mat::math::bit_mask<u64>(48 - 12) << 12)) | (value & ~mat::math::bit_mask<u64>(12) & mat::math::bit_mask<u64>(48));
 }
 
 PageTableEntry* PageTableEntry::follow() const {
@@ -107,14 +114,14 @@ void PageTableEntry::set_execution_disabled(bool value) {
 }
 
 u16 PageTableEntry::get_available() const {
-	//      11 bits                4 bits                1 bit
-	return (value() >> 52 << 5) | (value() >> 8 << 1) | (value() >> 6);
+	return (value() >> 47 & 0b1111111111100000) | (value() >> 7 & 0b11110) | (value() >> 6 & 1);
 }
 
 void PageTableEntry::set_available(u16 value) {
-	set_bit(6, value & 1);
-	m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | (value & 0b11110);
-	m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (value >> 5);
+	// set_bit(6, value & 1);
+	m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | ((u64(value) & 0b11110) << 7);
+	m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (u64(value) >> 5 << 52);
+	// m_value = 0x69;
 }
 
 }
@@ -132,9 +139,14 @@ void kernel::paging::init() {
 	kdbgln("Paging initialized");
 }
 
+// Returns the initial paging table, here its PML4
+kernel::paging::PageTableEntry* get_base_entries() {
+	const auto entries_addr = kernel::PhysicalAddress(get_cr3() & ~u64(0b11111));
+	return reinterpret_cast<kernel::paging::PageTableEntry*>(entries_addr.to_virtual().ptr());
+}
+
 void kernel::paging::explore_addr(uptr target_addr) {
-	auto entries_addr = PhysicalAddress(get_cr3() & ~u64(0b11111));
-	auto entries = mat::Span(reinterpret_cast<PageTableEntry*>(entries_addr.to_virtual().ptr()), 512);
+	auto* entries = get_base_entries();
 	
 	kdbgln("Target addr ({:#x}) entries are:", target_addr);
 
@@ -188,4 +200,64 @@ void kernel::paging::explore_addr(uptr target_addr) {
 	auto* bytes_virt = reinterpret_cast<u8*>(virt.ptr());
 	
 	kdbgln("Bytes at phys_addr + HHDM: {:02x} {:02x} {:02x} {:02x}", bytes_virt[0], bytes_virt[1], bytes_virt[2], bytes_virt[3]);
+}
+
+// if present, this means the table was allocated here, not by limine
+static constexpr u16 MAT_TABLE_MAGIC = 0x4444;
+// if present, the page is already mapped and should not try to map again
+static constexpr u16 MAT_MAPPED_MAGIC = 0xf3f0;
+
+// Currently will replace whatever was mapped there, as its probably limine's identity mapping
+void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
+	auto* entries = get_base_entries();
+
+	static constexpr auto mask9 = mat::math::bit_mask<u64>(9);
+
+	const auto index_pml4 = virt.value() >> 39 & mask9;
+	const auto index_pdp = virt.value() >> 30 & mask9;
+	const auto index_pd = virt.value() >> 21 & mask9;
+	const auto index_pt = virt.value() >> 12 & mask9;
+
+	// allocates a page table if its not present
+	static constexpr auto allocate_entry_and_follow = [](PageTableEntry& entry) {
+		// kdbgln("at entry {}", entry);
+		// check if this is a big page too, in which case we create a new
+		// table anyways, since we only care about 4 kib pages
+		if (!entry.is_present() || entry.is_ps()) {
+			// kdbgln("going in!");
+			entry.set_available(MAT_TABLE_MAGIC);
+			entry.set_present(true);
+			entry.set_writable(true);
+			entry.set_user(true);
+			entry.set_ps(false);
+			entry.set_execution_disabled(false);
+
+			auto page = kernel::alloc::allocate_physical_page();
+			mat::memset(page.to_virtual().ptr(), 0, PAGE_SIZE);
+			
+			entry.set_addr(page);
+			// kdbgln("entry now is {}, page is {:#x}", entry, page.value());
+		}
+		return entry.follow();
+	};
+
+	auto& entry_pml4 = entries[index_pml4];
+	auto& entry_pdp = allocate_entry_and_follow(entry_pml4)[index_pdp];
+	auto& entry_pd = allocate_entry_and_follow(entry_pdp)[index_pd];
+	auto& entry = allocate_entry_and_follow(entry_pd)[index_pt];
+
+	if (entry.is_present() && entry.get_available() == MAT_MAPPED_MAGIC) {
+		kdbgln("[PANIC] Tried to map to address that was already mapped! ({:#x} trying to {:#x}, but is {:#x})",
+			virt.value(), phys.value(), entry.addr().value());
+		halt();
+	}
+
+	entry.set_available(MAT_MAPPED_MAGIC);
+	entry.set_present(true);
+	entry.set_writable(true);
+	entry.set_user(true);
+	entry.set_execution_disabled(false);
+	entry.set_addr(phys);
+
+	// kdbgln("final entry is now {}", entry);
 }

@@ -14,6 +14,7 @@ public:
 	explicit PhysicalAddress(uptr value) : m_value(value) {}
 	PhysicalAddress(VirtualAddress);
 
+	// Converts to a HHDM virtual address
 	VirtualAddress to_virtual() const;
 
 	auto value() const { return m_value; }
@@ -47,6 +48,7 @@ public:
 	auto& value() { return m_value; }
 
 	PhysicalAddress addr() const;
+	void set_addr(PhysicalAddress addr);
 
 	PageTableEntry* follow() const;
 
@@ -86,6 +88,10 @@ uptr physical_to_virtual(uptr physical_address);
 uptr virtual_to_physical(uptr virtual_address);
 
 void explore_addr(uptr value);
+
+// Maps a physical page to a virtual address.
+// TODO: add flags, and maybe page size
+void map_page(VirtualAddress virt, PhysicalAddress phys);
 
 }
 
