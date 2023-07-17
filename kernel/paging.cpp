@@ -16,11 +16,14 @@ static volatile limine_hhdm_request hhdm_request = {
 uptr hhdm_base;
 
 uptr kernel::paging::physical_to_virtual(uptr addr) {
+	// limine identity maps everything up to 4 gib, need to deal with that later
 	return addr + hhdm_base;
 }
 
 uptr kernel::paging::virtual_to_physical(uptr addr) {
-	return addr - hhdm_base;
+	if (addr > hhdm_base)
+		return addr - hhdm_base;
+	return addr;
 }
 
 kernel::VirtualAddress::VirtualAddress(PhysicalAddress addr)
@@ -43,10 +46,14 @@ kernel::PhysicalAddress kernel::PhysicalAddress::operator+(uptr offset) const {
 
 class PageTableEntry {
 	u64 m_value;
+
+	constexpr bool get_bit(u64 idx) const { return m_value & (1 << idx); }
+	constexpr void set_bit(u64 idx, bool value) { mat::math::set_bit(m_value, idx, value); }
 public:
 	PageTableEntry(u64 value) : m_value(value) {}
 
 	auto value() const { return m_value; }
+	auto& value() { return m_value; }
 
 	auto addr() const {
 		static constexpr auto mask = ((u64(1) << 52) - 1) & ~((u64(1) << 12) - 1);
@@ -57,10 +64,38 @@ public:
 		return reinterpret_cast<PageTableEntry*>(addr().to_virtual().ptr());
 	}
 
-	bool is_present() const { return value() & 1; }
-	bool is_writable() const { return value() & 0b10; }
-	bool is_user() const { return value() & 0b100; }
-	bool is_ps() const { return value() & 0b10000000; }
+	// P flag, must be true if the entry should be used.
+	bool is_present() const { return get_bit(0); }
+	void set_present(bool value) { set_bit(0, value); }
+
+	// R/W flag, if true then the page is writable.
+	bool is_writable() const { return get_bit(1); }
+	void set_writable(bool value) { set_bit(1, value); }
+
+	// U/S flag, if true then this page is accessible to userspace apps.
+	bool is_user() const { return get_bit(2); }
+	void set_user(bool value) { set_bit(2, value); }
+
+	// PS flag, if true then this entry points to a page larger than 4 KiB,
+	// either 2 MiB or 1 GiB. If this is a PT entry then this is not PS, but PAT
+	bool is_ps() const { return get_bit(7); }
+	void set_ps(bool value) { set_bit(7, value); }
+
+	bool is_execution_disabled() const { return get_bit(63); }
+	void set_execution_disabled(bool value) { set_bit(63, value); }
+
+	// get available bits in the entry, which the cpu ignores.
+	// if this is an entry that points to a page, then some bits may be used
+	// if PGE or PKS are enabled.
+	u16 get_available() const {
+		//      11 bits                4 bits                1 bit
+		return (value() >> 52 << 5) | (value() >> 8 << 1) | (value() >> 6);
+	}
+	void set_available(u16 value) {
+		set_bit(6, value & 1);
+		m_value = (m_value & ~(mat::math::bit_mask<u64>(4) << 8)) | (value & 0b11110);
+		m_value = (m_value & ~(mat::math::bit_mask<u64>(11) << 52)) | (value >> 5);
+	}
 };
 
 template <class Func>
@@ -94,10 +129,10 @@ void kernel::paging::explore_addr(uptr target_addr) {
 
 	static constexpr auto mask9 = mat::math::bit_mask<u64>(9);
 
-	auto& pml4 = entries[(target_addr >> 39) & mask9];
+	auto& pml4 = entries[target_addr >> 39 & mask9];
 	kdbgln("PML4 = {}", pml4);
 
-	auto& pdpt = pml4.follow()[(target_addr >> 30) & mask9];
+	auto& pdpt = pml4.follow()[target_addr >> 30 & mask9];
 	kdbgln("PDPT = {}", pdpt);
 	
 	if (pdpt.is_ps()) {
@@ -106,7 +141,7 @@ void kernel::paging::explore_addr(uptr target_addr) {
 		auto phys_page = pdpt.addr();
 		phys_addr = phys_page + (target_addr & mat::math::bit_mask<u64>(30));
 	} else {
-		auto& pd = pdpt.follow()[(target_addr >> 21) & mask9];
+		auto& pd = pdpt.follow()[target_addr >> 21 & mask9];
 		kdbgln("  PD = {}", pd);
 
 		if (pd.is_ps()) {
@@ -115,7 +150,7 @@ void kernel::paging::explore_addr(uptr target_addr) {
 			auto phys_page = pd.addr();
 			phys_addr = phys_page + (target_addr & mat::math::bit_mask<u64>(21));
 		} else {
-			auto& pt = pd.follow()[(target_addr >> 12) & mask9];
+			auto& pt = pd.follow()[target_addr >> 12 & mask9];
 			kdbgln("  PT = {}", pt);
 
 			// 4 KiB pages

@@ -43,8 +43,11 @@ extern "C" void _start() {
 	void* page3 = alloc::allocate_page();
 	kdbgln("page 3: {}", page3);
 
-	paging::explore_addr((uptr)page);
+	// this has a 2mb page!
 	paging::explore_addr((uptr)framebuffer_request.response);
+	// the two virtual addresses should be different, but both point to the same
+	// physical address
+	paging::explore_addr((uptr)&_start);
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();
