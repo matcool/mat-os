@@ -8,6 +8,7 @@
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
 #include <kernel/device/pic.hpp>
+#include <kernel/device/ps2.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -58,6 +59,7 @@ extern "C" void _start() {
 	paging::explore_addr((uptr)&_start);
 
 	pic::init();
+	ps2::init();
 
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
 		halt();

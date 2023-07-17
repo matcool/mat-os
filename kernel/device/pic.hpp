@@ -17,6 +17,10 @@ namespace pic {
 
 void init();
 
+// masks a given IRQ to be either enabled or disabled
+void set_irq_mask(u8 irq_index, bool enabled);
+
+
 }
 
 }

@@ -50,7 +50,7 @@ static void remap_pic(u8 offset1, u8 offset2) {
 }
 
 // masks a given IRQ to be either enabled or disabled
-void set_irq_mask(u8 irq_index, bool enabled) {
+void kernel::pic::set_irq_mask(u8 irq_index, bool enabled) {
 	u16 port;
 	if (irq_index < 8) {
 		port = PIC1_DATA_PORT;
@@ -65,9 +65,6 @@ void set_irq_mask(u8 irq_index, bool enabled) {
 
 void kernel::pic::init() {
 	remap_pic(PIC_IRQ_OFFSET, PIC_IRQ_OFFSET + 8);
-
-	// enable ps/2 keyboard
-	set_irq_mask(1, true);
 
 	kdbgln("PIC initialized");
 }

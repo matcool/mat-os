@@ -15,3 +15,10 @@ void kernel::ps2::handle_keyboard() {
 	
 	send_pic_eoi(1);
 }
+
+void kernel::ps2::init() {
+	// enable PS/2 keyboard
+	pic::set_irq_mask(1, true);
+
+	kdbgln("PS/2 devices initialized");
+}
