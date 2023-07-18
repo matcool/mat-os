@@ -32,13 +32,9 @@ uptr kernel::paging::virtual_to_physical(uptr addr) {
 
 void kernel::paging::init() {
 	if (!hhdm_request.response)
-		halt();
+		panic("No response for HHDM request");
 
 	hhdm_base = hhdm_request.response->offset;
-
-	kdbgln("CR0: {:#032b}", get_cr0());
-	kdbgln("CR3: {:#032b}", get_cr3());
-	kdbgln("CR4: {:#032b}", get_cr4());
 
 	kdbgln("Paging initialized");
 }

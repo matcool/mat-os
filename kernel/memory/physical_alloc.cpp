@@ -65,7 +65,7 @@ void debug_print_memmap() {
 
 void kernel::alloc::init() {
 	if (!memmap_request.response)
-		halt();
+		panic("No response for memmap request");
 
 	debug_print_memmap();
 

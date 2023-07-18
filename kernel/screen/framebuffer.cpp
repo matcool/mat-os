@@ -2,6 +2,7 @@
 #include <stl/types.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/screen/framebuffer.hpp>
+#include <kernel/log.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -10,9 +11,8 @@ static volatile limine_framebuffer_request framebuffer_request = {
 };
 
 void kernel::framebuffer::init() {
-	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1) {
-		halt();
-	}
+	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1)
+		panic("None or invalid response for framebuffer request");
 
 	auto* framebuffer = framebuffer_request.response->framebuffers[0];
 
@@ -29,4 +29,5 @@ void kernel::framebuffer::init() {
 		}
 	}
 
+	kdbgln("Framebuffer initialized");
 }
