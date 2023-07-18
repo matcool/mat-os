@@ -99,4 +99,10 @@ Int parse_int(StringView str) {
 // Returns whether a character is a decimal digit (0-9)
 bool is_digit(char c);
 
+// Converts an ascii letter to uppercase, unchanged otherwise
+char to_ascii_uppercase(char c);
+
+// Converts an ascii letter to lowercase, unchanged otherwise
+char to_ascii_lowercase(char c);
+
 }
