@@ -9,6 +9,8 @@ static constexpr u16 PS2_COM_PORT = 0x64;
 
 void init();
 
+void init_keyboard();
+
 void handle_keyboard();
 
 }

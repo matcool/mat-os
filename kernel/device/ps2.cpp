@@ -4,8 +4,7 @@
 #include <kernel/intrinsics.hpp>
 
 void kernel::ps2::init() {
-	// enable PS/2 keyboard
-	pic::set_irq_mask(1, true);
+	init_keyboard();
 
 	kdbgln("PS/2 devices initialized");
 }
