@@ -49,7 +49,6 @@ static void remap_pic(u8 offset1, u8 offset2) {
 	outb(PIC2_DATA_PORT, mask2);
 }
 
-// masks a given IRQ to be either enabled or disabled
 void kernel::pic::set_irq_mask(u8 irq_index, bool enabled) {
 	u16 port;
 	if (irq_index < 8) {
@@ -61,6 +60,13 @@ void kernel::pic::set_irq_mask(u8 irq_index, bool enabled) {
 	auto mask = inb(port);
 	mat::math::set_bit(mask, irq_index, !enabled);
 	outb(port, mask);
+}
+
+void kernel::pic::send_eoi(u8 irq) {
+	if (irq >= 8) {
+		outb(kernel::PIC2_COM_PORT, 0x20);
+	}
+	outb(kernel::PIC1_COM_PORT, 0x20);
 }
 
 void kernel::pic::init() {

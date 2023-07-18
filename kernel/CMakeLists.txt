@@ -12,6 +12,7 @@ add_executable(kernel
 	memory/page_entry.cpp
 	device/pic.cpp
 	device/ps2.cpp
+	device/keyboard.cpp
 )
 
 target_link_libraries(kernel limine stl)

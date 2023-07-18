@@ -17,9 +17,11 @@ namespace pic {
 
 void init();
 
-// masks a given IRQ to be either enabled or disabled
+// Masks a given IRQ to be either enabled or disabled
 void set_irq_mask(u8 irq_index, bool enabled);
 
+// Sends an End Of Interrupt signal, required at the end of IRQs.
+void send_eoi(u8 irq);
 
 }
 
