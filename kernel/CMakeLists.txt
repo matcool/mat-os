@@ -13,6 +13,7 @@ add_executable(kernel
 	device/pic.cpp
 	device/ps2.cpp
 	device/keyboard.cpp
+	screen/framebuffer.cpp
 )
 
 target_link_libraries(kernel limine stl)
