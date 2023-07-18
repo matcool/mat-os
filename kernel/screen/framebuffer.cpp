@@ -10,6 +10,12 @@ static volatile limine_framebuffer_request framebuffer_request = {
 	.response = nullptr,
 };
 
+kernel::framebuffer::Framebuffer active_framebuffer;
+
+kernel::framebuffer::Framebuffer* kernel::framebuffer::get_framebuffer() {
+	return &active_framebuffer;
+}
+
 void kernel::framebuffer::init() {
 	if (!framebuffer_request.response || framebuffer_request.response->framebuffer_count < 1)
 		panic("None or invalid response for framebuffer request");
@@ -17,7 +23,7 @@ void kernel::framebuffer::init() {
 	auto* framebuffer = framebuffer_request.response->framebuffers[0];
 
 	// Note: we assume the framebuffer model is RGB with 32-bit pixels.
-	auto* const fb_ptr = (u32*)framebuffer->address;
+	auto* const fb_ptr = reinterpret_cast<u32*>(framebuffer->address);
 	const auto stride = framebuffer->pitch / 4;
 	for (usize y = 0; y < framebuffer->height; y++) {
 		for (usize x = 0; x < framebuffer->width; x++) {
@@ -28,6 +34,11 @@ void kernel::framebuffer::init() {
 			fb_ptr[y * stride + x] = color;
 		}
 	}
+
+	active_framebuffer.width = framebuffer->width;
+	active_framebuffer.height = framebuffer->height;
+	active_framebuffer.stride = stride;
+	active_framebuffer.pixels = fb_ptr;
 
 	kdbgln("Framebuffer initialized");
 }
