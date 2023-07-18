@@ -47,6 +47,13 @@ void formatter_as(Func func, Type value, StringView spec = "") {
 }
 
 template <FormatOutFunc Func>
+struct Formatter<Func, char> {
+	static void format(Func func, char value) {
+		func(value);
+	}
+};
+
+template <FormatOutFunc Func>
 struct Formatter<Func, bool> {
 	static void format(Func func, bool value, StringView spec) {
 		if (spec == "d") {
