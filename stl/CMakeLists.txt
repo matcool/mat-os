@@ -6,4 +6,5 @@ target_sources(stl INTERFACE
 	format.cpp
 	string.cpp
 	memory.cpp
+	random.cpp
 )
