@@ -2,8 +2,7 @@
 OUTPUT_FORMAT(elf64-x86-64)
 OUTPUT_ARCH(i386:x86-64)
 
-/* We want the symbol _start to be our entry point */
-ENTRY(_start)
+ENTRY(kernel_init)
 
 /* Define the program headers we want so the bootloader gives us the right */
 /* MMU permissions */
@@ -51,8 +50,8 @@ SECTIONS
     /* If you need, for example, .init_array and .fini_array, those should be placed */
     /* above this. */
     .bss : {
-        *(COMMON)
         *(.bss .bss.*)
+        *(COMMON)
     } :data
 
     /* Discard .note.* and .eh_frame since they may cause issues on some hosts. */

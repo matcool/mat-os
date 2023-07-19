@@ -10,7 +10,7 @@
 
 using namespace kernel;
 
-extern "C" void _start() {
+extern "C" void kernel_init() {
 	serial::init();
 
 	kdbgln("Booting up...");
