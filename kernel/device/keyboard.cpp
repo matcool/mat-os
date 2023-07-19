@@ -40,6 +40,31 @@ struct Key {
 
 Key key_map[256];
 
+char apply_shift(Key key) {
+	switch (key.ch) {
+		case '1': return '!';
+		case '2': return '@';
+		case '3': return '#';
+		case '4': return '$';
+		case '5': return '%';
+		case '6': return '^';
+		case '7': return '&';
+		case '8': return '*';
+		case '9': return '(';
+		case '0': return ')';
+		case ',': return '<';
+		case '.': return '>';
+		case '/': return '?';
+		case ';': return ':';
+		case '\'': return '"';
+		case '[': return '{';
+		case ']': return '}';
+		case '-': return '_';
+		case '=': return '+';
+		default: return key.ch;
+	}
+}
+
 u64 long_scan_code = 0;
 
 void kernel::ps2::handle_keyboard() {
@@ -54,9 +79,18 @@ void kernel::ps2::handle_keyboard() {
 		
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
-				const char ch = modifiers.shift ^ modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch);
-				// kdbg("{}", ch);
+				char ch = key.ch;
+				if (mat::is_ascii_alpha(key.ch)) {
+					// the character is uppercase by default
+					ch = modifiers.shift != modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch);
+				} else if (modifiers.shift) {
+					ch = apply_shift(key);
+				}
 				kernel::terminal::type_character(ch);
+			}
+		} else if (key.kind == KeyKind::Enter || key.kind == KeyKind::Backspace) {
+			if (pressed) {
+				kernel::terminal::type_character(key.ch);
 			}
 		} else if (key.kind == KeyKind::LeftCtrl || key.kind == KeyKind::RightCtrl) {
 			modifiers.ctrl = pressed;
@@ -83,23 +117,30 @@ void kernel::ps2::init_keyboard() {
 	// mfw no enumeration in c++
 	usize i = 0x10;
 	for (char c : "QWERTYUIOP") {
+		if (c == 0) break;
 		key_map[i++] = Key { KeyKind::Printable, c };
 	}
 	i = 0x1e;
-	for (char c : "ASDFGHJKL") {
+	for (char c : "ASDFGHJKL;'") {
+		if (c == 0) break;
 		key_map[i++] = Key { KeyKind::Printable, c };
 	}
 	i = 0x2c;
-	for (char c : "ZXCVBNM") {
+	for (char c : "ZXCVBNM,./") {
+		if (c == 0) break;
 		key_map[i++] = Key { KeyKind::Printable, c };
 	}
 	i = 0x02;
-	for (char c : "1234567890") {
+	for (char c : "1234567890-=") {
+		if (c == 0) break;
 		key_map[i++] = Key { KeyKind::Printable, c };
 	}
 	key_map[0x39] = Key { KeyKind::Printable, ' ' };
 	
 	key_map[0x01] = Key { KeyKind::Escape };
+	key_map[0x1c] = Key { KeyKind::Enter, '\n' };
+	key_map[0x0e] = Key { KeyKind::Backspace, '\x08' };
+
 	key_map[0x1d] = Key { KeyKind::LeftCtrl };
 	key_map[0x2a] = Key { KeyKind::LeftShift };
 	key_map[0x36] = Key { KeyKind::RightShift };
