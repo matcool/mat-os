@@ -12,7 +12,8 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Paging (though basic)
 - [X] Virtual page allocator (bump allocator, can't free)
 - - [ ] A better virtual page allocator
-- [ ] PS/2 keyboard input
+- [X] PS/2 keyboard input
+- - [ ] Some way to get key events out of the interrupt
 - [ ] Working timer (to time the screen)
 - [X] Working screen
 - [ ] Basic terminal interface on screen
