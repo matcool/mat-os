@@ -12,14 +12,18 @@ static constexpr u32 FREQ_HZ = 1000;
 static constexpr u32 CLOCK_DIVISOR = PIT_CLOCK_HZ / FREQ_HZ;
 static_assert(CLOCK_DIVISOR <= 65536, "Invalid divisor for the PIT");
 
-u32 counter = 0;
+u64 tick_counter = 0;
 
 void kernel::pit::handle_interrupt() {
-	++counter;
-	if (counter == FREQ_HZ) {
-		counter = 0;
-	}
+	++tick_counter;
 	pic::send_eoi(0);
+}
+
+void kernel::sleep(u32 ms) {
+	const auto start = tick_counter;
+	while (tick_counter - start < ms) {
+		asm volatile("nop");
+	}
 }
 
 void kernel::pit::init() {
