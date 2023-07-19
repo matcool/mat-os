@@ -3,11 +3,11 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/screen/terminal.hpp>
 
 enum class KeyKind {
-	Printable,
-
 	Other,
+	Printable,
 
 	Escape,
 	Enter,
@@ -54,7 +54,9 @@ void kernel::ps2::handle_keyboard() {
 		
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
-				kdbg("{}", modifiers.shift ^ modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch));
+				const char ch = modifiers.shift ^ modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch);
+				kdbg("{}", ch);
+				kernel::terminal::type_character(ch);
 			}
 		} else if (key.kind == KeyKind::LeftCtrl || key.kind == KeyKind::RightCtrl) {
 			modifiers.ctrl = pressed;

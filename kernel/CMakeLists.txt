@@ -14,6 +14,7 @@ add_executable(kernel
 	device/ps2.cpp
 	device/keyboard.cpp
 	screen/framebuffer.cpp
+	screen/terminal.cpp
 )
 
 target_link_libraries(kernel limine stl)
