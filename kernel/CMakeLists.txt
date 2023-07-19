@@ -13,6 +13,7 @@ add_executable(kernel
 	device/pic.cpp
 	device/ps2.cpp
 	device/keyboard.cpp
+	device/pit.cpp
 	screen/framebuffer.cpp
 	screen/terminal.cpp
 )

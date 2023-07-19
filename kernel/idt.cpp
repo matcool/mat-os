@@ -4,6 +4,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/device/pic.hpp>
 #include <kernel/device/ps2.hpp>
+#include <kernel/device/pit.hpp>
 
 struct IDTEntry {
 	u16 offset1;
@@ -169,7 +170,9 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		kdbgln("rsp - {:#x}", regs->rsp);
 		halt();
 	} else {
-		if (which == kernel::PIC_IRQ_OFFSET + 1) {
+		if (which == kernel::PIC_IRQ_OFFSET + 0) {
+			kernel::pit::handle_interrupt();
+		} else if (which == kernel::PIC_IRQ_OFFSET + 1) {
 			kernel::ps2::handle_keyboard();
 		} else {
 			kdbgln("[INT] ({:#x}) Unknown IRQ {}, error code {:#x}", which, which - kernel::PIC_IRQ_OFFSET, error_code);

@@ -6,6 +6,7 @@
 #include <kernel/memory/paging.hpp>
 #include <kernel/device/pic.hpp>
 #include <kernel/device/ps2.hpp>
+#include <kernel/device/pit.hpp>
 #include <kernel/screen/framebuffer.hpp>
 
 using namespace kernel;
@@ -23,6 +24,7 @@ extern "C" void kernel_init() {
 
 	pic::init();
 	ps2::init();
+	pit::init();
 
 	framebuffer::init();
 
