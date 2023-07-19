@@ -6,6 +6,10 @@ bool is_digit(char c) {
 	return c >= '0' && c <= '9';
 }
 
+bool is_ascii_alpha(char c) {
+	return (c >= 'a' && c <= 'z') || (c >= 'A' && c <= 'Z');
+}
+
 char to_ascii_uppercase(char c) {
 	if (c >= 'a' && c <= 'z')
 		return c - 'a' + 'A';
