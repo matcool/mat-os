@@ -24,4 +24,11 @@ constexpr void set_bit(Int& target, u64 idx, bool value) {
 	target = (target & ~mask) | (value << idx);
 }
 
+// Gets a specific bit at "idx".
+template <concepts::integral Int>
+constexpr bool get_bit(Int value, u64 idx) {
+	const Int mask = Int(1) << idx;
+	return value & mask;
+}
+
 }
