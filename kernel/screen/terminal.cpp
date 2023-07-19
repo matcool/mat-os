@@ -24,6 +24,25 @@ void kernel::terminal::type_character(char ch) {
 	auto* fb = framebuffer::get_framebuffer();
 	if (columns == 0)
 		columns = fb->width / width;
+	
+	if (ch == '\n') {
+		column = 0;
+		row++;
+		return;
+	} else if (ch == '\x08') {
+		if (column != 0) {
+			column--;
+		} else if (row != 0) {
+			row--;
+			column = columns - 1;
+		}
+		for (u32 y = 0; y < height; ++y) {
+			for (u32 x = 0; x < width; ++x) {
+				fb->pixels[(y + row * height) * fb->stride + (x + column * width)] = 0;
+			}
+		}
+		return;
+	}
 
 	const auto& font_char = terminal_font[static_cast<u8>(ch)];
 
