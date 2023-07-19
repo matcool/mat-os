@@ -55,7 +55,7 @@ void kernel::ps2::handle_keyboard() {
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
 				const char ch = modifiers.shift ^ modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch);
-				kdbg("{}", ch);
+				// kdbg("{}", ch);
 				kernel::terminal::type_character(ch);
 			}
 		} else if (key.kind == KeyKind::LeftCtrl || key.kind == KeyKind::RightCtrl) {
