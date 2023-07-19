@@ -6,8 +6,9 @@
 
 using mat::math::get_bit;
 
-const u32 width = 7;
-const u32 height = 10;
+static constexpr u32 scale = 2;
+static constexpr u32 width = 7 * scale;
+static constexpr u32 height = 10 * scale;
 u32 columns = 0;
 u32 column = 0;
 u32 row = 0;
@@ -29,7 +30,7 @@ void kernel::terminal::type_character(char ch) {
 	for (u32 y = 0; y < height; ++y) {
 		for (u32 x = 0; x < width; ++x) {
 			auto& color = fb->pixels[(y + row * height) * fb->stride + (x + column * width)];
-			if (get_bit(font_char[y], x)) {
+			if (get_bit(font_char[y / scale], x / scale)) {
 				color = 0xFFFFFF;
 			} else {
 				color = darken_color(color);
