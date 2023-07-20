@@ -22,8 +22,11 @@ static u32 darken_color(u32 color) {
 
 void kernel::terminal::type_character(char ch) {
 	auto* fb = framebuffer::get_framebuffer();
+	if (!fb->pixels) return;
 	if (columns == 0)
 		columns = fb->width / width;
+	if (row >= fb->height / height)
+		row = 0;
 	
 	if (ch == '\n') {
 		column = 0;
