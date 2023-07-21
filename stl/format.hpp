@@ -193,7 +193,7 @@ void format_to(Func func, StringView str, Args... args) {
 						}
 
 						if (index >= sizeof...(Args)) {
-							// we've gone through more placeholders then there are args, so error
+							// we've gone through more placeholders than there are args, so error
 							// TODO: error
 							return;
 						}
