@@ -40,7 +40,7 @@ void Canvas::paste(const Canvas& subcanvas, usize x, usize y) {
 	for (usize j = 0; j < subcanvas.height() && y + j < height(); ++j) {
 		for (usize i = 0; i < subcanvas.width() && x + i < width(); ++i) {
 			// pixel by pixel! very slow..
-			this->set(x + i, j + i, subcanvas.get(i, j));
+			this->set(x + i, y + j, subcanvas.get(i, j));
 		}
 	}
 }
