@@ -1,15 +1,9 @@
 #include <kernel/screen/canvas.hpp>
 
-Color::Color(u8 r, u8 g, u8 b) : r(r), g(g), b(b) {}
+Color::Color(u8 r, u8 g, u8 b) : b(b), g(g), r(r) {}
 
 Color::Color(u32 rgb)
-	: r(rgb >> 16 & 0xFF),
-	g(rgb >> 8 & 0xFF),
-	b(rgb & 0xFF) {}
-
-u32 Color::packed() const {
-	return (r << 16) | (g << 8) | b;
-}
+	: packed(rgb) {}
 
 Canvas::Canvas(u32* pixels, usize width, usize height, usize stride)
 	: m_width(width), m_height(height), m_stride(stride),
@@ -46,7 +40,7 @@ void Canvas::paste(const Canvas& subcanvas, usize x, usize y) {
 }
 
 void Canvas::set(usize x, usize y, Color color) {
-	data()[index(x, y)] = color.packed();
+	data()[index(x, y)] = color.packed;
 }
 
 Color Canvas::get(usize x, usize y) const {

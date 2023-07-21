@@ -53,7 +53,7 @@ void kernel::terminal::type_character(char ch) {
 			if (get_bit(font_char[y / scale], x / scale)) {
 				fb->set(pix_x, pix_y, Color(255, 255, 255));
 			} else {
-				fb->set(pix_x, pix_y, darken_color(fb->get(pix_x, pix_y).packed()));
+				fb->set(pix_x, pix_y, darken_color(fb->get(pix_x, pix_y).packed));
 			}
 		}
 	}
