@@ -8,6 +8,10 @@ static constexpr uptr BASE_ADDRESS = 4 * 1024 * 1024;
 // implement a simple bump allocator for now
 usize allocated_pages = 0;
 
+void kernel::alloc::init_virtual_allocator() {
+	// nothing for now
+}
+
 void* kernel::alloc::allocate_page() {
 	return allocate_pages(1);
 }

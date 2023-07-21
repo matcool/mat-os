@@ -63,7 +63,7 @@ void debug_print_memmap() {
 	}
 }
 
-void kernel::alloc::init() {
+void kernel::alloc::init_physical_allocator() {
 	if (!memmap_request.response)
 		panic("No response for memmap request");
 

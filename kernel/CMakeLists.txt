@@ -10,6 +10,7 @@ add_executable(kernel
 	memory/virtual_alloc.cpp
 	memory/address.cpp
 	memory/page_entry.cpp
+	memory/heap_alloc.cpp
 	device/pic.cpp
 	device/ps2.cpp
 	device/keyboard.cpp
