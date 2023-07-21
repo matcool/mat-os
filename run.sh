@@ -13,5 +13,8 @@ if [ "$1" == "wsl" ]; then
 	BUILT_PATH=$(wslpath -w "$BUILT_PATH")
 	EXTRA_ARGS="-display sdl"
 fi
+if [ "$1" == "nogui" ]; then
+	EXTRA_ARGS="-display none"
+fi
 
 $QEMU -M q35 -m 1G -cdrom $BUILT_PATH -boot d -serial stdio $EXTRA_ARGS
