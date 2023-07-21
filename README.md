@@ -20,7 +20,7 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - [X] Basic on screen "terminal"
 - - [ ] Proper terminal interface with commands and such
 - [X] Drawing to the screen
-- [ ] Kernel heap allocator
+- [X] Kernel heap allocator
 - [ ] Begin windowing system
 - [ ] PS/2 mouse input
 - [ ] GUI system
