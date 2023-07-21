@@ -14,14 +14,17 @@ its mat-os again. this time using limine on x86_64 because i don't feel like mak
 - - [ ] A better virtual page allocator
 - [X] PS/2 keyboard input
 - - [ ] Some way to get key events out of the interrupt
-- [ ] Working timer (to time the screen)
+- [X] Working timer (PIT)
+- - [ ] Events? Scheduling?
 - [X] Working screen
-- [ ] Basic terminal interface on screen
-- [ ] PS/2 mouse input
-- [ ] Drawing to the screen
+- [X] Basic on screen "terminal"
+- - [ ] Proper terminal interface with commands and such
+- [X] Drawing to the screen
+- [ ] Kernel heap allocator
 - [ ] Begin windowing system
-- [ ] A basic in-memory filesystem
+- [ ] PS/2 mouse input
 - [ ] GUI system
+- [ ] A basic in-memory filesystem
 
 ### Apps
 - [ ] Use ELF for apps?
