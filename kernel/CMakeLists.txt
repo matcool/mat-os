@@ -16,6 +16,7 @@ add_executable(kernel
 	device/pit.cpp
 	screen/framebuffer.cpp
 	screen/terminal.cpp
+	screen/canvas.cpp
 )
 
 target_link_libraries(kernel limine stl)

@@ -10,10 +10,9 @@ static volatile limine_framebuffer_request framebuffer_request = {
 	.response = nullptr,
 };
 
-kernel::framebuffer::Framebuffer active_framebuffer;
-
-kernel::framebuffer::Framebuffer* kernel::framebuffer::get_framebuffer() {
-	return &active_framebuffer;
+Canvas* kernel::framebuffer::get_framebuffer() {
+	static Canvas instance(nullptr, 0, 0);
+	return &instance;
 }
 
 void kernel::framebuffer::init() {
@@ -35,10 +34,7 @@ void kernel::framebuffer::init() {
 		}
 	}
 
-	active_framebuffer.width = framebuffer->width;
-	active_framebuffer.height = framebuffer->height;
-	active_framebuffer.stride = stride;
-	active_framebuffer.pixels = fb_ptr;
+	*get_framebuffer() = Canvas(fb_ptr, framebuffer->width, framebuffer->height, stride);
 
 	kdbgln("Framebuffer initialized");
 }

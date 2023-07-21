@@ -22,10 +22,11 @@ static u32 darken_color(u32 color) {
 
 void kernel::terminal::type_character(char ch) {
 	auto* fb = framebuffer::get_framebuffer();
-	if (!fb->pixels) return;
+	if (!fb->data()) return;
+
 	if (columns == 0)
-		columns = fb->width / width;
-	if (row >= fb->height / height)
+		columns = fb->width() / width;
+	if (row >= fb->height() / height)
 		row = 0;
 	
 	if (ch == '\n') {
@@ -39,11 +40,7 @@ void kernel::terminal::type_character(char ch) {
 			row--;
 			column = columns - 1;
 		}
-		for (u32 y = 0; y < height; ++y) {
-			for (u32 x = 0; x < width; ++x) {
-				fb->pixels[(y + row * height) * fb->stride + (x + column * width)] = 0;
-			}
-		}
+		fb->fill(column * width, row * height, width, height, Color(0));
 		return;
 	}
 
@@ -51,11 +48,12 @@ void kernel::terminal::type_character(char ch) {
 
 	for (u32 y = 0; y < height; ++y) {
 		for (u32 x = 0; x < width; ++x) {
-			auto& color = fb->pixels[(y + row * height) * fb->stride + (x + column * width)];
+			const auto pix_x = x + column * width;
+			const auto pix_y = y + row * height;
 			if (get_bit(font_char[y / scale], x / scale)) {
-				color = 0xFFFFFF;
+				fb->set(pix_x, pix_y, Color(255, 255, 255));
 			} else {
-				color = darken_color(color);
+				fb->set(pix_x, pix_y, darken_color(fb->get(pix_x, pix_y).packed()));
 			}
 		}
 	}
