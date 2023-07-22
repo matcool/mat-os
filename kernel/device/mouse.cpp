@@ -89,9 +89,9 @@ void kernel::ps2::init_mouse() {
 	ps2::write(0x20);
 	auto status = ps2::read();
 	// Enable IRQ12
-	math::set_bit(status, 1, true);
+	status = math::set_bit(status, 1, true);
 	// Disable the Disable mouse clock bit
-	math::set_bit(status, 5, false);
+	status = math::set_bit(status, 5, false);
 	// Set compaq status byte
 	ps2::write(0x60);
 	ps2::write_data(status);

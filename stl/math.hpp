@@ -19,9 +19,9 @@ constexpr Int bit_mask(Int n) {
 
 // Sets a specific bit at "idx" to a value.
 template <concepts::integral Int>
-constexpr void set_bit(Int& target, u64 idx, bool value) {
+[[nodiscard]] constexpr Int set_bit(Int target, u64 idx, bool value) {
 	const Int mask = Int(1) << idx;
-	target = (target & ~mask) | (value << idx);
+	return (target & ~mask) | (value << idx);
 }
 
 // Gets a specific bit at "idx".

@@ -26,7 +26,7 @@ public:
 	void set(usize index, bool value) {
 		const auto array_index = index / bits_per_element;
 		const auto bit_index = index % bits_per_element;
-		math::set_bit(m_data[array_index], bit_index, value);
+		m_data[array_index] = math::set_bit(m_data[array_index], bit_index, value);
 	}
 
 	bool get(usize index) const {

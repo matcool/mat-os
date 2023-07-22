@@ -11,7 +11,7 @@ constexpr bool PageTableEntry::get_bit(u64 idx) const {
 }
 
 constexpr void PageTableEntry::set_bit(u64 idx, bool value) {
-	math::set_bit(m_value, idx, value);
+	m_value = math::set_bit(m_value, idx, value);
 }
 
 kernel::PhysicalAddress PageTableEntry::addr() const {

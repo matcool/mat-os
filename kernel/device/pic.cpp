@@ -57,9 +57,8 @@ void kernel::pic::set_irq_mask(u8 irq_index, bool enabled) {
 		port = PIC2_DATA_PORT;
 		irq_index -= 8;
 	}
-	auto mask = inb(port);
-	math::set_bit(mask, irq_index, !enabled);
-	outb(port, mask);
+	const auto mask = inb(port);
+	outb(port, math::set_bit(mask, irq_index, !enabled));
 }
 
 void kernel::pic::send_eoi(u8 irq) {
