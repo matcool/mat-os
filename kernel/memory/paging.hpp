@@ -114,9 +114,9 @@ void invalidate_cache(VirtualAddress virt);
 }
 
 template <class Func>
-struct mat::Formatter<Func, kernel::paging::PageTableEntry> {
+struct Formatter<Func, kernel::paging::PageTableEntry> {
 	static void format(Func func, kernel::paging::PageTableEntry entry) {
-		mat::format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
+		format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
 			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.get_available(), entry.addr().value(), entry.value());
 	}
 };

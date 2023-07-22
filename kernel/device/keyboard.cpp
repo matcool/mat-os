@@ -80,9 +80,9 @@ void kernel::ps2::handle_keyboard() {
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
 				char ch = key.ch;
-				if (mat::is_ascii_alpha(key.ch)) {
+				if (is_ascii_alpha(key.ch)) {
 					// the character is uppercase by default
-					ch = modifiers.shift != modifiers.caps ? key.ch : mat::to_ascii_lowercase(key.ch);
+					ch = modifiers.shift != modifiers.caps ? key.ch : to_ascii_lowercase(key.ch);
 				} else if (modifiers.shift) {
 					ch = apply_shift(key);
 				}

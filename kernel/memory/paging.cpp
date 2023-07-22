@@ -8,7 +8,7 @@
 #include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
 
-using mat::math::bit_mask;
+using math::bit_mask;
 
 // limine maps physical memory -> virtual memory by just adding a higher half base
 // this is constant except for when KASLR is on, so use this to get it
@@ -131,7 +131,7 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 			entry.set_execution_disabled(false);
 
 			auto page = kernel::alloc::allocate_physical_page();
-			mat::memset(page.to_virtual().ptr(), 0, PAGE_SIZE);
+			memset(page.to_virtual().ptr(), 0, PAGE_SIZE);
 			
 			entry.set_addr(page);
 		}

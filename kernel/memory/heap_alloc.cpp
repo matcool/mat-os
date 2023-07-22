@@ -3,7 +3,7 @@
 #include <kernel/memory/allocator.hpp>
 #include <kernel/log.hpp>
 
-using mat::math::div_ceil;
+using math::div_ceil;
 
 using namespace kernel;
 
@@ -171,7 +171,7 @@ HeapBlock* allocate_block(usize size) {
 	auto* block = reinterpret_cast<HeapBlock*>(kernel::alloc::allocate_pages(size / PAGE_SIZE));
 	block->next_block = nullptr;
 	block->block_size = size;
-	mat::memset(block->allocated, HeapBlock::BM_FREE_SPACE, block->entries_size());
+	memset(block->allocated, HeapBlock::BM_FREE_SPACE, block->entries_size());
 	return block;
 }
 

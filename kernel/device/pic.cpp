@@ -58,7 +58,7 @@ void kernel::pic::set_irq_mask(u8 irq_index, bool enabled) {
 		irq_index -= 8;
 	}
 	auto mask = inb(port);
-	mat::math::set_bit(mask, irq_index, !enabled);
+	math::set_bit(mask, irq_index, !enabled);
 	outb(port, mask);
 }
 

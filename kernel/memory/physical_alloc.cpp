@@ -17,7 +17,7 @@ static volatile limine_memmap_request memmap_request = {
 class PageBitmap {
 	using ElementType = u64;
 	static constexpr auto bits_per_element = sizeof(ElementType) * 8;
-	mat::Span<ElementType> m_data;
+	Span<ElementType> m_data;
 public:
 	PageBitmap(void* address, usize byte_size)
 		: m_data(reinterpret_cast<ElementType*>(address), byte_size / sizeof(ElementType)) {}
@@ -26,7 +26,7 @@ public:
 	void set(usize index, bool value) {
 		const auto array_index = index / bits_per_element;
 		const auto bit_index = index % bits_per_element;
-		mat::math::set_bit(m_data[array_index], bit_index, value);
+		math::set_bit(m_data[array_index], bit_index, value);
 	}
 
 	bool get(usize index) const {
@@ -48,7 +48,7 @@ PageBitmap bitmap;
 void debug_print_memmap() {
 	for (usize i = 0; i < memmap_request.response->entry_count; ++i) {
 		auto* entry = memmap_request.response->entries[i];
-		mat::StringView type = "?";
+		StringView type = "?";
 		switch (entry->type) {
 			case LIMINE_MEMMAP_USABLE: type = "USABLE"; break;
 			case LIMINE_MEMMAP_RESERVED: type = "RESERVED"; break;
@@ -84,7 +84,7 @@ void kernel::alloc::init_physical_allocator() {
 	// each byte holds 8 bits, each bit representing a page
 	const auto bitmap_array_size = pages / 8;
 	// the array itself also occupies some size, so we need to set those bits
-	const auto bitmap_page_size = mat::math::div_ceil(bitmap_array_size, PAGE_SIZE);
+	const auto bitmap_page_size = math::div_ceil(bitmap_array_size, PAGE_SIZE);
 
 	// iterate through the entries again to try to find space
 	// keep track of how many pages we skipped

@@ -3,6 +3,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/log.hpp>
+#include <kernel/screen/windows.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -35,6 +36,8 @@ void kernel::framebuffer::init() {
 	}
 
 	*get_framebuffer() = Canvas(fb_ptr, framebuffer->width, framebuffer->height, stride);
+
+	draw_windows();
 
 	kdbgln("Framebuffer initialized");
 }

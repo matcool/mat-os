@@ -117,7 +117,7 @@ enum class InterruptId : u64 {
 	PageFault = 14,
 };
 
-static mat::StringView get_interrupt_name(u64 idx) {
+static StringView get_interrupt_name(u64 idx) {
 	switch (idx) {
 		case 0x0: return "Divide by 0";
 		case 0x1: return "Reserved";

@@ -10,16 +10,16 @@ void init();
 
 void put_byte(u8 value);
 void put_char(char value);
-void put(mat::StringView str);
+void put(StringView str);
 
 template <class... Args>
-void fmt(mat::StringView str, const Args&... args) {
-	mat::format_to(&put_char, str, args...);
+void fmt(StringView str, const Args&... args) {
+	format_to(&put_char, str, args...);
 }
 
 template <class... Args>
-void fmtln(mat::StringView str, const Args&... args) {
-	mat::format_to(&put_char, str, args...);
+void fmtln(StringView str, const Args&... args) {
+	format_to(&put_char, str, args...);
 	put_char('\n');
 }
 

@@ -4,7 +4,7 @@
 #include <kernel/screen/terminal_font.hpp>
 #include <kernel/log.hpp>
 
-using mat::math::get_bit;
+using math::get_bit;
 
 static constexpr u32 scale = 2;
 static constexpr u32 width = 7 * scale;

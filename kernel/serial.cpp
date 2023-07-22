@@ -22,7 +22,7 @@ namespace kernel::serial {
 		put_byte(value);
 	}
 
-	void put(mat::StringView str) {
+	void put(StringView str) {
 		for (char c : str) {
 			put_char(c);
 		}

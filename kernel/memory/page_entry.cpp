@@ -2,7 +2,7 @@
 #include <stl/format.hpp>
 #include <stl/math.hpp>
 
-using mat::math::bit_mask;
+using math::bit_mask;
 
 namespace kernel::paging {
 
@@ -11,7 +11,7 @@ constexpr bool PageTableEntry::get_bit(u64 idx) const {
 }
 
 constexpr void PageTableEntry::set_bit(u64 idx, bool value) {
-	mat::math::set_bit(m_value, idx, value);
+	math::set_bit(m_value, idx, value);
 }
 
 kernel::PhysicalAddress PageTableEntry::addr() const {
