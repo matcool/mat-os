@@ -31,4 +31,22 @@ constexpr bool get_bit(Int value, u64 idx) {
 	return value & mask;
 }
 
+// Returns the smaller of two values, according to their < operator.
+template <class ComparableType>
+[[nodiscard]] constexpr auto min(ComparableType a, ComparableType b) {
+	return a < b ? a : b;
+}
+
+// Returns the bigger of two values, according to their > operator.
+template <class ComparableType>
+[[nodiscard]] constexpr auto max(ComparableType a, ComparableType b) {
+	return a > b ? a : b;
+}
+
+// Clamps a value to be lower <= value <= higher
+template <class Type>
+[[nodiscard]] constexpr auto clamp(Type value, Type lower, Type higher) {
+	return value < lower ? lower : value > higher ? higher : value;
+}
+
 }
