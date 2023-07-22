@@ -4,12 +4,15 @@
 
 // Represents a RGB888 color
 struct Color {
-	u8 r, g, b;
+	union {
+		struct {
+			u8 b, g, r;
+		};
+		u32 packed;
+	};
+
 	Color(u8 r, u8 g, u8 b);
 	Color(u32 rgb);
-
-	// Returns a packed version of the color, in 00RRGGBB format
-	u32 packed() const;
 };
 
 // Represents a pixel buffer, with a given width and height.
