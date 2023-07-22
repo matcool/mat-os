@@ -208,3 +208,15 @@ void kernel::alloc::heap_free(void* ptr) {
 	}
 	panic("Tried to free invalid pointer ({})", ptr);
 }
+
+void* operator new(usize size) {
+	return kernel::alloc::heap_allocate(size);
+}
+
+void operator delete(void* ptr) {
+	kernel::alloc::heap_free(ptr);
+}
+
+void operator delete(void* ptr, usize) {
+	operator delete(ptr);
+}
