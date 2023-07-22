@@ -45,7 +45,7 @@ template <class ComparableType>
 
 // Clamps a value to be lower <= value <= higher
 template <class Type>
-[[nodiscard]] constexpr auto clamp(Type value, Type lower, Type higher) {
+[[nodiscard]] constexpr auto clamp(Type value, types::identity<Type> lower, types::identity<Type> higher) {
 	return value < lower ? lower : value > higher ? higher : value;
 }
 

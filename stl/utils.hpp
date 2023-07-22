@@ -58,6 +58,8 @@ template <> struct to_unsigned<i16> { using type = u16; };
 template <> struct to_unsigned<i32> { using type = u32; };
 template <> struct to_unsigned<i64> { using type = u64; };
 
+template <class T> struct identity { using type = T; };
+
 }
 
 template <class T>
@@ -101,6 +103,9 @@ using to_signed = typename STL_NS_IMPL::to_signed<Int>::type;
 
 template <concepts::integral Int>
 using to_unsigned = typename STL_NS_IMPL::to_unsigned<Int>::type;
+
+template <class T>
+using identity = typename STL_NS_IMPL::identity<T>::type;
 
 }
 
