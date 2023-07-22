@@ -110,4 +110,19 @@ struct Pair {
 	Second second;
 };
 
+template <class T>
+constexpr T&& forward(types::remove_ref<T>& value) noexcept {
+	return static_cast<T&&>(value);
+}
+
+template <class T>
+constexpr T&& forward(types::remove_ref<T>&& value) noexcept {
+	return static_cast<T&&>(value);
+}
+
+template <class T>
+constexpr types::remove_ref<T>&& move(T&& value) noexcept {
+	return static_cast<types::remove_ref<T>&&>(value);
+}
+
 }
