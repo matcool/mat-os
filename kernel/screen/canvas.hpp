@@ -2,17 +2,17 @@
 
 #include <stl/types.hpp>
 
-// Represents a RGB888 color
+// Represents a RGBA8888 color
 struct Color {
 	union {
 		struct {
-			u8 b, g, r;
+			u8 b, g, r, a;
 		};
 		u32 packed;
 	};
 
-	Color(u8 r, u8 g, u8 b);
-	Color(u32 rgb);
+	Color(u8 r, u8 g, u8 b, u8 a = 255);
+	Color(u32 argb);
 };
 
 // Represents a pixel buffer, with a given width and height.

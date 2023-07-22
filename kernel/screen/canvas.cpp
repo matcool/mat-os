@@ -1,9 +1,9 @@
 #include <kernel/screen/canvas.hpp>
 
-Color::Color(u8 r, u8 g, u8 b) : b(b), g(g), r(r) {}
+Color::Color(u8 r, u8 g, u8 b, u8 a) : b(b), g(g), r(r), a(a) {}
 
-Color::Color(u32 rgb)
-	: packed(rgb) {}
+Color::Color(u32 argb)
+	: packed(argb) {}
 
 Canvas::Canvas(u32* pixels, usize width, usize height, usize stride)
 	: m_width(width), m_height(height), m_stride(stride),
