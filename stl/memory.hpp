@@ -9,3 +9,8 @@ namespace STL_NS {
 void memset(void* ptr, u8 value, usize bytes);
 
 }
+
+// Placement operator new, does nothing to the pointer.
+inline void* operator new(usize, void* ptr) {
+	return ptr;
+}
