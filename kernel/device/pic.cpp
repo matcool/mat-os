@@ -71,6 +71,9 @@ void kernel::pic::send_eoi(u8 irq) {
 
 void kernel::pic::init() {
 	remap_pic(PIC_IRQ_OFFSET, PIC_IRQ_OFFSET + 8);
+	// Enable the cascade IRQ, so that the second PIC
+	// can work properly
+	set_irq_mask(2, true);
 
 	kdbgln("PIC initialized");
 }

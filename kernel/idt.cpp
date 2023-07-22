@@ -174,6 +174,8 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 			kernel::pit::handle_interrupt();
 		} else if (which == kernel::PIC_IRQ_OFFSET + 1) {
 			kernel::ps2::handle_keyboard();
+		} else if (which == kernel::PIC_IRQ_OFFSET + 12) {
+			kernel::ps2::handle_mouse();
 		} else {
 			kdbgln("[INT] ({:#x}) Unknown IRQ {}, error code {:#x}", which, which - kernel::PIC_IRQ_OFFSET, error_code);
 			halt();

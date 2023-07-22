@@ -15,6 +15,7 @@ add_executable(kernel
 	device/ps2.cpp
 	device/keyboard.cpp
 	device/pit.cpp
+	device/mouse.cpp
 	screen/framebuffer.cpp
 	screen/terminal.cpp
 	screen/canvas.cpp
