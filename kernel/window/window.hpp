@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stl/pointer.hpp>
-#include <kernel/screen/window/context.hpp>
+#include <kernel/window/context.hpp>
 
 namespace kernel::window {
 

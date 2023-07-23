@@ -1,4 +1,4 @@
-#include <kernel/screen/window/manager.hpp>
+#include <kernel/window/manager.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>

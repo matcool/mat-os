@@ -1,4 +1,4 @@
-#include <kernel/screen/window/context.hpp>
+#include <kernel/window/context.hpp>
 
 using namespace kernel::window;
 

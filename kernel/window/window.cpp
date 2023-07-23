@@ -1,4 +1,4 @@
-#include <kernel/screen/window/window.hpp>
+#include <kernel/window/window.hpp>
 
 using namespace kernel::window;
 

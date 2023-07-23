@@ -4,7 +4,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/window/manager.hpp>
+#include <kernel/window/manager.hpp>
 #include <kernel/device/pit.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
