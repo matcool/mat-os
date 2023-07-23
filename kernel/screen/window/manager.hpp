@@ -13,12 +13,7 @@ using Rect = math::Rect<i32>;
 struct WindowContext : public Canvas {
 	Vector<Rect> clip_rects;
 
-	WindowContext() : Canvas(nullptr, 0, 0) {}
-
-	auto& operator=(const Canvas& other) {
-		Canvas::operator=(other);
-		return *this;
-	};
+	WindowContext(const Canvas& canvas) : Canvas(canvas) {}
 
 	// Subtracts a rectangle from the clipping rect list.
 	void subtract_clip_rect(const Rect& rect);
@@ -41,6 +36,7 @@ struct WindowContext : public Canvas {
 };
 
 struct Window;
+class WindowManager;
 using WindowPtr = SharedPtr<Window>;
 
 // Represents a *simple* window, which is just a rect
@@ -48,37 +44,45 @@ using WindowPtr = SharedPtr<Window>;
 struct Window {
 	Rect rect;
 
+	Window* parent = nullptr;
+	Vector<WindowPtr> children;
+
+	bool draggable = true;
+	bool decoration = true;
+	bool last_pressed = false;
+
+	WindowPtr drag_child;
+	Point drag_offset = Point(0, 0);
+
 	Window(Rect rect);
 
-	void paint(WindowContext&);
+	void handle_mouse(Point mouse_pos, bool pressed);
+
+	void add_child(WindowPtr window);
+
+	virtual void paint(WindowContext&);
 };
 
 // The window manager, which holds all windows, and does other
 // calculations such as clipping.
-struct WindowManager {
-	Vector<WindowPtr> children;
+class WindowManager : public Window {
 	WindowContext context;
 
 	Point mouse_pos = Point(0, 0);
-	bool last_pressed = false;
-
-	WindowPtr dragged_window;
-	Point drag_offset = Point(0, 0);
-
 	
 	u64 last_render = 0;
 	
+	WindowManager(WindowContext context);
+public:
 	static WindowManager& get();
 
 	void init();
 
-	// Handles mouse movement.
 	void handle_mouse(Point off, bool pressed);
 
 	auto width() const { return context.width(); }
 	auto height() const { return context.height(); }
 
-	// Renders everything onto the screen.
 	void paint();
 };
 

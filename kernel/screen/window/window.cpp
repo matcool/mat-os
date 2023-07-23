@@ -17,3 +17,38 @@ void Window::paint(WindowContext& context) {
 
 	context.fill(Rect::from_corners(rect.top_left() + outline_width, rect.bot_right() - outline_width), window_color);
 }
+
+void Window::handle_mouse(Point mouse_pos, bool pressed) {
+	if (pressed && !last_pressed) {
+		usize selected = -1;
+		for (usize i = children.size(); i--; ) {
+			if (children[i]->rect.contains(mouse_pos)) {
+				selected = i;
+				break;
+			}
+		}
+		if (selected != usize(-1)) {
+			auto window = children[selected];
+			if (window->draggable) {
+				children.remove(selected);
+				children.push(window);
+
+				drag_child = window;
+				drag_offset = mouse_pos - window->rect.pos;
+			}
+		}
+	} else if (!pressed) {
+		drag_child.clear();
+	}
+
+	if (drag_child) {
+		drag_child->rect.pos = mouse_pos - drag_offset;
+	}
+
+	last_pressed = pressed;
+}
+
+void Window::add_child(WindowPtr window) {
+	children.push(window);
+	window->parent = this;
+}

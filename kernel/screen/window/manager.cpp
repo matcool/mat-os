@@ -50,33 +50,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	mouse_pos.x = math::clamp(mouse_pos.x + off.x, 0, width());
 	mouse_pos.y = math::clamp(mouse_pos.y + off.y, 0, height());
 
-	if (pressed && !last_pressed) {
-		usize selected = -1;
-		for (usize i = children.size(); i--; ) {
-			if (children[i]->rect.contains(mouse_pos)) {
-				selected = i;
-				break;
-			}
-		}
-		if (selected != usize(-1)) {
-			// this will copy the window!
-			// in the future, windows will probably be behind shared ptrs
-			auto window = children[selected];
-			children.remove(selected);
-			children.push(window);
-
-			dragged_window = children[children.size() - 1];
-			drag_offset = mouse_pos - window->rect.pos;
-		}
-	} else if (!pressed) {
-		dragged_window.clear();
-	}
-
-	if (dragged_window) {
-		dragged_window->rect.pos = mouse_pos - drag_offset;
-	}
-
-	last_pressed = pressed;
+	Window::handle_mouse(mouse_pos, pressed);
 	
 	if (kernel::pit::get_ticks() - last_render > 5) {
 		paint();
@@ -84,15 +58,18 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	}
 }
 
+WindowManager::WindowManager(WindowContext context)
+	: Window(Rect(0, 0, context.width(), context.height())), context(context) {
+	mouse_pos = rect.mid_point();
+}
+
 WindowManager& WindowManager::get() {
-	static WindowManager instance;
+	static WindowManager instance(kernel::framebuffer::get_framebuffer());
 	return instance;
 }
 
 void WindowManager::init() {
-	context = kernel::framebuffer::get_framebuffer();
-
-	children.push(make_shared<Window>(Rect(10, 10, 300, 200)));
-	children.push(make_shared<Window>(Rect(100, 150, 400, 400)));
-	children.push(make_shared<Window>(Rect(200, 100, 200, 600)));
+	add_child(make_shared<Window>(Rect(10, 10, 300, 200)));
+	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
+	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
 }
