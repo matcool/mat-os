@@ -3,6 +3,7 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
+#include <kernel/screen/windows.hpp>
 
 using stl::math::get_bit;
 
@@ -33,7 +34,7 @@ struct MousePacket {
 	}
 
 	i32 y_offset() const {
-		return static_cast<i8>(mov_y);
+		return -static_cast<i8>(mov_y);
 	}
 
 	bool left_button() const { return get_bit(status, 0); }
@@ -44,6 +45,8 @@ void kernel::ps2::handle_mouse() {
 	if (packet.put_byte(inb(PS2_DATA_PORT))) {
 		return pic::send_eoi(12);
 	}
+
+	handle_mouse_movement(packet.x_offset(), packet.y_offset(), packet.left_button());
 
 	pic::send_eoi(12);
 }

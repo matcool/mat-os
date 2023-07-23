@@ -19,6 +19,7 @@ add_executable(kernel
 	screen/framebuffer.cpp
 	screen/terminal.cpp
 	screen/canvas.cpp
+	screen/windows.cpp
 )
 
 target_link_libraries(kernel limine stl)
