@@ -12,6 +12,7 @@ using Rect = math::Rect<i32>;
 
 struct WindowContext : public Canvas {
 	Vector<Rect> clip_rects;
+	Point offset = Point(0, 0);
 
 	WindowContext(const Canvas& canvas) : Canvas(canvas) {}
 
@@ -20,7 +21,11 @@ struct WindowContext : public Canvas {
 
 	// Adds a clipping rectangle, cutting the existing ones if needed.
 	void add_clip_rect(const Rect& rect);
+	
+	// Intersects the clipping rect list.
+	void intersect_clip_rect(const Rect& rect);
 
+	// Clears the clipping rect list.
 	void clear_clip_rects();
 
 	// Draws a rectangle clipped by `clip`.
@@ -60,11 +65,22 @@ struct Window {
 
 	void add_child(WindowPtr window);
 
-	virtual void paint(WindowContext&);
+	// Parent's screen pos. If there is no parent, return (0, 0)
+	Point parent_screen_pos() const;
+	Point screen_pos() const;
+	Rect screen_rect() const { return Rect(screen_pos(), rect.size); }
+
+	// Calculate clipping rectangles based on parent's clipping rect.
+	void clip_bounds(WindowContext& context) const;
+
+	// Calculates the proper context, then draws this and all children.
+	void paint(WindowContext& context);
+
+	// Draws only own window, with the context already set up.
+	virtual void draw(WindowContext& context);
 };
 
-// The window manager, which holds all windows, and does other
-// calculations such as clipping.
+// The window manager, which holds all windows
 class WindowManager : public Window {
 	WindowContext context;
 
@@ -84,6 +100,7 @@ public:
 	auto height() const { return context.height(); }
 
 	void paint();
+	void draw(WindowContext& context) override;
 };
 
 }

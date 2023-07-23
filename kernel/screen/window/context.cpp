@@ -55,11 +55,26 @@ void WindowContext::add_clip_rect(const Rect& rect) {
 	clip_rects.push(rect);
 }
 
+void WindowContext::intersect_clip_rect(const Rect& clip) {
+	Vector<Rect> new_rects;
+
+	for (const auto& rect : clip_rects) {
+		const auto intersection = rect.intersection(clip);
+		if (!intersection.empty()) {
+			new_rects.push(intersection);
+		}
+	}
+
+	clip_rects = new_rects;
+}
+
 void WindowContext::clear_clip_rects() {
 	clip_rects.clear();
 }
 
 void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
+	rect.pos += offset;
+
 	if (rect.pos.x < clip.pos.x) {
 		rect.size.width -= clip.pos.x - rect.pos.x;
 		rect.pos.x = clip.pos.x;
@@ -83,6 +98,6 @@ void WindowContext::fill(const Rect& rect, Color color) {
 			fill_clipped(rect, clip, color);
 		}
 	} else {
-		fill_unclipped(rect, color);
+		fill_unclipped(rect + offset, color);
 	}
 }
