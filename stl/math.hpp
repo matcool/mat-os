@@ -73,6 +73,14 @@ struct Vec2 {
 	Vec2 operator+(const Type& offset) const {
 		return Vec2(x + offset, y + offset);
 	}
+
+	Vec2 operator-(const Vec2& other) const {
+		return Vec2(x - other.x, y - other.y);
+	}
+
+	Vec2 operator-(const Type& offset) const {
+		return Vec2(x - offset, y - offset);
+	}
 };
 
 // Represents a 2D rectangle at pos with size
