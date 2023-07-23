@@ -81,6 +81,14 @@ struct Vec2 {
 	Vec2 operator-(const Type& offset) const {
 		return Vec2(x - offset, y - offset);
 	}
+
+	bool operator<(const Vec2& other) const {
+		return x < other.x && y < other.y;
+	}
+
+	bool operator>(const Vec2& other) const {
+		return x > other.x && y > other.y;
+	}
 };
 
 // Represents a 2D rectangle at pos with size
@@ -93,10 +101,30 @@ struct Rect {
 	Rect(Type x, Type y, Type width, Type height) : pos(x, y), size(width, height) {}
 	Rect(const Point& pos, const Point& size) : pos(pos), size(size) {}
 
+	static Rect from_corners(const Point& top_left, const Point& bot_right) {
+		return Rect(top_left, bot_right - top_left);
+	}
+
 	bool contains(const Point& point) const {
 		return point.x >= pos.x && point.x < pos.x + size.width &&
 			point.y >= pos.y && point.y < pos.y + size.height;
 	}
+
+	bool intersects(const Rect& other) const {
+		return math::max(left(), other.left()) < math::min(right(), other.right())
+			&& math::max(top(), other.top()) < math::min(bottom(), other.bottom());
+	}
+
+	Point top_left() const { return pos; }
+	Point top_right() const { return pos + Point(size.width, 0); }
+	Point bot_left() const { return pos + Point(0, size.height); }
+	Point bot_right() const { return pos + size; }
+
+	Type left() const { return pos.x; }
+	Type right() const { return pos.x + size.width - 1; }
+
+	Type top() const { return pos.y; }
+	Type bottom() const { return pos.y + size.height - 1; }
 };
 
 }
