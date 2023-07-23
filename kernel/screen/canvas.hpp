@@ -12,9 +12,9 @@ struct Color {
 		u32 packed;
 	};
 
-	Color(u8 r, u8 g, u8 b, u8 a = 255);
-	Color(u32 argb);
-	Color() : Color(0, 0, 0) {}
+	constexpr Color(u8 r, u8 g, u8 b, u8 a = 255) : b(b), g(g), r(r), a(a) {}
+	constexpr Color(u32 argb) : packed(argb) {}
+	constexpr Color() : Color(0, 0, 0) {}
 };
 
 // Represents a pixel buffer, with a given width and height.
