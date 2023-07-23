@@ -101,6 +101,10 @@ struct Vec2 {
 	Vec2& operator+=(const Vec2& other) {
 		return *this = (*this + other);
 	}
+
+	Vec2& operator-=(const Vec2& other) {
+		return *this = (*this - other);
+	}
 };
 
 // Represents a 2D rectangle at pos with size
