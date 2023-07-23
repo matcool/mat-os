@@ -102,7 +102,7 @@ struct Rect {
 	Rect(const Point& pos, const Point& size) : pos(pos), size(size) {}
 
 	static Rect from_corners(const Point& top_left, const Point& bot_right) {
-		return Rect(top_left, bot_right - top_left);
+		return Rect(top_left, bot_right - top_left + 1);
 	}
 
 	bool contains(const Point& point) const {
@@ -116,9 +116,9 @@ struct Rect {
 	}
 
 	Point top_left() const { return pos; }
-	Point top_right() const { return pos + Point(size.width, 0); }
-	Point bot_left() const { return pos + Point(0, size.height); }
-	Point bot_right() const { return pos + size; }
+	Point top_right() const { return pos + Point(size.width - 1, 0); }
+	Point bot_left() const { return pos + Point(0, size.height - 1); }
+	Point bot_right() const { return pos + size - 1; }
 
 	Type left() const { return pos.x; }
 	Type right() const { return pos.x + size.width - 1; }
