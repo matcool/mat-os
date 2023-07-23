@@ -66,6 +66,10 @@ void WindowContext::add_clip_rect(const Rect& rect) {
 	clip_rects.push(rect);
 }
 
+void WindowContext::clear_clip_rects() {
+	clip_rects.clear();
+}
+
 void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
 	if (rect.pos.x < clip.pos.x) {
 		rect.size.width -= clip.pos.x - rect.pos.x;
@@ -106,29 +110,37 @@ void Window::paint(WindowContext& context) {
 void WindowManager::paint() {
 	if (!context.data()) return;
 
-	context.clip_rects.clear();
+	context.clear_clip_rects();
 
-	context.add_clip_rect(Rect(0, 0, width(), height()));
+	const auto desktop_rect = Rect(0, 0, width(), height());
+
+	context.add_clip_rect(desktop_rect);
 
 	for (auto& win : children) {
-		// win.paint(context);
+		context.subtract_clip_rect(win.rect);
+	}
+
+	context.fill(desktop_rect, Color(0, 0, 0));
+
+	context.clear_clip_rects();
+
+	for (usize i = 0; i < children.size(); ++i) {
+		auto& win = children[i];
 		context.add_clip_rect(win.rect);
-	}
 
-	// draw background
-	context.fill(Rect(0, 0, width(), height()), 0);
+		// iterate through windows above this one
+		for (usize j = i + 1; j < children.size(); ++j) {
+			// if it doesnt intersect the window, ignore it
+			if (!win.rect.intersects(children[j].rect))
+				continue;
+			
+			context.subtract_clip_rect(children[j].rect);
+		}
 
-	for (auto& win : children) {
+		// should be clipped properly
 		win.paint(context);
-		// context.add_clip_rect(win.rect);
-	}
 
-	for (auto& rect : context.clip_rects) {
-		context.fill_unclipped(Rect::from_corners(rect.top_left(), rect.top_right()), Color(255, 255, 0));
-		context.fill_unclipped(Rect::from_corners(rect.top_left(), rect.bot_left()), Color(255, 255, 0));
-
-		context.fill_unclipped(Rect::from_corners(rect.bot_left(), rect.bot_right()), Color(200, 200, 0));
-		context.fill_unclipped(Rect::from_corners(rect.top_right(), rect.bot_right()), Color(200, 200, 0));
+		context.clear_clip_rects();
 	}
 
 	context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));

@@ -25,6 +25,8 @@ struct WindowContext : public Canvas {
 	// Adds a clipping rectangle, cutting the existing ones if needed.
 	void add_clip_rect(const Rect& rect);
 
+	void clear_clip_rects();
+
 	// Draws a rectangle clipped by `clip`.
 	void fill_clipped(Rect rect, const Rect& clip, Color color);
 
