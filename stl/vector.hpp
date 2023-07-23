@@ -52,9 +52,9 @@ public:
 	}
 
 	// Puts a new element at the end of the vector
-	void push(Type&& value) {
+	void push(Type value) {
 		grow_if_needed();
-		new (&m_data[m_size++]) Type(forward<Type>(value));
+		new (&m_data[m_size++]) Type(move(value));
 	}
 
 	// Pops the last element of the vector
@@ -62,6 +62,15 @@ public:
 		// error?
 		if (size() == 0) return;
 		data()[--m_size].~Type();
+	}
+
+	// Removes an element at an index
+	void remove(usize index) {
+		for (usize i = index; i < size() - 1; ++i) {
+			m_data[i] = m_data[i + 1];
+		}
+		m_data[size() - 1].~Type();
+		--m_size;
 	}
 
 protected:
