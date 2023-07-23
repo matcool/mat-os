@@ -4,6 +4,7 @@
 #include "types.hpp"
 #include "utils.hpp"
 #include "memory.hpp"
+#include "span.hpp"
 
 namespace STL_NS {
 
@@ -71,6 +72,16 @@ public:
 		}
 		m_data[size() - 1].~Type();
 		--m_size;
+	}
+
+	Span<Type> span() { return Span(data(), size()); }
+	Span<const Type> span() const { return Span(data(), size()); }
+
+	// Concats multiple elements to the end of the vector
+	void concat(Span<const Type> elements) {
+		for (auto& el : elements) {
+			push(el);
+		}
 	}
 
 protected:
