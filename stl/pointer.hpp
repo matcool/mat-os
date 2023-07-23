@@ -6,14 +6,25 @@
 
 namespace STL_NS {
 
+namespace STL_NS_IMPL {
+	struct BaseControlBlock {
+		i64 counter = 1;
+		virtual ~BaseControlBlock() {}
+		virtual void* get_value() const = 0;
+	};
+}
+
 // A reference counted pointer
 template <class Type>
 class SharedPtr {
-	struct ControlBlock {
+	struct ControlBlock : STL_NS_IMPL::BaseControlBlock {
 		Type value;
-		i64 counter = 1;
+		ControlBlock(Type value) : value(value) {}
+		void* get_value() const override {
+			return const_cast<Type*>(&value);
+		}
 	};
-	ControlBlock* m_control = nullptr;
+	STL_NS_IMPL::BaseControlBlock* m_control = nullptr;
 	
 	void increase_ref() {
 		if (m_control)
@@ -24,6 +35,15 @@ class SharedPtr {
             delete m_control;
         }
     }
+
+	const Type* get_value() const {
+		if (m_control)
+			return static_cast<Type*>(m_control->get_value());
+		return nullptr;
+	}
+	Type* get_value() {
+		return const_cast<Type*>(as_const(this)->get_value());
+	}
 
 	SharedPtr(ControlBlock* block) : m_control(block) {}
 	
@@ -36,6 +56,11 @@ public:
 	}
 	SharedPtr(SharedPtr&& other) : m_control(other.m_control) {
 		other.m_control = nullptr;
+	}
+	template <class OtherType>
+	requires (!types::is_same<Type, OtherType> && types::convertible_to<OtherType*, Type*>)
+	SharedPtr(const SharedPtr<OtherType>& other) : m_control(other.m_control) {
+		increase_ref();
 	}
 	~SharedPtr() {
 		decrease_ref();
@@ -54,8 +79,8 @@ public:
 		m_control = nullptr;
 	}
 
-	Type* data() { return m_control ? &m_control->value : nullptr; }
-	const Type* data() const { return m_control ? &m_control->value : nullptr; }
+	Type* data() { return get_value(); }
+	const Type* data() const { return get_value(); }
 
 	Type* operator->() { return data(); }
 	const Type* operator->() const { return data(); }
@@ -68,9 +93,9 @@ public:
 
 template <class Type, class... Args>
 SharedPtr<Type> make_shared(Args&&... args) {
-    return SharedPtr<Type>(new typename SharedPtr<Type>::ControlBlock {
-		.value = Type(forward<Args>(args)...)
-	});
+    return SharedPtr<Type>(new typename SharedPtr<Type>::ControlBlock(
+		Type(forward<Args>(args)...)
+	));
 }
 
 }
