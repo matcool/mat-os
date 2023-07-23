@@ -13,6 +13,7 @@ struct Color {
 
 	Color(u8 r, u8 g, u8 b, u8 a = 255);
 	Color(u32 argb);
+	Color() : Color(0, 0, 0) {}
 };
 
 // Represents a pixel buffer, with a given width and height.
