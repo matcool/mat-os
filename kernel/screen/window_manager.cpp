@@ -10,9 +10,7 @@
 using namespace kernel::window;
 
 // Cuts out `cut` from `target`, resulting in at most 4 smaller rects.
-static Vector<Rect> cut_out_rect(Rect target, const Rect& cut) {
-	Vector<Rect> out(4);
-
+static void cut_out_rect(Vector<Rect>& out, Rect target, const Rect& cut) {
 	// split by left edge
 	if (cut.left() >= target.left() && cut.left() <= target.right()) {
 		out.push(Rect::from_corners(target.pos, Point(cut.left() - 1, target.bottom())));
@@ -38,8 +36,6 @@ static Vector<Rect> cut_out_rect(Rect target, const Rect& cut) {
 		out.push(Rect::from_corners(Point(target.left(), cut.bottom() + 1), target.bot_right()));
 		target.size.height -= target.bottom() - cut.bottom();
 	}
-
-	return out;
 }
 
 void WindowContext::subtract_clip_rect(const Rect& rect) {
@@ -52,7 +48,7 @@ void WindowContext::subtract_clip_rect(const Rect& rect) {
 		// new rectangle intersects existing one, needs to be split
 		const auto target = clip_rects[i];
 		clip_rects.remove(i);
-		clip_rects.concat(cut_out_rect(target, rect).span());
+		cut_out_rect(clip_rects, target, rect);
 
 		// reiterate because of the new rects..
 		i = 0;
