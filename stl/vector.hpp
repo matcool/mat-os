@@ -24,6 +24,18 @@ public:
 		m_data = allocate_buffer(capacity);
 		m_capacity = capacity;
 	}
+	Vector(const Vector& other) : m_size(other.m_size) {
+		m_data = allocate_buffer(m_size);
+		m_capacity = m_size;
+		for (usize i = 0; i < m_size; ++i) {
+			new (&m_data[i]) Type(other[i]);
+		}
+	}
+	Vector(Vector&& other) : m_data(other.m_data), m_capacity(other.m_capacity), m_size(other.m_size) {
+		other.m_data = nullptr;
+		other.m_capacity = 0;
+		other.m_size = 0;
+	}
 	~Vector() {
 		delete m_data;
 	}
