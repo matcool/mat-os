@@ -17,7 +17,7 @@ void WindowManager::paint() {
 	context.add_clip_rect(desktop_rect);
 
 	for (auto& win : children) {
-		context.subtract_clip_rect(win.rect);
+		context.subtract_clip_rect(win->rect);
 	}
 
 	context.fill(desktop_rect, background_color);
@@ -25,16 +25,16 @@ void WindowManager::paint() {
 	context.clear_clip_rects();
 
 	for (usize i = 0; i < children.size(); ++i) {
-		auto& win = children[i];
+		auto& win = *children[i];
 		context.add_clip_rect(win.rect);
 
 		// iterate through windows above this one
 		for (usize j = i + 1; j < children.size(); ++j) {
 			// if it doesnt intersect the window, ignore it
-			if (!win.rect.intersects(children[j].rect))
+			if (!win.rect.intersects(children[j]->rect))
 				continue;
 			
-			context.subtract_clip_rect(children[j].rect);
+			context.subtract_clip_rect(children[j]->rect);
 		}
 
 		// should be clipped properly
@@ -53,7 +53,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	if (pressed && !last_pressed) {
 		usize selected = -1;
 		for (usize i = children.size(); i--; ) {
-			if (children[i].rect.contains(mouse_pos)) {
+			if (children[i]->rect.contains(mouse_pos)) {
 				selected = i;
 				break;
 			}
@@ -65,11 +65,11 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 			children.remove(selected);
 			children.push(window);
 
-			dragged_window = &children[children.size() - 1];
-			drag_offset = mouse_pos - window.rect.pos;
+			dragged_window = children[children.size() - 1];
+			drag_offset = mouse_pos - window->rect.pos;
 		}
 	} else if (!pressed) {
-		dragged_window = nullptr;
+		dragged_window.clear();
 	}
 
 	if (dragged_window) {
@@ -92,7 +92,7 @@ WindowManager& WindowManager::get() {
 void WindowManager::init() {
 	context = kernel::framebuffer::get_framebuffer();
 
-	children.push(Window(Rect(10, 10, 300, 200)));
-	children.push(Window(Rect(100, 150, 400, 400)));
-	children.push(Window(Rect(200, 100, 200, 600)));
+	children.push(make_shared<Window>(Rect(10, 10, 300, 200)));
+	children.push(make_shared<Window>(Rect(100, 150, 400, 400)));
+	children.push(make_shared<Window>(Rect(200, 100, 200, 600)));
 }

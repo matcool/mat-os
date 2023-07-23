@@ -2,6 +2,7 @@
 
 #include <stl/vector.hpp>
 #include <stl/math.hpp>
+#include <stl/pointer.hpp>
 #include <kernel/screen/canvas.hpp>
 
 namespace kernel::window {
@@ -39,6 +40,9 @@ struct WindowContext : public Canvas {
 	}
 };
 
+struct Window;
+using WindowPtr = SharedPtr<Window>;
+
 // Represents a *simple* window, which is just a rect
 // with solid color, for now.
 struct Window {
@@ -52,13 +56,13 @@ struct Window {
 // The window manager, which holds all windows, and does other
 // calculations such as clipping.
 struct WindowManager {
-	Vector<Window> children;
+	Vector<WindowPtr> children;
 	WindowContext context;
 
 	Point mouse_pos = Point(0, 0);
 	bool last_pressed = false;
 
-	Window* dragged_window = nullptr;
+	WindowPtr dragged_window;
 	Point drag_offset = Point(0, 0);
 
 	
