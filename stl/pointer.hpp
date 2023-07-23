@@ -49,6 +49,10 @@ class SharedPtr {
 	
 	template <class T, class... Args>
 	friend SharedPtr<T> make_shared(Args&&... args);
+
+	// friend any other specialization of SharedPtr 
+	template <class T>
+	friend class STL_NS::SharedPtr;
 public:
 	SharedPtr() {}
 	SharedPtr(const SharedPtr& other) : m_control(other.m_control) {
