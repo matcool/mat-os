@@ -77,6 +77,11 @@ public:
 	Type& operator[](usize index) { return data()[index]; }
 	const Type& operator[](usize index) const { return data()[index]; }
 
+	Type& first() { return data()[0]; }
+	const Type& first() const { return data()[0]; }
+	Type& last() { return data()[size() - 1]; }
+	const Type& last() const { return data()[size() - 1]; }
+
 	// Resizes the vector to a given capacity
 	void resize(usize new_capacity) {
 		if (new_capacity < capacity()) return;
