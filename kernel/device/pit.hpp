@@ -10,6 +10,8 @@ void init();
 
 void handle_interrupt();
 
+u64 get_ticks();
+
 }
 
 // Sleeps for a set number of milliseconds.

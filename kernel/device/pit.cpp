@@ -26,6 +26,10 @@ void kernel::sleep(u32 ms) {
 	}
 }
 
+u64 kernel::pit::get_ticks() {
+	return tick_counter;
+}
+
 void kernel::pit::init() {
 	// channel 0, low then high byte, square wave mode, not bcd
 	outb(PIT_COMMAND_PORT, 0b00'11'010'0);
