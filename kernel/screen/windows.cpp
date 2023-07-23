@@ -93,7 +93,7 @@ static auto& get_desktop() {
 }
 
 void draw_windows() {
-	auto* fb = kernel::framebuffer::get_framebuffer();
+	auto* fb = &kernel::framebuffer::get_framebuffer();
 
 	auto& desktop = get_desktop();
 	desktop.context = fb;

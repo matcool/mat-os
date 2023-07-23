@@ -21,7 +21,7 @@ static u32 darken_color(u32 color) {
 }
 
 void kernel::terminal::type_character(char ch) {
-	auto* fb = framebuffer::get_framebuffer();
+	auto* fb = &framebuffer::get_framebuffer();
 	if (!fb->data()) return;
 
 	if (columns == 0)

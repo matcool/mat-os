@@ -11,9 +11,9 @@ static volatile limine_framebuffer_request framebuffer_request = {
 	.response = nullptr,
 };
 
-Canvas* kernel::framebuffer::get_framebuffer() {
+Canvas& kernel::framebuffer::get_framebuffer() {
 	static Canvas instance(nullptr, 0, 0);
-	return &instance;
+	return instance;
 }
 
 void kernel::framebuffer::init() {
@@ -35,7 +35,7 @@ void kernel::framebuffer::init() {
 		}
 	}
 
-	*get_framebuffer() = Canvas(fb_ptr, framebuffer->width, framebuffer->height, stride);
+	get_framebuffer() = Canvas(fb_ptr, framebuffer->width, framebuffer->height, stride);
 
 	draw_windows();
 

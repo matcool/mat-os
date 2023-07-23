@@ -7,6 +7,6 @@ namespace kernel::framebuffer {
 
 void init();
 
-Canvas* get_framebuffer();
+Canvas& get_framebuffer();
 
 }
