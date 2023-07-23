@@ -45,6 +45,9 @@ public:
 	auto* data() { return m_data; }
 	const auto* data() const { return m_data; }
 
+	bool empty() const { return !size(); }
+	operator bool() const { return !empty(); }
+
 	auto begin() const { return data(); }
 	auto begin() { return data(); }
 	auto end() const { return data() + size(); }
