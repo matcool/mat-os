@@ -13,13 +13,6 @@ u32 columns = 0;
 u32 column = 0;
 u32 row = 0;
 
-static u32 darken_color(u32 color) {
-	const auto r = color >> 16 & 0xFF;
-	const auto g = color >> 8 & 0xFF;
-	const auto b = color >> 0 & 0xFF;
-	return (r / 2 << 16) | (g / 2 << 8) | (b / 2);
-}
-
 void kernel::terminal::type_character(char ch) {
 	auto* fb = &framebuffer::get_framebuffer();
 	if (!fb->data()) return;
@@ -53,7 +46,7 @@ void kernel::terminal::type_character(char ch) {
 			if (get_bit(font_char[y / scale], x / scale)) {
 				fb->set(pix_x, pix_y, Color(255, 255, 255));
 			} else {
-				fb->set(pix_x, pix_y, darken_color(fb->get(pix_x, pix_y).packed));
+				fb->set(pix_x, pix_y, Color(0, 0, 0));
 			}
 		}
 	}
@@ -63,4 +56,9 @@ void kernel::terminal::type_character(char ch) {
 		column = 0;
 		++row;
 	}
+}
+
+void kernel::terminal::go_to(u32 row_, u32 column_) {
+	row = row_;
+    column = column_;
 }
