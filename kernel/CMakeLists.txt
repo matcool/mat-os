@@ -31,8 +31,8 @@ target_include_directories(kernel PRIVATE ${CMAKE_CURRENT_SOURCE_DIR}/..)
 # thanks https://stackoverflow.com/a/76701360/9124836
 
 set(ISO_PATH "${CMAKE_BINARY_DIR}/kernel.iso")
-set(ISO_ROOT_PATH "${CMAKE_BINARY_DIR}/iso-root")
-set(ISO_BUILD_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/../build-iso.sh")
+set(ISO_ROOT_PATH "${CMAKE_BINARY_DIR}/iso_root")
+set(ISO_BUILD_SCRIPT "${CMAKE_CURRENT_SOURCE_DIR}/../build_iso.sh")
 
 add_custom_command(
 	OUTPUT "${ISO_PATH}"
