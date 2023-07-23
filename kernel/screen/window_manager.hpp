@@ -43,7 +43,6 @@ struct WindowContext : public Canvas {
 // with solid color, for now.
 struct Window {
 	Rect rect;
-	Color fill_color;
 
 	Window(Rect rect);
 

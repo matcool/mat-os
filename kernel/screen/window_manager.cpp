@@ -1,5 +1,4 @@
 #include <stl/types.hpp>
-#include <stl/random.hpp>
 #include <stl/math.hpp>
 #include <stl/vector.hpp>
 #include <kernel/screen/window_manager.hpp>
@@ -94,13 +93,21 @@ void WindowContext::fill(const Rect& rect, Color color) {
 	}
 }
 
+static constexpr Color window_color = Color(200, 200, 200);
+static constexpr Color outline_color = Color(0, 0, 0);
+static constexpr Color background_color = Color(100, 100, 200);
+
 Window::Window(Rect rect) : rect(rect) {
-	static random::Generator rng(3);
-	fill_color = Color(rng.range(0x00FFFFFF) | 0xFF000000);
 }
 
 void Window::paint(WindowContext& context) {
-	context.fill(rect, fill_color);
+	static constexpr i32 outline_width = 1;
+	context.fill(Rect::from_corners(rect.top_left(), rect.top_right() + Point(0, outline_width)), outline_color);
+	context.fill(Rect::from_corners(rect.top_left(), rect.bot_left() + Point(outline_width, 0)), outline_color);
+	context.fill(Rect::from_corners(rect.top_right() - Point(outline_width, 0), rect.bot_right()), outline_color);
+	context.fill(Rect::from_corners(rect.bot_left() - Point(0, outline_width), rect.bot_right()), outline_color);
+
+	context.fill(Rect::from_corners(rect.top_left() + outline_width, rect.bot_right() - outline_width), window_color);
 }
 
 void WindowManager::paint() {
@@ -116,7 +123,7 @@ void WindowManager::paint() {
 		context.subtract_clip_rect(win.rect);
 	}
 
-	context.fill(desktop_rect, Color(0, 0, 0));
+	context.fill(desktop_rect, background_color);
 
 	context.clear_clip_rects();
 
