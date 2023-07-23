@@ -182,6 +182,11 @@ void kernel::alloc::init_heap_allocator() {
 }
 
 void* kernel::alloc::heap_allocate(usize size) {
+	// Current design can't handle 0 size allocations (if they even have a purpose),
+	// so return a nullptr
+	if (size == 0)
+		return nullptr;
+
 	HeapBlock* prev_block = nullptr;
 	for (auto* block = first_block; block != nullptr; block = block->next_block) {
 		auto* ptr = block->try_allocate(size);
@@ -200,6 +205,10 @@ void* kernel::alloc::heap_allocate(usize size) {
 }
 
 void kernel::alloc::heap_free(void* ptr) {
+	// do nothing if trying to free a nullptr
+	if (ptr == nullptr)
+		return;
+
 	for (auto* block = first_block; block != nullptr; block = block->next_block) {
 		if (block->contains(ptr)) {
 			block->free_or_panic(ptr);
