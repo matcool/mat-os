@@ -26,6 +26,11 @@ public:
 
 	Type& operator[](usize index) { return data()[index]; }
 	const Type& operator[](usize index) const { return data()[index]; }
+
+	// Implicit conversion to span of const elements
+	operator Span<const Type>() const {
+		return Span<const Type>(data(), size());
+	}
 };
 
 }
