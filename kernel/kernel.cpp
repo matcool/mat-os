@@ -28,10 +28,7 @@ extern "C" void kernel_init() {
 
 	framebuffer::init();
 
-	kdbgln("Finished initialization, halting");
+	kdbgln("Finished initialization");
 
-	// halt without disabling interrupts
-	while (true) {
-		asm volatile("hlt");
-	}
+	framebuffer::loop();
 }

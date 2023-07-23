@@ -9,4 +9,6 @@ void init();
 
 Canvas& get_framebuffer();
 
+void loop();
+
 }
