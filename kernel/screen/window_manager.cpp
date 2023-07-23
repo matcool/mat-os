@@ -42,37 +42,96 @@ static Vector<Rect> cut_out_rect(Rect target, const Rect& cut) {
 	return out;
 }
 
+void WindowContext::subtract_clip_rect(const Rect& rect) {
+	for (usize i = 0; i < clip_rects.size(); ) {
+		if (!clip_rects[i].intersects(rect)) {
+			++i;
+			continue;
+		}
+
+		// new rectangle intersects existing one, needs to be split
+		const auto target = clip_rects[i];
+		clip_rects.remove(i);
+		clip_rects.concat(cut_out_rect(target, rect).span());
+
+		// reiterate because of the new rects..
+		i = 0;
+	}
+}
+
+void WindowContext::add_clip_rect(const Rect& rect) {
+	// make space for it first
+	subtract_clip_rect(rect);
+	// then add it
+	clip_rects.push(rect);
+}
+
+void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
+	if (rect.pos.x < clip.pos.x) {
+		rect.size.width -= clip.pos.x - rect.pos.x;
+		rect.pos.x = clip.pos.x;
+	}
+	if (rect.pos.y < clip.pos.y) {
+        rect.size.height -= clip.pos.y - rect.pos.y;
+        rect.pos.y = clip.pos.y;
+    }
+	if (rect.right() > clip.right()) {
+		rect.size.width -= rect.right() - clip.right();
+	}
+	if (rect.bottom() > clip.bottom()) {
+		rect.size.height -= rect.bottom() - clip.bottom();
+	}
+	fill_unclipped(rect, color);
+}
+
+void WindowContext::fill(const Rect& rect, Color color) {
+	if (clip_rects) {
+		for (const auto& clip : clip_rects) {
+			fill_clipped(rect, clip, color);
+		}
+	} else {
+		fill_unclipped(rect, color);
+	}
+}
+
 Window::Window(Rect rect) : rect(rect) {
 	static random::Generator rng(3);
 	fill_color = Color(rng.range(0x00FFFFFF) | 0xFF000000);
 }
 
-void Window::paint(Canvas* context) {
-	context->fill(rect, fill_color);
+void Window::paint(WindowContext& context) {
+	context.fill(rect, fill_color);
 }
 
 void WindowManager::paint() {
-	if (!context) return;
+	if (!context.data()) return;
 
-	clip_rects.clear();
+	context.clip_rects.clear();
+
+	context.add_clip_rect(Rect(0, 0, width(), height()));
+
+	for (auto& win : children) {
+		// win.paint(context);
+		context.add_clip_rect(win.rect);
+	}
 
 	// draw background
-	context->fill(0, 0, context->width(), context->height(), 0);
+	context.fill(Rect(0, 0, width(), height()), 0);
 
 	for (auto& win : children) {
 		win.paint(context);
-		add_clip_rect(win.rect);
+		// context.add_clip_rect(win.rect);
 	}
 
-	for (auto& rect : clip_rects) {
-		context->fill(Rect::from_corners(rect.top_left(), rect.top_right()), Color(255, 255, 0));
-		context->fill(Rect::from_corners(rect.top_left(), rect.bot_left()), Color(255, 255, 0));
+	for (auto& rect : context.clip_rects) {
+		context.fill_unclipped(Rect::from_corners(rect.top_left(), rect.top_right()), Color(255, 255, 0));
+		context.fill_unclipped(Rect::from_corners(rect.top_left(), rect.bot_left()), Color(255, 255, 0));
 
-		context->fill(Rect::from_corners(rect.bot_left(), rect.bot_right()), Color(200, 200, 0));
-		context->fill(Rect::from_corners(rect.top_right(), rect.bot_right()), Color(200, 200, 0));
+		context.fill_unclipped(Rect::from_corners(rect.bot_left(), rect.bot_right()), Color(200, 200, 0));
+		context.fill_unclipped(Rect::from_corners(rect.top_right(), rect.bot_right()), Color(200, 200, 0));
 	}
 
-	context->fill(mouse_pos.x, mouse_pos.y, 10, 10, Color(255, 0, 0));
+	context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));
 }
 
 void WindowManager::handle_mouse(Point off, bool pressed) {
@@ -107,28 +166,10 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 
 	last_pressed = pressed;
 	
-	if (kernel::pit::get_ticks() - last_render > 16) {
+	if (kernel::pit::get_ticks() - last_render > 5) {
 		paint();
 		last_render = kernel::pit::get_ticks();
 	}
-}
-
-void WindowManager::add_clip_rect(const Rect& rect) {
-	for (usize i = 0; i < clip_rects.size(); ) {
-		if (!clip_rects[i].intersects(rect)) {
-			++i;
-			continue;
-		}
-
-		// new rectangle intersects existing one, needs to be split
-		const auto target = clip_rects[i];
-		clip_rects.remove(i);
-		clip_rects.concat(cut_out_rect(target, rect).span());
-
-		// reiterate because of the new rects..
-		i = 0;
-	}
-	clip_rects.push(rect);
 }
 
 WindowManager& WindowManager::get() {
@@ -137,9 +178,7 @@ WindowManager& WindowManager::get() {
 }
 
 void WindowManager::init() {
-	auto* fb = &kernel::framebuffer::get_framebuffer();
-
-	context = fb;
+	context = kernel::framebuffer::get_framebuffer();
 
 	children.push(Window(Rect(10, 10, 300, 200)));
 	children.push(Window(Rect(100, 150, 400, 400)));
