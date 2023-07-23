@@ -44,18 +44,19 @@ struct Window;
 class WindowManager;
 using WindowPtr = SharedPtr<Window>;
 
-// Represents a *simple* window, which is just a rect
-// with solid color, for now.
+// Represents a window, which is anything that can be on screen.
 struct Window {
-	Rect rect;
+	// Rect of the *whole* window, including decorations.
+	Rect window_rect;
 
 	Window* parent = nullptr;
 	Vector<WindowPtr> children;
 
-	bool draggable = true;
 	bool decoration = true;
 	bool last_pressed = false;
 
+	// Window which is taking mouse inputs
+	WindowPtr active_child;
 	WindowPtr drag_child;
 	Point drag_offset = Point(0, 0);
 
@@ -65,13 +66,8 @@ struct Window {
 
 	void add_child(WindowPtr window);
 
-	// Parent's screen pos. If there is no parent, return (0, 0)
-	Point parent_screen_pos() const;
-	Point screen_pos() const;
-	Rect screen_rect() const { return Rect(screen_pos(), rect.size); }
-
 	// Calculate clipping rectangles based on parent's clipping rect.
-	void clip_bounds(WindowContext& context) const;
+	void clip_bounds(WindowContext& context, bool clip_decoration = false) const;
 
 	// Calculates the proper context, then draws this and all children.
 	void paint(WindowContext& context);
@@ -79,16 +75,28 @@ struct Window {
 	// Draws only own window, with the context already set up.
 	virtual void draw(WindowContext& context);
 
-	// Rect for the inside of the window, excluding decorations.
-	// This is relative to the window itself, so (0, 0) is the top left of it.
-	Rect view_rect() const;
+	// `window_rect` but relative to the *whole* screen.
+	Rect screen_window_rect() const;
 
-	// Draws decoration
+	// Rect for the inside of the window, excluding decorations.
+	// This has no position offset, so its useful to drawing functions.
+	Rect client_rect() const;
+
+	// Same as client_rect(), but position is *relative* to parent.
+	// On windows with no decoration this is the same as window_rect,
+	// however with decorations this will be window_rect + decoration_offset().
+	Rect relative_client_rect() const;
+
+	// Similar to `screen_window_rect`, but will offset if the window has decorations.
+	Rect screen_client_rect() const;
+
+	// Rect of the title bar, relative to `window_rect`.
+	Rect titlebar_rect() const;
+
+	// Draws decoration, such as window borders and title bar.
 	void draw_decoration(WindowContext& context);
 
-	// Gets how much the decoration offsets the top left of the view rect.
-	// Used in paint().
-	Point decoration_offset() const;
+	virtual void on_mouse_down(Point);
 };
 
 // The window manager, which holds all windows

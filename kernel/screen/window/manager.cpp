@@ -18,11 +18,11 @@ void WindowManager::paint() {
 	context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));
 
 	terminal::fmtln("mouse: {}, {}", mouse_pos.x, mouse_pos.y);
-	terminal::fmtln("window: {}, {}", children.last()->rect.pos.x, children.last()->rect.pos.y);
+	terminal::fmtln("window: {}, {}", children.last()->window_rect.pos.x, children.last()->window_rect.pos.y);
 }
 
 void WindowManager::draw(WindowContext&) {
-	context.fill(rect, background_color);
+	context.fill(window_rect, background_color);
 }
 
 void WindowManager::handle_mouse(Point off, bool pressed) {
@@ -40,8 +40,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 WindowManager::WindowManager(WindowContext context)
 	: Window(Rect(0, 0, context.width(), context.height())), context(context) {
 	decoration = false;
-	draggable = false;
-	mouse_pos = rect.mid_point();
+	mouse_pos = window_rect.mid_point();
 }
 
 WindowManager& WindowManager::get() {
@@ -50,9 +49,8 @@ WindowManager& WindowManager::get() {
 }
 
 void WindowManager::init() {
-	add_child(make_shared<Window>(Rect(10, 10, 300, 200)));
+	add_child(make_shared<Window>(Rect(100, 100, 300, 200)));
 	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
 	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
-	children[0]->add_child(make_shared<Window>(Rect(30, 30, 50, 40)));
-	children[0]->children[0]->decoration = false;
+	children[0]->add_child(make_shared<Window>(Rect(10, 10, 100, 200)));
 }
