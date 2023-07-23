@@ -107,6 +107,9 @@ using to_unsigned = typename STL_NS_IMPL::to_unsigned<Int>::type;
 template <class T>
 using identity = typename STL_NS_IMPL::identity<T>::type;
 
+template <class From, class To>
+static constexpr bool convertible_to = requires(From value, void(*func)(To arg)) { func(value); };
+
 }
 
 template <class First, class Second>
@@ -129,5 +132,11 @@ template <class T>
 constexpr types::remove_ref<T>&& move(T&& value) noexcept {
 	return static_cast<types::remove_ref<T>&&>(value);
 }
+
+template <class T>
+const T* as_const(T* value) { return value; }
+
+template <class T>
+const T& as_const(T& value) { return value; }
 
 }
