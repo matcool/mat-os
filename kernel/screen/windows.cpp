@@ -53,7 +53,7 @@ struct Window {
 	}
 
 	void paint(Canvas* context) {
-		context->fill(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height, fill_color);
+		context->fill(rect, fill_color);
 	}
 };
 
@@ -73,7 +73,7 @@ struct Desktop {
 		clip_rects.clear();
 
 		// draw background
-		context->fill(0, 0, context->width(), context->height(), 0xFF3399FF);
+		context->fill(0, 0, context->width(), context->height(), 0);
 
 		for (auto& win : children) {
 			win.paint(context);
@@ -81,13 +81,14 @@ struct Desktop {
 		}
 
 		for (auto& rect : clip_rects) {
-			context->fill(rect.pos.x, rect.pos.y, rect.size.width, 1, Color(255, 255, 0));
-			context->fill(rect.pos.x, rect.pos.y, 1, rect.size.height, Color(255, 255, 0));
-			context->fill(rect.right(), rect.pos.y, 1, rect.size.height, Color(200, 200, 0));
-			context->fill(rect.pos.x, rect.bottom(), rect.size.width, 1, Color(200, 200, 0));
+			context->fill(Rect::from_corners(rect.top_left(), rect.top_right()), Color(255, 255, 0));
+			context->fill(Rect::from_corners(rect.top_left(), rect.bot_left()), Color(255, 255, 0));
+
+			context->fill(Rect::from_corners(rect.bot_left(), rect.bot_right()), Color(200, 200, 0));
+			context->fill(Rect::from_corners(rect.top_right(), rect.bot_right()), Color(200, 200, 0));
 		}
 
-		context->fill(mouse_pos.x, mouse_pos.y, 10, 10, Color(0, 0, 0));
+		context->fill(mouse_pos.x, mouse_pos.y, 10, 10, Color(255, 0, 0));
 	}
 
 	auto width() const { return context->width(); }
