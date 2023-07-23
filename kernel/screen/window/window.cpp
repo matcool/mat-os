@@ -2,9 +2,6 @@
 
 using namespace kernel::window;
 
-static constexpr Color window_color = Color(200, 200, 200);
-static constexpr Color outline_color = Color(0, 0, 0);
-
 Window::Window(Rect rect) : rect(rect) {
 }
 
@@ -85,7 +82,20 @@ void Window::clip_bounds(WindowContext& context) const {
 void Window::paint(WindowContext& context) {
 	clip_bounds(context);
 
-	const auto screen_pos = this->screen_pos();
+	auto screen_pos = this->screen_pos();
+
+	if (decoration) {
+		// at this point this should only ever be (0, 0)
+		// but just in case
+		const auto prev_offset = context.offset;
+		context.offset = screen_pos;
+		draw_decoration(context);
+		context.offset = prev_offset;
+
+		screen_pos += decoration_offset();
+		
+		context.intersect_clip_rect(view_rect() + screen_pos);
+	}
 
     // subtract children's rects, since they will draw later
 	for (auto& child : children) {
@@ -103,12 +113,41 @@ void Window::paint(WindowContext& context) {
 	}
 }
 
-void Window::draw(WindowContext& context) {
-	static constexpr i32 outline_width = 1;
+static constexpr i32 outline_width = 3;
+static constexpr i32 titlebar_height = 20;
+static constexpr Color window_color = Color(200, 200, 200);
+static constexpr Color outline_color = Color(0, 0, 0);
+static constexpr Color titlebar_color = Color(200, 100, 100);
+
+void Window::draw_decoration(WindowContext &context) {
 	context.fill(Rect(Point(0, 0), Point(rect.size.width, outline_width)), outline_color);
 	context.fill(Rect(Point(0, 0), Point(outline_width, rect.size.height)), outline_color);
 	context.fill(Rect(Point(0, rect.size.height - outline_width), Point(rect.size.width, outline_width)), outline_color);
 	context.fill(Rect(Point(rect.size.width - outline_width, 0), Point(outline_width, rect.size.height)), outline_color);
 
-	context.fill(Rect(Point(outline_width, outline_width), rect.size - Point(outline_width, outline_width) * 2), window_color);
+	context.fill(Rect(Point(outline_width, outline_width), Point(rect.size.width - outline_width * 2, titlebar_height)), titlebar_color);
+	context.fill(Rect(Point(0, outline_width + titlebar_height), Point(rect.size.width, outline_width)), outline_color);
+}
+
+Point Window::decoration_offset() const {
+	return Point(outline_width, outline_width * 2 + titlebar_height);
+}
+
+Rect Window::view_rect() const {
+	if (!decoration)
+		return Rect(Point(0, 0), rect.size);
+	
+	return Rect(Point(0, 0), rect.size - Point(outline_width * 2, outline_width * 3 + titlebar_height));
+}
+
+void Window::draw(WindowContext& context) {
+	const auto rect = view_rect();
+	context.fill(rect, window_color);
+	if (!decoration) {
+		// draw 1 pixel outline to make sure our bounds are correct
+		context.fill(Rect::from_corners(rect.top_left(), rect.top_right()), Color(0, 255, 0));
+		context.fill(Rect::from_corners(rect.top_left(), rect.bot_left()), Color(0, 255, 0));
+		context.fill(Rect::from_corners(rect.top_right(), rect.bot_right()), Color(0, 255, 0));
+		context.fill(Rect::from_corners(rect.bot_left(), rect.bot_right()), Color(0, 255, 0));
+	}
 }

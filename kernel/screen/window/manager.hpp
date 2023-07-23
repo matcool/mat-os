@@ -78,6 +78,17 @@ struct Window {
 
 	// Draws only own window, with the context already set up.
 	virtual void draw(WindowContext& context);
+
+	// Rect for the inside of the window, excluding decorations.
+	// This is relative to the window itself, so (0, 0) is the top left of it.
+	Rect view_rect() const;
+
+	// Draws decoration
+	void draw_decoration(WindowContext& context);
+
+	// Gets how much the decoration offsets the top left of the view rect.
+	// Used in paint().
+	Point decoration_offset() const;
 };
 
 // The window manager, which holds all windows
