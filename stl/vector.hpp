@@ -40,6 +40,27 @@ public:
 		delete m_data;
 	}
 
+	Vector& operator=(const Vector& other) {
+		delete m_data;
+		m_data = allocate_buffer(other.size());
+		m_size = m_capacity = other.size();
+		for (usize i = 0; i < other.size(); ++i) {
+			new (&m_data[i]) Type(other[i]);
+		}
+		return *this;
+	}
+
+	Vector& operator=(Vector&& other) {
+		delete m_data;
+        m_data = other.m_data;
+        m_capacity = other.m_capacity;
+        m_size = other.m_size;
+        other.m_data = nullptr;
+        other.m_capacity = 0;
+        other.m_size = 0;
+		return *this;
+	}
+
 	auto size() const { return m_size; }
 	auto capacity() const { return m_capacity; }
 	auto* data() { return m_data; }
