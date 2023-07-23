@@ -3,7 +3,7 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/windows.hpp>
+#include <kernel/screen/window_manager.hpp>
 
 using stl::math::get_bit;
 
@@ -46,7 +46,7 @@ void kernel::ps2::handle_mouse() {
 		return pic::send_eoi(12);
 	}
 
-	handle_mouse_movement(packet.x_offset(), packet.y_offset(), packet.left_button());
+	window::WindowManager::get().handle_mouse({ packet.x_offset(), packet.y_offset() }, packet.left_button());
 
 	pic::send_eoi(12);
 }

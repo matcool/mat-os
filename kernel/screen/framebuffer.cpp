@@ -4,7 +4,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/windows.hpp>
+#include <kernel/screen/window_manager.hpp>
 #include <kernel/device/pit.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
@@ -42,7 +42,8 @@ void kernel::framebuffer::init() {
 	memset(new_pixels, 0, width * height * sizeof(u32));
 	get_framebuffer() = Canvas(new_pixels, width, height, width);
 
-	draw_windows();
+	window::WindowManager::get().init();
+	window::WindowManager::get().paint();
 
 	kdbgln("Framebuffer initialized");
 }
