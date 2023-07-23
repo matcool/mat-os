@@ -1,4 +1,5 @@
 #include <kernel/window/window.hpp>
+#include <kernel/window/theme.hpp>
 
 using namespace kernel::window;
 
@@ -76,24 +77,18 @@ void Window::paint(WindowContext& context) {
 	}
 }
 
-static constexpr i32 outline_width = 3;
-static constexpr i32 titlebar_height = 20;
-static constexpr Color window_color = Color(200, 200, 200);
-static constexpr Color outline_color = Color(0, 0, 0);
-static constexpr Color titlebar_color = Color(200, 100, 100);
-
 void Window::draw_decoration(WindowContext &context) {
-	context.fill(Rect(Point(0, 0), Point(window_rect.size.width, outline_width)), outline_color);
-	context.fill(Rect(Point(0, 0), Point(outline_width, window_rect.size.height)), outline_color);
-	context.fill(Rect(Point(0, window_rect.size.height - outline_width), Point(window_rect.size.width, outline_width)), outline_color);
-	context.fill(Rect(Point(window_rect.size.width - outline_width, 0), Point(outline_width, window_rect.size.height)), outline_color);
+	context.fill(Rect(Point(0, 0), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
+	context.fill(Rect(Point(0, 0), Point(theme::OUTLINE_WIDTH, window_rect.size.height)), theme::OUTLINE_COLOR);
+	context.fill(Rect(Point(0, window_rect.size.height - theme::OUTLINE_WIDTH), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
+	context.fill(Rect(Point(window_rect.size.width - theme::OUTLINE_WIDTH, 0), Point(theme::OUTLINE_WIDTH, window_rect.size.height)), theme::OUTLINE_COLOR);
 
-	context.fill(Rect(Point(outline_width, outline_width), Point(window_rect.size.width - outline_width * 2, titlebar_height)), titlebar_color);
-	context.fill(Rect(Point(0, outline_width + titlebar_height), Point(window_rect.size.width, outline_width)), outline_color);
+	context.fill(Rect(Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH), Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)), theme::TITLEBAR_COLOR);
+	context.fill(Rect(Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
 }
 
 Rect Window::titlebar_rect() const {
-	return Rect(outline_width, outline_width, window_rect.size.width - outline_width, titlebar_height);
+	return Rect(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH, window_rect.size.width - theme::OUTLINE_WIDTH, theme::TITLEBAR_HEIGHT);
 }
 
 Rect Window::screen_window_rect() const {
@@ -105,11 +100,11 @@ Rect Window::screen_window_rect() const {
 Rect Window::client_rect() const {
 	if (!decoration)
 		return Rect(Point(0, 0), window_rect.size);
-	return Rect(Point(0, 0), window_rect.size - Point(outline_width * 2, outline_width * 3 + titlebar_height));
+	return Rect(Point(0, 0), window_rect.size - Point(theme::OUTLINE_WIDTH * 2, theme::OUTLINE_WIDTH * 3 + theme::TITLEBAR_HEIGHT));
 }
 
 static Point decoration_offset() {
-	return Point(outline_width, outline_width * 2 + titlebar_height);
+	return Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH * 2 + theme::TITLEBAR_HEIGHT);
 }
 
 Rect Window::relative_client_rect() const {
@@ -125,7 +120,7 @@ Rect Window::screen_client_rect() const {
 }
 
 void Window::draw(WindowContext& context) {
-	context.fill(client_rect(), window_color);
+	context.fill(client_rect(), theme::WINDOW_COLOR);
 }
 
 void Window::on_mouse_down(Point) {
