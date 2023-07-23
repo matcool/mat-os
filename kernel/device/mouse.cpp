@@ -3,7 +3,7 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/window_manager.hpp>
+#include <kernel/screen/window/window_manager.hpp>
 
 using stl::math::get_bit;
 

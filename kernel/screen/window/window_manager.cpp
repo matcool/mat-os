@@ -1,7 +1,7 @@
 #include <stl/types.hpp>
 #include <stl/math.hpp>
 #include <stl/vector.hpp>
-#include <kernel/screen/window_manager.hpp>
+#include <kernel/screen/window/window_manager.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
