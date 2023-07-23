@@ -9,7 +9,7 @@ namespace STL_NS {
 void memset(void* ptr, u8 value, usize bytes);
 
 // Copies `size` bytes from src to dest.
-void memcpy(void* dest, void* src, usize size);
+void memcpy(void* dest, const void* src, usize size);
 
 }
 
