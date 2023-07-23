@@ -1,4 +1,5 @@
 #include <stl/types.hpp>
+#include <kernel/log.hpp>
 
 extern "C" {
 	// https://libcxxabi.llvm.org/spec.html
@@ -12,5 +13,16 @@ extern "C" {
 	void __cxa_guard_release(u64* guard) {
 		// Effects: Sets the first byte of the guard object to a non-zero value.
 		*reinterpret_cast<u8*>(guard) = 0x44;
+	}
+
+	// https://itanium-cxx-abi.github.io/cxx-abi/abi.html#dso-dtor-runtime-api
+
+	void* __dso_handle;
+
+	// this is for registering destructors on exit, however
+	// since the kernel never really "exits", its fine to not do anything
+	int __cxa_atexit(void (*)(void*), void*, void*) {
+		// > It returns zero if registration is successful, nonzero on failure.
+		return 0;
 	}
 }
