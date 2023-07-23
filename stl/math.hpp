@@ -49,4 +49,46 @@ template <class Type>
 	return value < lower ? lower : value > higher ? higher : value;
 }
 
+// Represents a pair of values, which are
+// semantically a point or a size.
+template <class Type>
+struct Vec2 {
+	union {
+		Type x, a, width;
+	};
+	union {
+		Type y, b, height;
+	};
+
+	Vec2(Type x, Type y) : x(x), y(y) {}
+
+	bool operator==(const Vec2& other) const {
+		return x == other.x && y == other.y;
+	}
+
+	Vec2 operator+(const Vec2& other) const {
+		return Vec2(x + other.x, y + other.y);
+	}
+
+	Vec2 operator+(const Type& offset) const {
+		return Vec2(x + offset, y + offset);
+	}
+};
+
+// Represents a 2D rectangle at pos with size
+template <class Type>
+struct Rect {
+	using Point = Vec2<Type>;
+	Point pos;
+	Point size;
+
+	Rect(Type x, Type y, Type width, Type height) : pos(x, y), size(width, height) {}
+	Rect(const Point& pos, const Point& size) : pos(pos), size(size) {}
+
+	bool contains(const Point& point) const {
+		return point.x >= pos.x && point.x < pos.x + size.width &&
+			point.y >= pos.y && point.y < pos.y + size.height;
+	}
+};
+
 }
