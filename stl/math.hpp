@@ -82,6 +82,14 @@ struct Vec2 {
 		return Vec2(x - offset, y - offset);
 	}
 
+	Vec2 operator*(const Type& mult) const {
+		return Vec2(x * mult, y * mult);
+	}
+
+	Vec2 operator/(const Type& div) const {
+		return Vec2(x / div, y / div);
+	}
+
 	bool operator<(const Vec2& other) const {
 		return x < other.x && y < other.y;
 	}
@@ -125,6 +133,8 @@ struct Rect {
 
 	Type top() const { return pos.y; }
 	Type bottom() const { return pos.y + size.height - 1; }
+
+	Point mid_point() const { return (top_left() + bot_right()) / 2; }
 };
 
 }
