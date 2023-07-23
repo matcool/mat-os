@@ -1,3 +1,4 @@
+#include <stl/memory.hpp>
 #include <kernel/screen/canvas.hpp>
 
 Color::Color(u8 r, u8 g, u8 b, u8 a) : b(b), g(g), r(r), a(a) {}
@@ -32,10 +33,10 @@ Canvas Canvas::sub(usize x, usize y, usize width, usize height) {
 
 void Canvas::paste(const Canvas& subcanvas, usize x, usize y) {
 	for (usize j = 0; j < subcanvas.height() && y + j < height(); ++j) {
-		for (usize i = 0; i < subcanvas.width() && x + i < width(); ++i) {
-			// pixel by pixel! very slow..
-			this->set(x + i, y + j, subcanvas.get(i, j));
-		}
+		// assume rows are linear on both canvases..
+		auto* src = &subcanvas.data()[subcanvas.index(0, j)];
+		auto* dst = &data()[index(x, y + j)];
+		memcpy(dst, src, subcanvas.width() * sizeof(Color));
 	}
 }
 
