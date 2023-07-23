@@ -2,6 +2,9 @@
 
 its mat-os again. this time using limine on x86_64 because i don't feel like making a bootloader, and limine does most of the boring work
 
+![image](https://github.com/matcool/mat-os/assets/26722564/1debab95-37ce-4dac-8c10-95d87313c0ff)
+*screenshot of the system as of [`c9585bb`](https://github.com/matcool/mat-os/commit/c9585bb5f9bc36158e466f83e127f7db2c9d58ec)*
+
 ## Goals
 - [ ] ~~Use C++20 modules~~ doesn't work with clangd :(
 - [X] Use CMake
