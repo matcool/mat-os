@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stl/types.hpp>
+#include <stl/math.hpp>
 
 // Represents a RGBA8888 color
 struct Color {
@@ -61,4 +62,19 @@ public:
 
 	// Fills the rect (x, y, width, height) with color.
 	void fill(usize x, usize y, usize width, usize height, Color color);
+
+	// Fills a given rect. If the position is negative, clip the rect properly.
+	template <class Type>
+	void fill(math::Rect<Type> rect, Color color) {
+		if (rect.pos.x < 0) {
+			rect.size.width += rect.pos.x;
+			rect.pos.x = 0;
+		}
+		if (rect.pos.y < 0) {
+			rect.size.height += rect.pos.y;
+			rect.pos.y = 0;
+		}
+		if (rect.size.width < 0 || rect.size.height < 0) return;
+		fill(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height, color);
+	}
 };
