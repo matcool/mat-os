@@ -39,6 +39,9 @@ public:
 		Canvas::fill(rect, color);
 	}
 
+	// Draws only the outline of the rectangle. Width goes inwards.
+	void draw_rect_outline(const Rect& rect, i32 width, Color color);
+
 	void set_offset(const Point& point) {
 		offset = point;
 	}

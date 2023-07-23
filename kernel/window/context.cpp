@@ -101,3 +101,13 @@ void WindowContext::fill(const Rect& rect, Color color) {
 		fill_unclipped(rect + offset, color);
 	}
 }
+
+void WindowContext::draw_rect_outline(const Rect& rect, i32 width, Color color) {
+	const auto off_x = Point(width, 0);
+	const auto off_y = Point(0, width);
+	fill(Rect::from_corners(rect.top_left(), rect.top_right() + off_y), color);
+	fill(Rect::from_corners(rect.bot_left() - off_y, rect.bot_right()), color);
+
+	fill(Rect::from_corners(rect.top_left(), rect.bot_left() + off_x), color);
+	fill(Rect::from_corners(rect.top_right() - off_x, rect.bot_right()), color);
+}

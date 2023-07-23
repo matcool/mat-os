@@ -77,18 +77,23 @@ void Window::paint(WindowContext& context) {
 	}
 }
 
-void Window::draw_decoration(WindowContext &context) {
-	context.fill(Rect(Point(0, 0), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
-	context.fill(Rect(Point(0, 0), Point(theme::OUTLINE_WIDTH, window_rect.size.height)), theme::OUTLINE_COLOR);
-	context.fill(Rect(Point(0, window_rect.size.height - theme::OUTLINE_WIDTH), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
-	context.fill(Rect(Point(window_rect.size.width - theme::OUTLINE_WIDTH, 0), Point(theme::OUTLINE_WIDTH, window_rect.size.height)), theme::OUTLINE_COLOR);
+void Window::draw_decoration(WindowContext& context) {
+	context.draw_rect_outline(Rect(Point(0, 0), window_rect.size), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
 
-	context.fill(Rect(Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH), Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)), theme::TITLEBAR_COLOR);
-	context.fill(Rect(Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT), Point(window_rect.size.width, theme::OUTLINE_WIDTH)), theme::OUTLINE_COLOR);
+	// the title bar
+	context.fill(Rect(
+		Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH),
+		Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)
+	), theme::TITLEBAR_COLOR);
+	// outline below the title bar
+	context.fill(Rect(
+		Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT),
+		Point(window_rect.size.width, theme::OUTLINE_WIDTH)
+	), theme::OUTLINE_COLOR);
 }
 
 Rect Window::titlebar_rect() const {
-	return Rect(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH, window_rect.size.width - theme::OUTLINE_WIDTH, theme::TITLEBAR_HEIGHT);
+	return Rect(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH, window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT);
 }
 
 Rect Window::screen_window_rect() const {
