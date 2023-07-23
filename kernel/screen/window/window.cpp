@@ -1,4 +1,4 @@
-#include <kernel/screen/window/manager.hpp>
+#include <kernel/screen/window/window.hpp>
 
 using namespace kernel::window;
 
@@ -54,12 +54,8 @@ void Window::paint(WindowContext& context) {
 	const auto screen_pos = screen_client_rect().pos;
 
 	if (decoration) {
-		// at this point this should only ever be (0, 0)
-		// but just in case
-		const auto prev_offset = context.offset;
-		context.offset = screen_window_rect().pos;
+		context.set_offset(screen_window_rect().pos);
 		draw_decoration(context);
-		context.offset = prev_offset;
 		
 		context.intersect_clip_rect(screen_client_rect());
 	}
@@ -69,11 +65,11 @@ void Window::paint(WindowContext& context) {
 		context.subtract_clip_rect(child->screen_window_rect());
 	}
 
-	context.offset = screen_pos;
+	context.set_offset(screen_pos);
 	draw(context);
 
 	context.clear_clip_rects();
-	context.offset = Point(0, 0);
+	context.set_offset(Point(0, 0));
 
 	for (auto& child : children) {
 		child->paint(context);

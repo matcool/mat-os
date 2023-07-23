@@ -52,5 +52,4 @@ void WindowManager::init() {
 	add_child(make_shared<Window>(Rect(100, 100, 300, 200)));
 	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
 	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
-	children[0]->add_child(make_shared<Window>(Rect(10, 10, 100, 200)));
 }
