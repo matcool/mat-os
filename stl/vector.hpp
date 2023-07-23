@@ -24,6 +24,9 @@ public:
 		m_data = allocate_buffer(capacity);
 		m_capacity = capacity;
 	}
+	~Vector() {
+		delete m_data;
+	}
 
 	auto size() const { return m_size; }
 	auto capacity() const { return m_capacity; }
@@ -82,6 +85,15 @@ public:
 		for (auto& el : elements) {
 			push(el);
 		}
+	}
+
+	// Clears the vector, keeping the allocated buffer
+	// TODO: maybe free it?
+	void clear() {
+		for (auto& el : *this) {
+			el.~Type();
+		}
+		m_size = 0;
 	}
 
 protected:
