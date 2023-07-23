@@ -97,6 +97,10 @@ struct Vec2 {
 	bool operator>(const Vec2& other) const {
 		return x > other.x && y > other.y;
 	}
+
+	Vec2& operator+=(const Vec2& other) {
+		return *this = (*this + other);
+	}
 };
 
 // Represents a 2D rectangle at pos with size
@@ -135,6 +139,26 @@ struct Rect {
 	Type bottom() const { return pos.y + size.height - 1; }
 
 	Point mid_point() const { return (top_left() + bot_right()) / 2; }
+
+	Rect operator+(const Point& offset) const {
+		return Rect(pos + offset, size);
+	}
+
+	bool empty() const {
+		return size.width == 0 || size.height == 0;
+	}
+
+	Rect intersection(const Rect& other) const {
+		const auto rect = Rect::from_corners(
+			Point(max(left(), other.left()), max(top(), other.top())),
+			Point(min(right(), other.right()), min(bottom(), other.bottom()))
+		);
+		
+		if (rect.size.width <= 0 || rect.size.height <= 0)
+			return Rect(0, 0, 0, 0);
+
+		return rect;
+	}
 };
 
 }
