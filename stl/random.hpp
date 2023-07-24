@@ -25,4 +25,10 @@ public:
 // The default rng to use.
 using Generator = PCGenerator;
 
+// Gets a value in the range of start <= x < end, using a global generator.
+inline u32 in_range(u32 start, u32 end) {
+	static Generator rng;
+	return rng.range(start, end);
+}
+
 };
