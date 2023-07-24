@@ -167,8 +167,9 @@ public:
 
 	using ValueType = decltype(inner.value());
 
-	Vector<types::decay<ValueType>> collect_vec() {
-		Vector<types::decay<ValueType>> vec;
+	template <class ResultType = types::decay<ValueType>>
+	Vector<ResultType> collect_vec() {
+		Vector<ResultType> vec;
 		if constexpr (iterators::has_size_hint<Inner>) {
 			vec.reserve(inner.size_hint());
 		}
@@ -237,6 +238,14 @@ struct Range {
 	usize size_hint() const { return end - counter; }
 };
 
+struct Naturals {
+	usize counter = 0;
+
+	bool at_end() const { return false; }
+	void next() { ++counter; }
+	auto value() { return counter; }
+};
+
 }
 
 // Returns an iterator that starts at `start`, and goes up
@@ -250,6 +259,12 @@ auto range(Int start, types::identity<Int> end) {
 template <concepts::integral Int>
 auto range(Int end) {
 	return Iterator(STL_NS_IMPL::Range(Int(0), end));
+}
+
+// Returns an infinite iterator that goes through all natural numbers, 0 included.
+// Obviously, a computer cant go that high, so this will only go up to the usize limit.
+inline auto naturals() {
+	return Iterator(STL_NS_IMPL::Naturals());
 }
 
 }
