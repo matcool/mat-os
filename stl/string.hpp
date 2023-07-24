@@ -3,6 +3,8 @@
 #include "stl.hpp"
 #include "types.hpp"
 #include "utils.hpp"
+#include "vector.hpp"
+#include "span.hpp"
 
 namespace STL_NS {
 
@@ -79,21 +81,12 @@ public:
 		m_size--;
 		return c;
 	}
+
+	Span<const char> span() const { return Span(m_data, m_size); }
 };
 
-template <concepts::integral Int>
-Int parse_int(StringView str) {
-	bool negative = false;
-	if (str[0] == '-') {
-		negative = true;
-		str = str.slice(1);
-	}
-	Int value;
-	for (char c : str) {
-		value *= 10;
-		value += c - '0';
-	}
-	return negative ? -value : value;
+inline StringView operator""_sv(const char* c_str, usize len) {
+	return StringView(c_str, c_str + len - 1);
 }
 
 // Returns whether a character is a decimal digit (0-9)
@@ -107,5 +100,34 @@ char to_ascii_uppercase(char c);
 
 // Converts an ascii letter to lowercase, unchanged otherwise
 char to_ascii_lowercase(char c);
+
+// A heap allocated string which can grow.
+class String {
+	Vector<char> m_data;
+public:
+	String(const char* c_str) : String(StringView(c_str)) {}
+	String(StringView str) {
+		m_data.reserve(str.size());
+		m_data.concat(str.span());
+	}
+	String() = default;
+
+	auto size() const { return m_data.size(); }
+	auto data() { return m_data.data(); }
+	auto data() const { return m_data.data(); }
+
+	Span<char> span() { return Span(data(), size()); }
+	Span<const char> span() const { return Span(data(), size()); }
+
+	auto begin() { return data(); }
+	auto begin() const { return data(); }
+	auto end() { return data() + size(); }
+	auto end() const { return data() + size(); }
+
+	auto iter() { return Iterator(begin(), end()); }
+	auto iter() const { return Iterator(begin(), end()); }
+
+	operator StringView() const { return StringView(begin(), end()); }
+};
 
 }
