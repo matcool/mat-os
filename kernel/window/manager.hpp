@@ -26,7 +26,6 @@ public:
 	auto width() const { return real_context.width(); }
 	auto height() const { return real_context.height(); }
 
-	void paint();
 	void draw() override;
 	void draw_mouse();
 

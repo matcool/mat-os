@@ -2,22 +2,10 @@
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/terminal.hpp>
 
 using namespace kernel::window;
 
 static constexpr Color background_color = Color(100, 100, 200);
-
-void WindowManager::paint() {
-	if (!real_context.data()) return;
-
-	terminal::go_to(0, 0);
-
-	Window::paint();
-
-	terminal::fmtln("mouse: {}, {}", mouse_pos.x, mouse_pos.y);
-	terminal::fmtln("window: {}, {}", children.last()->window_rect.pos.x, children.last()->window_rect.pos.y);
-}
 
 void WindowManager::draw() {
 	context->fill(window_rect, background_color);
