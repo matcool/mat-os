@@ -15,8 +15,6 @@ void WindowManager::paint() {
 
 	Window::paint(context);
 
-	context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));
-
 	terminal::fmtln("mouse: {}, {}", mouse_pos.x, mouse_pos.y);
 	terminal::fmtln("window: {}, {}", children.last()->window_rect.pos.x, children.last()->window_rect.pos.y);
 }
@@ -31,10 +29,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 
 	Window::handle_mouse(mouse_pos, pressed);
 	
-	if (kernel::pit::get_ticks() - last_render > 16) {
-		paint();
-		last_render = kernel::pit::get_ticks();
-	}
+	context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));
 }
 
 WindowManager::WindowManager(WindowContext context)
@@ -49,7 +44,7 @@ WindowManager& WindowManager::get() {
 }
 
 void WindowManager::init() {
-	add_child(make_shared<Window>(Rect(100, 100, 300, 200)));
+	add_child(make_shared<Window>(Rect(20, 20, 300, 200)));
 	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
 	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
 }
