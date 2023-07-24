@@ -93,6 +93,9 @@ public:
 	const Type& operator*() const { return *data(); }
 
 	operator bool() const { return data(); }
+
+	bool operator==(const SharedPtr& other) const { return m_control == other.m_control; }
+	bool operator==(const Type* raw_ptr) const { return data() == raw_ptr; }
 };
 
 template <class Type, class... Args>
