@@ -88,9 +88,14 @@ public:
 	void operator++() { inner.next(); }
 	decltype(auto) operator*() { return inner.value(); }
 
+	using ValueType = decltype(inner.value());
+
 	// Filters element from the iterator according to `func`.
 	// Only elements which `func(x) -> true` will be kept.
 	template <class FilterFunc>
+	requires requires (FilterFunc func, ValueType value) {
+		{ func(value) } -> types::is_same<bool>;
+	}
 	auto filter(FilterFunc func) {
 		return stl::Iterator(iterators::Filter(inner, func));
 	}
