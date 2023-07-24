@@ -3,6 +3,7 @@
 #include <stl/pointer.hpp>
 #include <stl/span.hpp>
 #include <stl/iterator.hpp>
+#include <stl/string.hpp>
 #include <kernel/window/context.hpp>
 
 namespace kernel::window {
@@ -15,6 +16,7 @@ struct Window {
 	// Rect of the *whole* window, including decorations.
 	Rect window_rect;
 	WindowContext* context = nullptr;
+	String title = "hello world"_sv;
 
 	Window* parent = nullptr;
 	Vector<WindowPtr> children;

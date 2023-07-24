@@ -1,15 +1,13 @@
 #include <kernel/window/manager.hpp>
+#include <kernel/window/theme.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
 
 using namespace kernel::window;
 
-static constexpr Color background_color = Color(100, 100, 200);
-
 void WindowManager::draw() {
-	context->fill(window_rect, background_color);
-	context->draw_text("Hello world!", Point(10, height() - 20), Color(0, 0, 0));
+	context->fill(window_rect, theme::DESKTOP_COLOR);
 }
 
 #if DEBUG_DRAW_RECTS

@@ -15,6 +15,7 @@ struct Color {
 	constexpr Color(u8 r, u8 g, u8 b, u8 a = 255) : b(b), g(g), r(r), a(a) {}
 	constexpr Color(u32 argb) : packed(argb) {}
 	constexpr Color() : Color(0, 0, 0) {}
+	constexpr static Color from_hex(u32 rgb) { return Color(rgb | 0xFF000000); }
 };
 
 // Represents a pixel buffer, with a given width and height.

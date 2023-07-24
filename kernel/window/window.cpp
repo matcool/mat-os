@@ -88,11 +88,15 @@ void Window::paint(Span<const Rect> dirty_rects, bool paint_children) {
 void Window::draw_decoration() {
 	context->draw_rect_outline(window_rect.with_pos(Point(0, 0)), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
 
+	const auto outline_offset = Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH);
+
 	// the title bar
 	context->fill(Rect(
-		Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH),
+		outline_offset,
 		Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)
 	), theme::TITLEBAR_COLOR);
+
+	context->draw_text(title, outline_offset + Point(5, 5), theme::TITLE_TEXT_COLOR);
 
 	// outline below the title bar
 	context->fill(Rect(
