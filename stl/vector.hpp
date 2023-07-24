@@ -92,7 +92,7 @@ public:
 	const Type& last() const { return data()[size() - 1]; }
 
 	// Resizes the vector to a given capacity
-	void resize(usize new_capacity) {
+	void reserve(usize new_capacity) {
 		if (new_capacity < capacity()) return;
 		auto* new_buffer = allocate_buffer(new_capacity);
 		// TODO: trivially copyable should use memcpy
@@ -150,9 +150,9 @@ protected:
 	// Resizes the vector if there is not enough space for a *single* new item
 	void grow_if_needed() {
 		if (capacity() == 0) {
-			resize(4);
+			reserve(4);
 		} else if (capacity() == size()) {
-			resize(capacity() * 2);
+			reserve(capacity() * 2);
 		}
 	}
 };
