@@ -49,6 +49,11 @@ template <class Type>
 	return value < lower ? lower : value > higher ? higher : value;
 }
 
+template <concepts::integral Int>
+[[nodiscard]] constexpr bool is_even(Int value) {
+	return value % 2 == 0;
+}
+
 // Represents a pair of values, which are
 // semantically a point or a size.
 template <class Type>
