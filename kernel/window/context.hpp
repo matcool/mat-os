@@ -3,6 +3,7 @@
 #include <stl/types.hpp>
 #include <stl/math.hpp>
 #include <stl/vector.hpp>
+#include <stl/string.hpp>
 #include <kernel/screen/canvas.hpp>
 
 #define DEBUG_DRAW_RECTS 0
@@ -44,6 +45,16 @@ public:
 
 	// Draws only the outline of the rectangle. Width goes inwards.
 	void draw_rect_outline(const Rect& rect, i32 width, Color color);
+
+	// Draws a single character clipped by `clip`.
+	void draw_char_clipped(char ch, const Point& pos, const Rect& clip, Color color);
+
+	// Draws a single character, taking into account the clipping rects.
+	void draw_char(char ch, const Point& pos, Color color);
+
+	// Draws some text, taking into account the clipping rects.
+	// Returns a rect of the area the text occupies.
+	Rect draw_text(StringView str, const Point& pos, Color color);
 
 	void set_offset(const Point& point) {
 		offset = point;

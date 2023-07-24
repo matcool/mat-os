@@ -1,4 +1,6 @@
+#include <stl/iterator.hpp>
 #include <kernel/window/context.hpp>
+#include <kernel/screen/terminal_font.hpp>
 
 using namespace kernel::window;
 
@@ -103,9 +105,8 @@ void WindowContext::fill(const Rect& rect, Color color) {
 		for (const auto& clip : clip_rects) {
 			fill_clipped(rect, clip, color);
 		}
-	} else {
-		if (!should_clip)
-			fill_unclipped(rect + offset, color);
+	} else if (!should_clip) {
+		fill_unclipped(rect + offset, color);
 	}
 }
 
@@ -117,4 +118,36 @@ void WindowContext::draw_rect_outline(const Rect& rect, i32 width, Color color) 
 
 	fill(Rect::from_corners(rect.top_left(), rect.bot_left() + off_x), color);
 	fill(Rect::from_corners(rect.top_right() - off_x, rect.bot_right()), color);
+}
+
+void WindowContext::draw_char_clipped(char ch, const Point& pos, const Rect& clip, Color color) {
+	const auto char_rect = Rect(Point(0, 0), Point(7, 10)).intersection(clip - offset - pos);
+	if (char_rect.empty()) return;
+
+	for (auto y : iterators::range(char_rect.top(), char_rect.bottom() + 1)) {
+		const auto row = terminal_font[ch][y];
+		for (auto x : iterators::range(char_rect.left(), char_rect.right() + 1)) {
+			if (math::get_bit(row, x))
+				this->set(x + offset.x + pos.x, y + offset.y + pos.y, color);
+		}
+	}
+}
+
+void WindowContext::draw_char(char ch, const Point& pos, Color color) {
+	if (clip_rects) {
+		for (const auto& clip : clip_rects) {
+			draw_char_clipped(ch, pos, clip, color);
+		}
+	} else if (!should_clip) {
+		draw_char_clipped(ch, pos, Rect(0, 0, width(), height()), color);
+	}
+}
+
+Rect WindowContext::draw_text(StringView str, const Point& pos, Color color) {
+	Point offset(0, 0);
+	for (char c : str) {
+		draw_char(c, pos + offset, color);
+		offset.x += 7;
+	}
+	return Rect(pos, Point(offset.x, 10));
 }

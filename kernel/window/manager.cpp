@@ -9,6 +9,7 @@ static constexpr Color background_color = Color(100, 100, 200);
 
 void WindowManager::draw() {
 	context->fill(window_rect, background_color);
+	context->draw_text("Hello world!", Point(10, height() - 20), Color(0, 0, 0));
 }
 
 #if DEBUG_DRAW_RECTS
@@ -104,4 +105,5 @@ void WindowManager::init() {
 	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
 	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
 	children[0]->add_child(make_shared<Button>(Rect(50, 50, 20, 20)));
+	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100)));
 }
