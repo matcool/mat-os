@@ -109,15 +109,27 @@ struct Enumerate {
 	}
 };
 
+template <InnerIterator Inner, class Func>
+struct Map {
+	Inner inner;
+	Func func;
+	Map(Inner inner, Func func) : inner(inner), func(func) {}
+
+	bool at_end() const { return inner.at_end(); }
+	void next() { inner.next(); }
+	decltype(auto) value() { return func(inner.value()); }
+};
+
 }
 
+// Represents a pair of C++ iterators (begin and end), while offering
+// many functional utils to apply on the iterator.
 template <iterators::InnerIterator Inner>
 class Iterator {
-public:
 	Inner inner;
+public:
 	template <class T, class E>
 	Iterator(T begin, E end) : inner(iterators::ItPair(begin, end)) {}
-
 	Iterator(Inner inner) : inner(inner) {}
 
 	auto& begin() { return *this; }
@@ -137,6 +149,13 @@ public:
 	}
 	auto filter(FilterFunc func) {
 		return stl::Iterator(iterators::Filter(inner, func));
+	}
+
+	// Maps every element through a mapping function, yielding the result.
+	template <class MapFunc>
+	requires requires (MapFunc func, ValueType value) { func(value); }
+	auto map(MapFunc func) {
+		return stl::Iterator(iterators::Map(inner, func));
 	}
 
 	// Skips the first n elements from the iterator.
