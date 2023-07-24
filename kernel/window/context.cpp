@@ -83,9 +83,9 @@ void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
 		rect.pos.x = clip.pos.x;
 	}
 	if (rect.pos.y < clip.pos.y) {
-        rect.size.height -= clip.pos.y - rect.pos.y;
-        rect.pos.y = clip.pos.y;
-    }
+		rect.size.height -= clip.pos.y - rect.pos.y;
+		rect.pos.y = clip.pos.y;
+	}
 	if (rect.right() > clip.right()) {
 		rect.size.width -= rect.right() - clip.right();
 	}

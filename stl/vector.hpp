@@ -53,12 +53,12 @@ public:
 
 	Vector& operator=(Vector&& other) {
 		delete m_data;
-        m_data = other.m_data;
-        m_capacity = other.m_capacity;
-        m_size = other.m_size;
-        other.m_data = nullptr;
-        other.m_capacity = 0;
-        other.m_size = 0;
+		m_data = other.m_data;
+		m_capacity = other.m_capacity;
+		m_size = other.m_size;
+		other.m_data = nullptr;
+		other.m_capacity = 0;
+		other.m_size = 0;
 		return *this;
 	}
 

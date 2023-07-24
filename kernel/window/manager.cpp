@@ -18,9 +18,9 @@ void WindowManager::draw_debug(Canvas* canvas) {
 		const i32 b_alpha = b.a ? b.a : 255;
 		const auto sum = a_alpha + b_alpha;
 		return Color(
-            (a.r * a_alpha + b.r * b_alpha) / sum,
-            (a.g * a_alpha + b.g * b_alpha) / sum,
-            (a.b * a_alpha + b.b * b_alpha) / sum
+			(a.r * a_alpha + b.r * b_alpha) / sum,
+			(a.g * a_alpha + b.g * b_alpha) / sum,
+			(a.b * a_alpha + b.b * b_alpha) / sum
 		);
 	};
 	

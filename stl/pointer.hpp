@@ -31,10 +31,10 @@ class SharedPtr {
 			m_control->counter++;
 	}
 	void decrease_ref() {
-        if (m_control && --m_control->counter <= 0) {
-            delete m_control;
-        }
-    }
+		if (m_control && --m_control->counter <= 0) {
+			delete m_control;
+		}
+	}
 
 	const Type* get_value() const {
 		if (m_control)
@@ -72,10 +72,10 @@ public:
 
 	SharedPtr& operator=(const SharedPtr& other) {
 		if (this == &other) return *this;
-        decrease_ref();
-        m_control = other.m_control;
-        increase_ref();
-        return *this;
+		decrease_ref();
+		m_control = other.m_control;
+		increase_ref();
+		return *this;
 	}
 
 	void clear() {
@@ -100,7 +100,7 @@ public:
 
 template <class Type, class... Args>
 SharedPtr<Type> make_shared(Args&&... args) {
-    return SharedPtr<Type>(new typename SharedPtr<Type>::ControlBlock(
+	return SharedPtr<Type>(new typename SharedPtr<Type>::ControlBlock(
 		Type(forward<Args>(args)...)
 	));
 }

@@ -58,7 +58,7 @@ void Window::paint(Span<const Rect> dirty_rects, bool paint_children) {
 		context->intersect_clip_rect(screen_client_rect());
 	}
 
-    // subtract children's rects, since they will draw later
+	// subtract children's rects, since they will draw later
 	for (auto& child : children) {
 		context->subtract_clip_rect(child->screen_window_rect());
 	}

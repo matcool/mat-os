@@ -60,5 +60,5 @@ void kernel::terminal::type_character(char ch) {
 
 void kernel::terminal::go_to(u32 row_, u32 column_) {
 	row = row_;
-    column = column_;
+	column = column_;
 }
