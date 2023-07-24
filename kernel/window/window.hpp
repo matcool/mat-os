@@ -35,11 +35,13 @@ struct Window {
 
 	void raise(bool redraw = true);
 
+	void move_to(const Point& pos);
+
 	// Calculate clipping rectangles based on parent's clipping rect.
-	void clip_bounds(bool clip_decoration = false) const;
+	void clip_bounds(bool clip_decoration, const Vector<Rect>& dirty_rects = {}) const;
 
 	// Calculates the proper context, then draws this and all children.
-	void paint();
+	void paint(const Vector<Rect>& dirty_rects = {}, bool paint_children = true);
 
 	// Draws only own window, with the context already set up.
 	virtual void draw();

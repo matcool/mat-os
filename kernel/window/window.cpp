@@ -13,7 +13,7 @@ void Window::add_child(WindowPtr window) {
 	window->context = context;
 }
 
-void Window::clip_bounds(bool clip_decoration) const {
+void Window::clip_bounds(bool clip_decoration, const Vector<Rect>& dirty_rects) const {
 	auto screen_rect = screen_window_rect();
 
 	if (clip_decoration) {
@@ -22,12 +22,19 @@ void Window::clip_bounds(bool clip_decoration) const {
 
 	// if theres no parent, then bounds are the same as our rect
 	if (!parent) {
-		context->add_clip_rect(screen_rect);
+		if (dirty_rects) {
+			for (const auto& rect : dirty_rects) {
+				context->add_clip_rect(rect);	
+			}
+			context->intersect_clip_rect(screen_rect);
+		} else {
+			context->add_clip_rect(screen_rect);
+		}
 		return;
 	}
 
 	// calculate parent's bounds
-	parent->clip_bounds(true);
+	parent->clip_bounds(true, dirty_rects);
 
 	// intersect our bounds with parent's
 	context->intersect_clip_rect(screen_rect);
@@ -51,8 +58,8 @@ void Window::clip_bounds(bool clip_decoration) const {
 	}
 }
 
-void Window::paint() {
-	clip_bounds();
+void Window::paint(const Vector<Rect>& dirty_rects, bool paint_children) {
+	clip_bounds(false, dirty_rects);
 
 	const auto screen_pos = screen_client_rect().pos;
 
@@ -74,8 +81,25 @@ void Window::paint() {
 	context->clear_clip_rects();
 	context->set_offset(Point(0, 0));
 
+	if (!paint_children)
+		return;
+
 	for (auto& child : children) {
-		child->paint();
+		if (dirty_rects) {
+			bool found_intersection = false;
+			for (const auto& rect : dirty_rects) {
+				const auto screen_rect = child->screen_window_rect();
+				if (screen_rect.intersects(rect)) {
+					found_intersection = true;
+					break;
+				}
+			}
+			// child does not intersect any of the dirty rects,
+			// so skip drawing it completely
+			if (!found_intersection)
+				continue;
+		}
+		child->paint(dirty_rects);
 	}
 }
 
@@ -137,11 +161,10 @@ void Window::on_mouse_down(Point) {
 void Window::handle_mouse(Point mouse_pos, bool pressed) {
 	if (pressed && !last_pressed) {
 		for (usize i = children.size(); i--; ) {
-			const auto child = children[i];
+			auto child = children[i];
 			if (child->window_rect.contains(mouse_pos)) {
 				if (pressed) {
-					children.remove(i);
-					children.push(child);
+					child->raise();
 
 					if (child->decoration && (child->titlebar_rect() + child->window_rect.pos).contains(mouse_pos)) {
 						drag_child = child;
@@ -159,7 +182,7 @@ void Window::handle_mouse(Point mouse_pos, bool pressed) {
 	}
 
 	if (drag_child) {
-		drag_child->window_rect.pos = mouse_pos - drag_offset;
+		drag_child->move_to(mouse_pos - drag_offset);
 	}
 
 	if (event_child) {
@@ -195,6 +218,44 @@ void Window::raise(bool redraw) {
 	parent->focus_child = self;
 
 	if (redraw) {
-		// paint();
+		paint();
 	}
+}
+
+void Window::move_to(const Point& pos) {
+	raise(false);
+
+	clip_bounds(false);
+
+	// this is quite hacky
+	const auto old_pos = window_rect.pos;
+	window_rect.pos = pos;
+	const auto new_window_rect = screen_window_rect();
+	window_rect.pos = old_pos;
+
+	context->subtract_clip_rect(new_window_rect);
+
+	// this is quite hacky too
+	const auto dirty_rects = context->get_clip_rects();
+	context->clear_clip_rects();
+
+	const auto old_rect = window_rect;
+	window_rect.pos = pos;
+
+	// TODO: improve this
+	usize self_index = 0;
+	for (; self_index < parent->children.size(); ++self_index) {
+		if (parent->children[self_index].data() == this) {
+			break;
+		}
+	}
+	// Paint every window below this one which intersected it
+	for (usize j = 0; j < self_index; ++j) {
+		auto sibling = parent->children[j];
+		if (sibling->window_rect.intersects(old_rect))
+			sibling->paint(dirty_rects, true);
+	}
+	parent->paint(dirty_rects, false);
+
+	paint();
 }

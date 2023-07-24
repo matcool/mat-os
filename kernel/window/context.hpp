@@ -5,6 +5,8 @@
 #include <stl/vector.hpp>
 #include <kernel/screen/canvas.hpp>
 
+#define DEBUG_DRAW_RECTS 0
+
 namespace kernel::window {
 
 using Point = math::Vec2<i32>;
@@ -13,6 +15,7 @@ using Rect = math::Rect<i32>;
 class WindowContext : public Canvas {
 	Vector<Rect> clip_rects;
 	Point offset = Point(0, 0);
+	bool should_clip = false;
 public:
 	WindowContext(const Canvas& canvas) : Canvas(canvas) {}
 
@@ -45,6 +48,12 @@ public:
 	void set_offset(const Point& point) {
 		offset = point;
 	}
+
+	auto get_clip_rects() const { return clip_rects; }
+
+#if DEBUG_DRAW_RECTS
+	Vector<Rect> drawn_rects;
+#endif
 };
 
 }

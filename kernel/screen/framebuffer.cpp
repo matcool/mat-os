@@ -50,7 +50,14 @@ void kernel::framebuffer::init() {
 
 void kernel::framebuffer::loop() {
 	while (true) {
+#if DEBUG_DRAW_RECTS
+		if (window::WindowManager::get().changed()) {
+			get_screen_framebuffer().paste(get_framebuffer(), 0, 0);
+			window::WindowManager::get().draw_debug(&get_screen_framebuffer());
+		}
+#else
 		get_screen_framebuffer().paste(get_framebuffer(), 0, 0);
-		sleep(16);
+#endif
+		sleep(8);
 	}
 }

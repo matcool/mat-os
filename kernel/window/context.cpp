@@ -32,6 +32,7 @@ static void cut_out_rect(Vector<Rect>& out, Rect target, const Rect& cut) {
 }
 
 void WindowContext::subtract_clip_rect(const Rect& rect) {
+	should_clip = true;
 	for (usize i = 0; i < clip_rects.size(); ) {
 		if (!clip_rects[i].intersects(rect)) {
 			++i;
@@ -56,6 +57,7 @@ void WindowContext::add_clip_rect(const Rect& rect) {
 }
 
 void WindowContext::intersect_clip_rect(const Rect& clip) {
+	should_clip = true;
 	Vector<Rect> new_rects;
 
 	for (const auto& rect : clip_rects) {
@@ -69,6 +71,7 @@ void WindowContext::intersect_clip_rect(const Rect& clip) {
 }
 
 void WindowContext::clear_clip_rects() {
+	should_clip = false;
 	clip_rects.clear();
 }
 
@@ -89,6 +92,9 @@ void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
 	if (rect.bottom() > clip.bottom()) {
 		rect.size.height -= rect.bottom() - clip.bottom();
 	}
+#if DEBUG_DRAW_RECTS
+	drawn_rects.push(rect);
+#endif
 	fill_unclipped(rect, color);
 }
 
@@ -98,7 +104,8 @@ void WindowContext::fill(const Rect& rect, Color color) {
 			fill_clipped(rect, clip, color);
 		}
 	} else {
-		fill_unclipped(rect + offset, color);
+		if (!should_clip)
+			fill_unclipped(rect + offset, color);
 	}
 }
 
