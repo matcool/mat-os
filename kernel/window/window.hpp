@@ -1,6 +1,7 @@
 #pragma once
 
 #include <stl/pointer.hpp>
+#include <stl/span.hpp>
 #include <kernel/window/context.hpp>
 
 namespace kernel::window {
@@ -38,10 +39,10 @@ struct Window {
 	void move_to(const Point& pos);
 
 	// Calculate clipping rectangles based on parent's clipping rect.
-	void clip_bounds(bool clip_decoration, const Vector<Rect>& dirty_rects = {}) const;
+	void clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects = {}) const;
 
 	// Calculates the proper context, then draws this and all children.
-	void paint(const Vector<Rect>& dirty_rects = {}, bool paint_children = true);
+	void paint(Span<const Rect> dirty_rects = {}, bool paint_children = true);
 
 	// Draws only own window, with the context already set up.
 	virtual void draw();

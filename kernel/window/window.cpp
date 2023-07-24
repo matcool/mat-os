@@ -13,7 +13,7 @@ void Window::add_child(WindowPtr window) {
 	window->context = context;
 }
 
-void Window::clip_bounds(bool clip_decoration, const Vector<Rect>& dirty_rects) const {
+void Window::clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects) const {
 	auto screen_rect = screen_window_rect();
 
 	if (clip_decoration) {
@@ -58,7 +58,7 @@ void Window::clip_bounds(bool clip_decoration, const Vector<Rect>& dirty_rects) 
 	}
 }
 
-void Window::paint(const Vector<Rect>& dirty_rects, bool paint_children) {
+void Window::paint(Span<const Rect> dirty_rects, bool paint_children) {
 	clip_bounds(false, dirty_rects);
 
 	const auto screen_pos = screen_client_rect().pos;
@@ -253,9 +253,9 @@ void Window::move_to(const Point& pos) {
 	for (usize j = 0; j < self_index; ++j) {
 		auto sibling = parent->children[j];
 		if (sibling->window_rect.intersects(old_rect))
-			sibling->paint(dirty_rects, true);
+			sibling->paint(dirty_rects.span(), true);
 	}
-	parent->paint(dirty_rects, false);
+	parent->paint(dirty_rects.span(), false);
 
 	paint();
 }
