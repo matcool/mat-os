@@ -174,7 +174,9 @@ public:
 
 	// Enumerates the iterator by returning a pair of (index, value).
 	auto enumerate() {
-		return stl::Iterator(iterators::Enumerate(inner));
+		// specify `<Inner>` since otherwise itd just call the
+		// copy ctor for Enumerate for nested enumerates
+		return stl::Iterator(iterators::Enumerate<Inner>(inner));
 	}
 };
 
