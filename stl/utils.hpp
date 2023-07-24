@@ -67,6 +67,12 @@ static constexpr bool is_same = false;
 template <class T>
 static constexpr bool is_same<T, T> = true;
 
+template <bool, class T, class F>
+struct ternary { using type = T; };
+
+template <class T, class F>
+struct ternary<false, T, F> { using type = F; };
+
 }
 
 template <class T>
@@ -113,6 +119,12 @@ using identity = typename STL_NS_IMPL::identity<T>::type;
 
 template <class From, class To>
 static constexpr bool convertible_to = requires(From value, void(*func)(To arg)) { func(value); };
+
+template <bool Condition, class T, class F>
+using ternary = typename STL_NS_IMPL::ternary<Condition, T, F>::type;
+
+template <class T>
+concept is_reference = !is_same<T, remove_ref<T>>;
 
 }
 
