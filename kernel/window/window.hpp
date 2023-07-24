@@ -12,6 +12,7 @@ using WindowPtr = SharedPtr<Window>;
 struct Window {
 	// Rect of the *whole* window, including decorations.
 	Rect window_rect;
+	WindowContext* context = nullptr;
 
 	Window* parent = nullptr;
 	Vector<WindowPtr> children;
@@ -35,13 +36,13 @@ struct Window {
 	void raise(bool redraw = true);
 
 	// Calculate clipping rectangles based on parent's clipping rect.
-	void clip_bounds(WindowContext& context, bool clip_decoration = false) const;
+	void clip_bounds(bool clip_decoration = false) const;
 
 	// Calculates the proper context, then draws this and all children.
-	void paint(WindowContext& context);
+	void paint();
 
 	// Draws only own window, with the context already set up.
-	virtual void draw(WindowContext& context);
+	virtual void draw();
 
 	// `window_rect` but relative to the *whole* screen.
 	Rect screen_window_rect() const;
@@ -62,7 +63,7 @@ struct Window {
 	Rect titlebar_rect() const;
 
 	// Draws decoration, such as window borders and title bar.
-	void draw_decoration(WindowContext& context);
+	void draw_decoration();
 
 	virtual void on_mouse_down(Point);
 };

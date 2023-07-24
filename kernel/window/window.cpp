@@ -1,5 +1,6 @@
 #include <kernel/window/window.hpp>
 #include <kernel/window/theme.hpp>
+#include <kernel/log.hpp>
 
 using namespace kernel::window;
 
@@ -9,9 +10,10 @@ Window::Window(Rect rect) : window_rect(rect) {
 void Window::add_child(WindowPtr window) {
 	children.push(window);
 	window->parent = this;
+	window->context = context;
 }
 
-void Window::clip_bounds(WindowContext& context, bool clip_decoration) const {
+void Window::clip_bounds(bool clip_decoration) const {
 	auto screen_rect = screen_window_rect();
 
 	if (clip_decoration) {
@@ -20,15 +22,15 @@ void Window::clip_bounds(WindowContext& context, bool clip_decoration) const {
 
 	// if theres no parent, then bounds are the same as our rect
 	if (!parent) {
-		context.add_clip_rect(screen_rect);
+		context->add_clip_rect(screen_rect);
 		return;
 	}
 
 	// calculate parent's bounds
-	parent->clip_bounds(context, true);
+	parent->clip_bounds(true);
 
 	// intersect our bounds with parent's
-	context.intersect_clip_rect(screen_rect);
+	context->intersect_clip_rect(screen_rect);
 
 	// iterate through windows above this one which are intersecting
 	// TODO: a function for this or something
@@ -45,48 +47,48 @@ void Window::clip_bounds(WindowContext& context, bool clip_decoration) const {
 			continue;
 
 		// if it intersects, subtract it
-		context.subtract_clip_rect(child->screen_window_rect());
+		context->subtract_clip_rect(child->screen_window_rect());
 	}
 }
 
-void Window::paint(WindowContext& context) {
-	clip_bounds(context);
+void Window::paint() {
+	clip_bounds();
 
 	const auto screen_pos = screen_client_rect().pos;
 
 	if (decoration) {
-		context.set_offset(screen_window_rect().pos);
-		draw_decoration(context);
+		context->set_offset(screen_window_rect().pos);
+		draw_decoration();
 		
-		context.intersect_clip_rect(screen_client_rect());
+		context->intersect_clip_rect(screen_client_rect());
 	}
 
     // subtract children's rects, since they will draw later
 	for (auto& child : children) {
-		context.subtract_clip_rect(child->screen_window_rect());
+		context->subtract_clip_rect(child->screen_window_rect());
 	}
 
-	context.set_offset(screen_pos);
-	draw(context);
+	context->set_offset(screen_pos);
+	draw();
 
-	context.clear_clip_rects();
-	context.set_offset(Point(0, 0));
+	context->clear_clip_rects();
+	context->set_offset(Point(0, 0));
 
 	for (auto& child : children) {
-		child->paint(context);
+		child->paint();
 	}
 }
 
-void Window::draw_decoration(WindowContext& context) {
-	context.draw_rect_outline(Rect(Point(0, 0), window_rect.size), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
+void Window::draw_decoration() {
+	context->draw_rect_outline(Rect(Point(0, 0), window_rect.size), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
 
 	// the title bar
-	context.fill(Rect(
+	context->fill(Rect(
 		Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH),
 		Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)
 	), theme::TITLEBAR_COLOR);
 	// outline below the title bar
-	context.fill(Rect(
+	context->fill(Rect(
 		Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT),
 		Point(window_rect.size.width, theme::OUTLINE_WIDTH)
 	), theme::OUTLINE_COLOR);
@@ -124,8 +126,8 @@ Rect Window::screen_client_rect() const {
 	return screen_window_rect();
 }
 
-void Window::draw(WindowContext& context) {
-	context.fill(client_rect(), theme::WINDOW_COLOR);
+void Window::draw() {
+	context->fill(client_rect(), theme::WINDOW_COLOR);
 }
 
 void Window::on_mouse_down(Point) {

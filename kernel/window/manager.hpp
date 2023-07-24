@@ -7,7 +7,7 @@ namespace kernel::window {
 
 // The window manager, which holds all windows
 class WindowManager : public Window {
-	WindowContext context;
+	WindowContext real_context;
 
 	Point mouse_pos = Point(0, 0);
 	
@@ -21,11 +21,11 @@ public:
 
 	void handle_mouse(Point off, bool pressed);
 
-	auto width() const { return context.width(); }
-	auto height() const { return context.height(); }
+	auto width() const { return real_context.width(); }
+	auto height() const { return real_context.height(); }
 
 	void paint();
-	void draw(WindowContext& context) override;
+	void draw() override;
 };
 
 }
