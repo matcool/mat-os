@@ -13,7 +13,7 @@ void Window::add_child(WindowPtr window) {
 	window->context = context;
 }
 
-void Window::clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects) const {
+void Window::clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects) {
 	auto screen_rect = screen_window_rect();
 
 	if (clip_decoration) {
@@ -40,19 +40,7 @@ void Window::clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects) con
 	context->intersect_clip_rect(screen_rect);
 
 	// iterate through windows above this one which are intersecting
-	// TODO: a function for this or something
-	// this is nasty
-	usize i = 0;
-	for (; i < parent->children.size(); ++i) {
-        if (parent->children[i].data() == this)
-            break;
-	}
-	for (usize j = i + 1; j < parent->children.size(); ++j) {
-		auto& child = parent->children[j];
-		// if it doesnt intersect the window, ignore it
-		if (!window_rect.intersects(child->window_rect))
-			continue;
-
+	for (auto child : iter_windows_above().filter([&](auto win) { return win->window_rect.intersects(window_rect); })) {
 		// if it intersects, subtract it
 		context->subtract_clip_rect(child->screen_window_rect());
 	}
@@ -86,31 +74,26 @@ void Window::paint(Span<const Rect> dirty_rects, bool paint_children) {
 
 	for (auto& child : children) {
 		if (dirty_rects) {
-			bool found_intersection = false;
-			for (const auto& rect : dirty_rects) {
-				const auto screen_rect = child->screen_window_rect();
-				if (screen_rect.intersects(rect)) {
-					found_intersection = true;
-					break;
-				}
-			}
+			const auto screen_rect = child->screen_window_rect();
 			// child does not intersect any of the dirty rects,
 			// so skip drawing it completely
-			if (!found_intersection)
+			if (!dirty_rects.iter().map([&](const auto& rect) { return screen_rect.intersects(rect); }).any()) {
 				continue;
+			}
 		}
 		child->paint(dirty_rects);
 	}
 }
 
 void Window::draw_decoration() {
-	context->draw_rect_outline(Rect(Point(0, 0), window_rect.size), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
+	context->draw_rect_outline(window_rect.with_pos(Point(0, 0)), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR);
 
 	// the title bar
 	context->fill(Rect(
 		Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH),
 		Point(window_rect.size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)
 	), theme::TITLEBAR_COLOR);
+
 	// outline below the title bar
 	context->fill(Rect(
 		Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT),
@@ -130,7 +113,7 @@ Rect Window::screen_window_rect() const {
 
 Rect Window::client_rect() const {
 	if (!decoration)
-		return Rect(Point(0, 0), window_rect.size);
+		return window_rect.with_pos(Point(0, 0));
 	return Rect(Point(0, 0), window_rect.size - Point(theme::OUTLINE_WIDTH * 2, theme::OUTLINE_WIDTH * 3 + theme::TITLEBAR_HEIGHT));
 }
 
@@ -227,11 +210,7 @@ void Window::move_to(const Point& pos) {
 
 	clip_bounds(false);
 
-	// this is quite hacky
-	const auto old_pos = window_rect.pos;
-	window_rect.pos = pos;
-	const auto new_window_rect = screen_window_rect();
-	window_rect.pos = old_pos;
+	const auto new_window_rect = window_rect.with_pos(pos) + (parent ? parent->screen_client_rect().pos : Point(0, 0));
 
 	context->subtract_clip_rect(new_window_rect);
 
@@ -242,19 +221,11 @@ void Window::move_to(const Point& pos) {
 	const auto old_rect = window_rect;
 	window_rect.pos = pos;
 
-	// TODO: improve this
-	usize self_index = 0;
-	for (; self_index < parent->children.size(); ++self_index) {
-		if (parent->children[self_index].data() == this) {
-			break;
-		}
-	}
 	// Paint every window below this one which intersected it
-	for (usize j = 0; j < self_index; ++j) {
-		auto sibling = parent->children[j];
-		if (sibling->window_rect.intersects(old_rect))
-			sibling->paint(dirty_rects.span(), true);
+	for (auto& sibling : iter_windows_below().filter([&](const auto& win) { return win->window_rect.intersects(old_rect); })) {
+		sibling->paint(dirty_rects.span(), true);
 	}
+
 	parent->paint(dirty_rects.span(), false);
 
 	paint();

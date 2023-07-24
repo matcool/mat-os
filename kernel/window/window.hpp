@@ -2,6 +2,7 @@
 
 #include <stl/pointer.hpp>
 #include <stl/span.hpp>
+#include <stl/iterator.hpp>
 #include <kernel/window/context.hpp>
 
 namespace kernel::window {
@@ -43,7 +44,7 @@ struct Window {
 	void invalidate(const Rect& rect);
 
 	// Calculate clipping rectangles based on parent's clipping rect.
-	void clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects = {}) const;
+	void clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects = {});
 
 	// Calculates the proper context, then draws this and all children.
 	void paint(Span<const Rect> dirty_rects = {}, bool paint_children = true);
@@ -73,6 +74,18 @@ struct Window {
 	void draw_decoration();
 
 	virtual void on_mouse_down(Point);
+
+	// Returns an iterator of all windows above this one.
+	auto iter_windows_above() {
+		const auto index = parent->children.iter().find_value(this);
+		return parent->children.iter().skip(index + 1);
+	}
+
+	// Returns an iterator of all windows below this one.
+	auto iter_windows_below() {
+		const auto index = parent->children.iter().find_value(this);
+		return parent->children.iter().take(index);
+	}
 };
 
 struct Button : public Window {
