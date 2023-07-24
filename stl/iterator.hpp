@@ -167,6 +167,9 @@ public:
 
 	using ValueType = decltype(inner.value());
 
+	// Collects all the elements of the iterator into a vector.
+	// A different type can be specified, in which case all elements
+	// will attempt to convert to it.
 	template <class ResultType = types::decay<ValueType>>
 	Vector<ResultType> collect_vec() {
 		Vector<ResultType> vec;
@@ -177,6 +180,17 @@ public:
 			vec.push(move(value));
 		}
 		return vec;
+	}
+
+	// Finds the index of a value which `element == value`.
+	// If no value is found, returns USIZE_MAX (may change).
+	template <class ComparableType>
+	requires requires(ValueType a, ComparableType b) { a == b; }
+	usize find_value(ComparableType value) {
+		for (const auto& [i, el] : this->enumerate()) {
+			if (el == value) return i;
+		}
+		return USIZE_MAX;
 	}
 
 	// -- Methods that apply to the iterator --

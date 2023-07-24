@@ -19,3 +19,5 @@ using i64 = std::int64_t;
 using usize = std::size_t;
 
 using uptr = std::uintptr_t;
+
+static constexpr usize USIZE_MAX = usize(-1);
