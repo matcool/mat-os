@@ -193,6 +193,15 @@ public:
 		return USIZE_MAX;
 	}
 
+	// Return true if any of the values	of the iterator are truthy,
+	// false otherwise. When a true element is found, iteration is stopped.
+	bool any() {
+		for (const auto& el : *this) {
+			if (el) return true;
+		}
+		return false;
+	}
+
 	// -- Methods that apply to the iterator --
 
 	// Filters element from the iterator according to `func`.
