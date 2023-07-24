@@ -75,13 +75,8 @@ public:
 	auto end() const { return data() + size(); }
 	auto end() { return data() + size(); }
 
-	auto iter() {
-		return Iterator(begin(), end());
-	}
-
-	auto iter() const {
-		return Iterator(begin(), end());
-	}
+	auto iter() { return Iterator(begin(), end()); }
+	auto iter() const { return Iterator(begin(), end()); }
 
 	Type& operator[](usize index) { return data()[index]; }
 	const Type& operator[](usize index) const { return data()[index]; }
