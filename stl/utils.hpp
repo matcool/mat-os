@@ -143,4 +143,10 @@ const T* as_const(T* value) { return value; }
 template <class T>
 const T& as_const(T& value) { return value; }
 
+// Delays the deduction of an overloaded function by wrapping it in a lambda,
+// so that it can be passed more easily to other functions.
+#define AS_LAMBDA(overloaded_func) [&](auto&&... args) -> decltype(auto) { \
+	return overloaded_func(STL_NS::forward<decltype(args)>(args)...);      \
+}
+
 }
