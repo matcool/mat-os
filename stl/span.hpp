@@ -31,6 +31,9 @@ public:
 	operator Span<const Type>() const {
 		return Span<const Type>(data(), size());
 	}
+
+	bool empty() const { return !m_size; }
+	operator bool() const { return !empty(); }
 };
 
 }
