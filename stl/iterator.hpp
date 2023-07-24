@@ -9,6 +9,8 @@ namespace STL_NS {
 // Iterator impl namespace
 namespace iterators {
 
+struct IteratorEndTag {};
+
 // i dont like this name
 template <class Inner>
 concept InnerIterator = requires (Inner value) {
@@ -68,14 +70,51 @@ struct Take {
 	}
 };
 
-struct IteratorEndTag {};
+template <InnerIterator Inner>
+struct Enumerate {
+	Inner inner;
+	usize index = 0;
+
+	using Type = decltype(inner.value());
+	using ConvertedType = types::ternary<types::is_reference<Type>, types::remove_ref<Type>*, Type>;
+	using TargetPair = Pair<usize, Type>;
+	struct {
+		usize index = 0;
+		// Use this hacky union to store optional reference,
+		// and also not require default construction of Type.
+		union {
+			bool nothing = false;
+			ConvertedType value;
+		};
+	} hack;
+
+	Enumerate(Inner value) : inner(value) {}
+	
+	bool at_end() const { return inner.at_end(); }
+	void next() {
+		inner.next();
+		++index;
+	}
+	auto& value() {
+		hack.index = index;
+		if constexpr (types::is_reference<Type>) {
+			hack.value = &inner.value();
+		} else {
+			hack.value = inner.value();
+		}
+		// Hehe
+		// This is definitely UB, however a reference and a pointer are the same
+		// in memory, so this should be fine
+		return *reinterpret_cast<TargetPair*>(&hack);
+	}
+};
 
 }
 
 template <iterators::InnerIterator Inner>
 class Iterator {
-	Inner inner;
 public:
+	Inner inner;
 	template <class T, class E>
 	Iterator(T begin, E end) : inner(iterators::ItPair(begin, end)) {}
 
@@ -112,6 +151,11 @@ public:
 	// Stops the iterator after `n` iterations.
 	auto take(usize n) {
 		return stl::Iterator(iterators::Take(inner, n));
+	}
+
+	// Enumerates the iterator by returning a pair of (index, value).
+	auto enumerate() {
+		return stl::Iterator(iterators::Enumerate(inner));
 	}
 };
 
