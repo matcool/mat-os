@@ -6,6 +6,9 @@
 
 namespace STL_NS {
 
+template <class T>
+class Vector;
+
 // Iterator impl namespace
 namespace iterators {
 
@@ -19,6 +22,11 @@ concept InnerIterator = requires (Inner value) {
 	value.value();
 };
 
+template <class Inner>
+concept has_size_hint = requires (Inner value) {
+	{ value.size_hint() } -> types::is_same<usize>;
+};
+
 template <class It, class EndIt>
 struct ItPair {
 	It iterator;
@@ -27,6 +35,11 @@ struct ItPair {
 	bool at_end() const { return iterator == end_iterator; }
 	void next() { if (!at_end()) ++iterator; }
 	decltype(auto) value() { return *iterator; }
+	
+	usize size_hint() const
+	requires requires(It a, EndIt b) { b - a; } {
+		return end_iterator - iterator;
+	}
 };
 
 template <InnerIterator Inner, class Func>
@@ -68,6 +81,11 @@ struct Take {
 		inner.next();
 		++counter;
 	}
+
+	usize size_hint() const requires has_size_hint<Inner> {
+		const auto hint = inner.size_hint();
+		return max > hint ? hint : max;
+	}
 };
 
 template <InnerIterator Inner>
@@ -91,6 +109,9 @@ struct Enumerate {
 	Enumerate(Inner value) : inner(value) {}
 	
 	bool at_end() const { return inner.at_end(); }
+	usize size_hint() const requires has_size_hint<Inner> {
+		return inner.size_hint();
+	}
 	void next() {
 		inner.next();
 		++index;
@@ -117,6 +138,9 @@ struct Map {
 
 	bool at_end() const { return inner.at_end(); }
 	void next() { inner.next(); }
+	usize size_hint() const requires has_size_hint<Inner> {
+		return inner.size_hint();
+	}
 	decltype(auto) value() { return func(inner.value()); }
 };
 
@@ -133,6 +157,8 @@ public:
 	Iterator(Inner inner) : inner(inner) {}
 
 	auto& begin() { return *this; }
+	// This value should never be accessed directly,
+	// it is only for tricking c++'s range for syntax.
 	auto end() { return iterators::IteratorEndTag(); }
 
 	bool operator!=(iterators::IteratorEndTag) const { return !inner.at_end(); }
@@ -140,6 +166,19 @@ public:
 	decltype(auto) operator*() { return inner.value(); }
 
 	using ValueType = decltype(inner.value());
+
+	Vector<types::decay<ValueType>> collect_vec() {
+		Vector<types::decay<ValueType>> vec;
+		if constexpr (iterators::has_size_hint<Inner>) {
+			vec.reserve(inner.size_hint());
+		}
+		for (auto value : *this) {
+			vec.push(move(value));
+		}
+		return vec;
+	}
+
+	// -- Methods that apply to the iterator --
 
 	// Filters element from the iterator according to `func`.
 	// Only elements which `func(x) -> true` will be kept.
@@ -161,7 +200,7 @@ public:
 	// Skips the first n elements from the iterator.
 	auto skip(usize n) {
 		auto copy = inner;
-		for (usize i = 0; i < n; ++i) {
+		for (usize i = 0; i < n && !copy.at_end(); ++i) {
 			copy.next();
 		}
 		return Iterator(copy);
@@ -195,6 +234,7 @@ struct Range {
 	bool at_end() const { return counter >= end; }
 	void next() { ++counter; }
 	Int value() { return counter; }
+	usize size_hint() const { return end - counter; }
 };
 
 }
