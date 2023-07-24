@@ -20,7 +20,9 @@ struct Window {
 	bool last_pressed = false;
 
 	// Window which is taking mouse inputs
-	WindowPtr active_child;
+	WindowPtr event_child;
+	// Top most window
+	WindowPtr focus_child;
 	WindowPtr drag_child;
 	Point drag_offset = Point(0, 0);
 
@@ -29,6 +31,8 @@ struct Window {
 	void handle_mouse(Point mouse_pos, bool pressed);
 
 	void add_child(WindowPtr window);
+
+	void raise(bool redraw = true);
 
 	// Calculate clipping rectangles based on parent's clipping rect.
 	void clip_bounds(WindowContext& context, bool clip_decoration = false) const;

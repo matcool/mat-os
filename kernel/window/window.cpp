@@ -147,7 +147,7 @@ void Window::handle_mouse(Point mouse_pos, bool pressed) {
 					}
 				}
 				if (!drag_child) {
-					active_child = child;
+					event_child = child;
 				}
 				break;
 			}
@@ -160,9 +160,9 @@ void Window::handle_mouse(Point mouse_pos, bool pressed) {
 		drag_child->window_rect.pos = mouse_pos - drag_offset;
 	}
 
-	if (active_child) {
-		const auto relative_mouse_pos = mouse_pos - active_child->relative_client_rect().pos;
-		active_child->handle_mouse(relative_mouse_pos, pressed);
+	if (event_child) {
+		const auto relative_mouse_pos = mouse_pos - event_child->relative_client_rect().pos;
+		event_child->handle_mouse(relative_mouse_pos, pressed);
 	} else {
 		if (pressed & !last_pressed) {
 			this->on_mouse_down(mouse_pos);
@@ -170,7 +170,29 @@ void Window::handle_mouse(Point mouse_pos, bool pressed) {
 	}
 
 	if (!pressed)
-		active_child.clear();
+		event_child.clear();
 
 	last_pressed = pressed;
+}
+
+void Window::raise(bool redraw) {
+	if (!parent) return;
+	if (parent->focus_child.data() == this) return;
+	auto previous = parent->focus_child;
+
+	usize i = 0;
+	for (; i < parent->children.size(); ++i) {
+		if (parent->children[i].data() == this) {
+			break;
+		}
+	}
+	auto self = parent->children[i];
+	parent->children.remove(i);
+	parent->children.push(self);
+
+	parent->focus_child = self;
+
+	if (redraw) {
+		// paint();
+	}
 }
