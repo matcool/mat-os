@@ -153,6 +153,10 @@ struct Rect {
 		return Rect(pos + offset, size);
 	}
 
+	Rect operator-(const Point& offset) const {
+		return Rect(pos - offset, size);
+	}
+
 	bool empty() const {
 		return size.width == 0 || size.height == 0;
 	}
