@@ -168,6 +168,8 @@ struct Rect {
 
 		return rect;
 	}
+
+	Rect with_pos(const Point& point) const { return Rect(point, size); }
 };
 
 }
