@@ -75,4 +75,14 @@ struct Window {
 	virtual void on_mouse_down(Point);
 };
 
+struct Button : public Window {
+	Button(Rect rect) : Window(rect) {
+		decoration = false;
+	}
+	bool active = false;
+
+	void draw() override;
+	void on_mouse_down(Point) override;
+};
+
 }
