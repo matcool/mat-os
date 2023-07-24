@@ -53,15 +53,49 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	mouse_pos.x = math::clamp(mouse_pos.x + off.x, 0, width());
 	mouse_pos.y = math::clamp(mouse_pos.y + off.y, 0, height());
 
+	// mouse interrupts happen way too often, and end up lagging
+	// window dragging even with our optimized system, so limit it
+	// to every 2ms (500fps)
 	if (kernel::pit::get_ticks() - last_render > 2) {
 		Window::handle_mouse(mouse_pos, pressed);
 		last_render = kernel::pit::get_ticks();
-		real_context.fill_unclipped(Rect(mouse_pos, Point(10, 10)), Color(255, 0, 0));
+		draw_mouse();
+		prev_mouse_pos = mouse_pos;
 #if DEBUG_DRAW_RECTS
 		if (pressed)
 			context->drawn_rects.push(Rect(0, 0, 0, 0));
 #endif
 	}
+}
+
+constexpr u32 EMPTY = 0x0;
+constexpr u32 BLACK = 0xFF000000;
+constexpr u32 WHITE = 0xFFFFFFFF;
+
+constexpr usize MOUSE_WIDTH = 9;
+constexpr usize MOUSE_HEIGHT = 13;
+
+u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
+	BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY,
+	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK,
+	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, EMPTY, EMPTY,
+	BLACK, WHITE, BLACK, BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
+	BLACK, BLACK, EMPTY, EMPTY, BLACK, WHITE, BLACK, EMPTY, EMPTY,
+	EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, BLACK, EMPTY, EMPTY, EMPTY,
+};
+
+void WindowManager::draw_mouse() {
+	Canvas mouse_canvas(mouse_sprite, MOUSE_WIDTH, MOUSE_HEIGHT);
+	const auto old_mouse_rect = Rect(prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
+	Window::paint(Span(&old_mouse_rect, 1), true);
+	context->paste_alpha_masked(mouse_canvas, mouse_pos.x, mouse_pos.y);
 }
 
 WindowManager::WindowManager(WindowContext context)
