@@ -259,3 +259,11 @@ void Window::move_to(const Point& pos) {
 
 	paint();
 }
+
+void Window::invalidate(const Rect& rect) {
+	const auto offset_rect = rect + screen_window_rect().pos;
+	const auto rects = Span(&offset_rect, 1);
+	// dont paint children, since this should only
+	// invalidate the window itself
+	paint(rects, false);
+}

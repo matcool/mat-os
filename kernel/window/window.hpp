@@ -38,6 +38,10 @@ struct Window {
 
 	void move_to(const Point& pos);
 
+	// Invalidates a portion of the window, so it can be painted onto the screen.
+	// The rect is relative to window_rect.
+	void invalidate(const Rect& rect);
+
 	// Calculate clipping rectangles based on parent's clipping rect.
 	void clip_bounds(bool clip_decoration, Span<const Rect> dirty_rects = {}) const;
 
