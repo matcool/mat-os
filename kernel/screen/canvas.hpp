@@ -51,6 +51,10 @@ public:
 	// TODO: what should happen if subcanvas is bigger?
 	void paste(const Canvas& subcanvas, usize x, usize y);
 
+	// Same as paste(), but will not replace pixels if their alpha is zero.
+	// This will not do alpha blending, only 1-bit alpha masking.
+	void paste_alpha_masked(const Canvas& subcanvas, usize x, usize y);
+
 	// Sets a pixel at (x, y) to a color.
 	void set(usize x, usize y, Color color);
 

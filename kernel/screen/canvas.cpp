@@ -35,6 +35,16 @@ void Canvas::paste(const Canvas& subcanvas, usize x, usize y) {
 	}
 }
 
+void Canvas::paste_alpha_masked(const Canvas& subcanvas, usize x, usize y) {
+	for (usize j = 0; j < subcanvas.height() && y + j < height(); ++j) {
+		for (usize i = 0; i < subcanvas.width() && x + i < width(); ++i) {
+			const auto color = subcanvas.get(i, j);
+			if (color.a)
+				this->set(x + i, y + j, color);
+		}
+	}
+}
+
 void Canvas::set(usize x, usize y, Color color) {
 	data()[index(x, y)] = color.packed;
 }
