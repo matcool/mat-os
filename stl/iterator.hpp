@@ -9,6 +9,14 @@ namespace STL_NS {
 // Iterator impl namespace
 namespace iterators {
 
+// i dont like this name
+template <class Inner>
+concept InnerIterator = requires (Inner value) {
+	{ value.at_end() } -> types::is_same<bool>;
+	value.next();
+	value.value();
+};
+
 template <class It, class EndIt>
 struct ItPair {
 	It iterator;
@@ -19,7 +27,7 @@ struct ItPair {
 	decltype(auto) value() { return *iterator; }
 };
 
-template <class Inner, class Func>
+template <InnerIterator Inner, class Func>
 struct Filter {
 	Inner inner;
 	Func func;
@@ -42,7 +50,7 @@ struct Filter {
 	}
 };
 
-template <class Inner>
+template <InnerIterator Inner>
 struct Take {
 	Inner inner;
 	usize counter = 0;
@@ -64,14 +72,14 @@ struct IteratorEndTag {};
 
 }
 
-template <class Pair>
+template <iterators::InnerIterator Inner>
 class Iterator {
-	Pair inner;
+	Inner inner;
 public:
 	template <class T, class E>
 	Iterator(T begin, E end) : inner(iterators::ItPair(begin, end)) {}
 
-	Iterator(Pair inner) : inner(inner) {}
+	Iterator(Inner inner) : inner(inner) {}
 
 	auto& begin() { return *this; }
 	auto end() { return iterators::IteratorEndTag(); }
@@ -104,5 +112,36 @@ public:
 
 template <class It, class EndIt>
 Iterator(It, EndIt) -> Iterator<iterators::ItPair<It, EndIt>>;
+
+namespace iterators {
+
+namespace STL_NS_IMPL {
+
+template <class Int>
+struct Range {
+	Int counter, end;
+	Range(Int start, Int end) : counter(start), end(end) {}
+
+	bool at_end() const { return counter >= end; }
+	void next() { ++counter; }
+	Int value() { return counter; }
+};
+
+}
+
+// Returns an iterator that starts at `start`, and goes up
+// to but not including `end`.
+template <concepts::integral Int>
+auto range(Int start, types::identity<Int> end) {
+	return Iterator(STL_NS_IMPL::Range(start, end));
+}
+
+// Returns an iterator that goes from 0 to, but not inclduing, `end`.
+template <concepts::integral Int>
+auto range(Int end) {
+	return Iterator(STL_NS_IMPL::Range(Int(0), end));
+}
+
+}
 
 }

@@ -60,6 +60,13 @@ template <> struct to_unsigned<i64> { using type = u64; };
 
 template <class T> struct identity { using type = T; };
 
+
+template <class T, class U>
+static constexpr bool is_same = false;
+
+template <class T>
+static constexpr bool is_same<T, T> = true;
+
 }
 
 template <class T>
@@ -77,14 +84,11 @@ using remove_ptr = typename STL_NS_IMPL::remove_ptr<T>::type;
 template <class T>
 using decay = remove_cv_ref<typename STL_NS_IMPL::remove_array<T>::type>;
 
-template <class T, class V>
-static constexpr bool is_same = false;
-
-template <class T>
-static constexpr bool is_same<T, T> = true;
+template <class T, class U>
+concept is_same = STL_NS_IMPL::is_same<T, U> && STL_NS_IMPL::is_same<U, T>;
 
 template <class T, class... Others>
-static constexpr bool is_one_of = (is_same<T, Others> || ...);
+concept is_one_of = (is_same<T, Others> || ...);
 
 template <class T>
 static constexpr bool is_pointer = false;
