@@ -32,6 +32,8 @@ struct ItPair {
 	It iterator;
 	EndIt end_iterator;
 
+	ItPair(It a, EndIt b) : iterator(a), end_iterator(b) {}
+
 	bool at_end() const { return iterator == end_iterator; }
 
 	void next() {
