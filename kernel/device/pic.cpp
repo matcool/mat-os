@@ -1,7 +1,7 @@
-#include <stl/math.hpp>
 #include <kernel/device/pic.hpp>
-#include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
+#include <stl/math.hpp>
 
 static constexpr u8 ICW1_ICW4 = 0x01; // Indicates that ICW4 will be present
 static constexpr u8 ICW1_INIT = 0x10; // Initialization - required!
@@ -31,7 +31,7 @@ static void remap_pic(u8 offset1, u8 offset2) {
 	// starts the initialization sequence (in cascade mode)
 	send_command(1, ICW1_INIT | ICW1_ICW4);
 	send_command(2, ICW1_INIT | ICW1_ICW4);
-	
+
 	// ICW2: PIC1 vector offset
 	send_data(1, offset1);
 	// ICW2: PIC2 vector offset

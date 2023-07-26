@@ -21,7 +21,8 @@ kernel::PhysicalAddress PageTableEntry::addr() const {
 
 void PageTableEntry::set_addr(PhysicalAddress addr) {
 	const auto value = addr.value();
-	m_value = (m_value & ~(bit_mask<u64>(48 - 12) << 12)) | (value & ~bit_mask<u64>(12) & bit_mask<u64>(48));
+	m_value = (m_value & ~(bit_mask<u64>(48 - 12) << 12)) |
+		(value & ~bit_mask<u64>(12) & bit_mask<u64>(48));
 }
 
 PageTableEntry* PageTableEntry::follow() const {
@@ -31,6 +32,7 @@ PageTableEntry* PageTableEntry::follow() const {
 bool PageTableEntry::is_present() const {
 	return get_bit(0);
 }
+
 void PageTableEntry::set_present(bool value) {
 	set_bit(0, value);
 }
@@ -38,6 +40,7 @@ void PageTableEntry::set_present(bool value) {
 bool PageTableEntry::is_writable() const {
 	return get_bit(1);
 }
+
 void PageTableEntry::set_writable(bool value) {
 	set_bit(1, value);
 }
@@ -45,6 +48,7 @@ void PageTableEntry::set_writable(bool value) {
 bool PageTableEntry::is_user() const {
 	return get_bit(2);
 }
+
 void PageTableEntry::set_user(bool value) {
 	set_bit(2, value);
 }
@@ -52,6 +56,7 @@ void PageTableEntry::set_user(bool value) {
 bool PageTableEntry::is_ps() const {
 	return get_bit(7);
 }
+
 void PageTableEntry::set_ps(bool value) {
 	set_bit(7, value);
 }
@@ -59,6 +64,7 @@ void PageTableEntry::set_ps(bool value) {
 bool PageTableEntry::is_execution_disabled() const {
 	return get_bit(63);
 }
+
 void PageTableEntry::set_execution_disabled(bool value) {
 	set_bit(63, value);
 }

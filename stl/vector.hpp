@@ -1,11 +1,11 @@
 #pragma once
 
+#include "iterator.hpp"
+#include "memory.hpp"
+#include "span.hpp"
 #include "stl.hpp"
 #include "types.hpp"
 #include "utils.hpp"
-#include "memory.hpp"
-#include "span.hpp"
-#include "iterator.hpp"
 
 namespace STL_NS {
 
@@ -19,12 +19,15 @@ class Vector {
 	static Type* allocate_buffer(usize size) {
 		return static_cast<Type*>(operator new(sizeof(Type) * size));
 	}
+
 public:
 	Vector() : Vector(0) {}
+
 	Vector(usize capacity) {
 		m_data = allocate_buffer(capacity);
 		m_capacity = capacity;
 	}
+
 	Vector(const Vector& other) : m_size(other.m_size) {
 		m_data = allocate_buffer(m_size);
 		m_capacity = m_size;
@@ -32,14 +35,15 @@ public:
 			new (&m_data[i]) Type(other[i]);
 		}
 	}
-	Vector(Vector&& other) : m_data(other.m_data), m_capacity(other.m_capacity), m_size(other.m_size) {
+
+	Vector(Vector&& other) :
+		m_data(other.m_data), m_capacity(other.m_capacity), m_size(other.m_size) {
 		other.m_data = nullptr;
 		other.m_capacity = 0;
 		other.m_size = 0;
 	}
-	~Vector() {
-		delete m_data;
-	}
+
+	~Vector() { delete m_data; }
 
 	Vector& operator=(const Vector& other) {
 		delete m_data;
@@ -63,27 +67,39 @@ public:
 	}
 
 	auto size() const { return m_size; }
+
 	auto capacity() const { return m_capacity; }
+
 	auto* data() { return m_data; }
+
 	const auto* data() const { return m_data; }
 
 	bool empty() const { return !size(); }
+
 	operator bool() const { return !empty(); }
 
 	auto begin() const { return data(); }
+
 	auto begin() { return data(); }
+
 	auto end() const { return data() + size(); }
+
 	auto end() { return data() + size(); }
 
 	auto iter() { return Iterator(begin(), end()); }
+
 	auto iter() const { return Iterator(begin(), end()); }
 
 	Type& operator[](usize index) { return data()[index]; }
+
 	const Type& operator[](usize index) const { return data()[index]; }
 
 	Type& first() { return data()[0]; }
+
 	const Type& first() const { return data()[0]; }
+
 	Type& last() { return data()[size() - 1]; }
+
 	const Type& last() const { return data()[size() - 1]; }
 
 	// Resizes the vector to a given capacity
@@ -123,6 +139,7 @@ public:
 	}
 
 	Span<Type> span() { return Span(data(), size()); }
+
 	Span<const Type> span() const { return Span(data(), size()); }
 
 	// Concats multiple elements to the end of the vector

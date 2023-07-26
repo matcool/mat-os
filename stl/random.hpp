@@ -8,6 +8,7 @@ namespace STL_NS::random {
 // PCG random number generator, from https://www.pcg-random.org/
 class PCGenerator {
 	u64 m_state = 0, m_inc = 0;
+
 public:
 	PCGenerator(u64 seed);
 	PCGenerator();

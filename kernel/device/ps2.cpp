@@ -1,8 +1,8 @@
-#include <stl/math.hpp>
 #include <kernel/device/pic.hpp>
 #include <kernel/device/ps2.hpp>
-#include <kernel/log.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
+#include <stl/math.hpp>
 
 using stl::math::get_bit;
 

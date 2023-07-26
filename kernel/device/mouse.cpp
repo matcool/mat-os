@@ -1,9 +1,9 @@
-#include <stl/math.hpp>
-#include <kernel/device/ps2.hpp>
 #include <kernel/device/pic.hpp>
+#include <kernel/device/ps2.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
 #include <kernel/window/manager.hpp>
+#include <stl/math.hpp>
 
 using stl::math::get_bit;
 
@@ -29,15 +29,12 @@ struct MousePacket {
 
 	// i cant get the overflow bits to be set.. so this is good enough for now
 
-	i32 x_offset() const {
-		return static_cast<i8>(mov_x);
-	}
+	i32 x_offset() const { return static_cast<i8>(mov_x); }
 
-	i32 y_offset() const {
-		return -static_cast<i8>(mov_y);
-	}
+	i32 y_offset() const { return -static_cast<i8>(mov_y); }
 
 	bool left_button() const { return get_bit(status, 0); }
+
 	bool right_button() const { return get_bit(status, 1); }
 } packet;
 
@@ -46,7 +43,9 @@ void kernel::ps2::handle_mouse() {
 		return pic::send_eoi(12);
 	}
 
-	window::WindowManager::get().handle_mouse({ packet.x_offset(), packet.y_offset() }, packet.left_button());
+	window::WindowManager::get().handle_mouse(
+		{ packet.x_offset(), packet.y_offset() }, packet.left_button()
+	);
 
 	pic::send_eoi(12);
 }

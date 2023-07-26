@@ -17,7 +17,8 @@ void memset(void* ptr, u8 value, usize bytes) {
 void memcpy(void* dest, const void* src, usize size) {
 	usize i = 0;
 	for (; i + sizeof(u64) <= size; i += sizeof(u64)) {
-		reinterpret_cast<u64*>(dest)[i / sizeof(u64)] = reinterpret_cast<const u64*>(src)[i / sizeof(u64)];
+		reinterpret_cast<u64*>(dest)[i / sizeof(u64)] =
+			reinterpret_cast<const u64*>(src)[i / sizeof(u64)];
 	}
 	for (; i < size; ++i) {
 		reinterpret_cast<u8*>(dest)[i] = reinterpret_cast<const u8*>(src)[i];

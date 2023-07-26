@@ -1,9 +1,8 @@
-#include <stl/memory.hpp>
 #include <kernel/screen/canvas.hpp>
+#include <stl/memory.hpp>
 
-Canvas::Canvas(u32* pixels, usize width, usize height, usize stride)
-	: m_width(width), m_height(height), m_stride(stride),
-	m_pixels(pixels) {}
+Canvas::Canvas(u32* pixels, usize width, usize height, usize stride) :
+	m_width(width), m_height(height), m_stride(stride), m_pixels(pixels) {}
 
 Canvas Canvas::sub(usize x, usize y, usize width, usize height) {
 	// Canvas
@@ -39,8 +38,7 @@ void Canvas::paste_alpha_masked(const Canvas& subcanvas, usize x, usize y) {
 	for (usize j = 0; j < subcanvas.height() && y + j < height(); ++j) {
 		for (usize i = 0; i < subcanvas.width() && x + i < width(); ++i) {
 			const auto color = subcanvas.get(i, j);
-			if (color.a)
-				this->set(x + i, y + j, color);
+			if (color.a) this->set(x + i, y + j, color);
 		}
 	}
 }

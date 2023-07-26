@@ -1,9 +1,9 @@
-#include <stl/string.hpp>
-#include <kernel/device/ps2.hpp>
 #include <kernel/device/pic.hpp>
-#include <kernel/log.hpp>
+#include <kernel/device/ps2.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
 #include <kernel/screen/terminal.hpp>
+#include <stl/string.hpp>
 
 enum class KeyKind {
 	Other,
@@ -17,7 +17,7 @@ enum class KeyKind {
 	Right,
 	Up,
 	Down,
-	
+
 	LeftCtrl,
 	RightCtrl,
 	LeftShift,
@@ -76,7 +76,7 @@ void kernel::ps2::handle_keyboard() {
 		const auto code = byte & ~0x80;
 
 		const auto key = key_map[code];
-		
+
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
 				char ch = key.ch;
@@ -106,7 +106,7 @@ void kernel::ps2::handle_keyboard() {
 			kdbg("({:02x})", byte);
 		}
 	}
-	
+
 	pic::send_eoi(1);
 }
 
@@ -118,32 +118,32 @@ void kernel::ps2::init_keyboard() {
 	usize i = 0x10;
 	for (char c : "QWERTYUIOP") {
 		if (c == 0) break;
-		key_map[i++] = Key { KeyKind::Printable, c };
+		key_map[i++] = Key{ KeyKind::Printable, c };
 	}
 	i = 0x1e;
 	for (char c : "ASDFGHJKL;'") {
 		if (c == 0) break;
-		key_map[i++] = Key { KeyKind::Printable, c };
+		key_map[i++] = Key{ KeyKind::Printable, c };
 	}
 	i = 0x2c;
 	for (char c : "ZXCVBNM,./") {
 		if (c == 0) break;
-		key_map[i++] = Key { KeyKind::Printable, c };
+		key_map[i++] = Key{ KeyKind::Printable, c };
 	}
 	i = 0x02;
 	for (char c : "1234567890-=") {
 		if (c == 0) break;
-		key_map[i++] = Key { KeyKind::Printable, c };
+		key_map[i++] = Key{ KeyKind::Printable, c };
 	}
-	key_map[0x39] = Key { KeyKind::Printable, ' ' };
-	
-	key_map[0x01] = Key { KeyKind::Escape };
-	key_map[0x1c] = Key { KeyKind::Enter, '\n' };
-	key_map[0x0e] = Key { KeyKind::Backspace, '\x08' };
+	key_map[0x39] = Key{ KeyKind::Printable, ' ' };
 
-	key_map[0x1d] = Key { KeyKind::LeftCtrl };
-	key_map[0x2a] = Key { KeyKind::LeftShift };
-	key_map[0x36] = Key { KeyKind::RightShift };
-	key_map[0x38] = Key { KeyKind::LeftAlt };
-	key_map[0x3a] = Key { KeyKind::CapsLock };
+	key_map[0x01] = Key{ KeyKind::Escape };
+	key_map[0x1c] = Key{ KeyKind::Enter, '\n' };
+	key_map[0x0e] = Key{ KeyKind::Backspace, '\x08' };
+
+	key_map[0x1d] = Key{ KeyKind::LeftCtrl };
+	key_map[0x2a] = Key{ KeyKind::LeftShift };
+	key_map[0x36] = Key{ KeyKind::RightShift };
+	key_map[0x38] = Key{ KeyKind::LeftAlt };
+	key_map[0x3a] = Key{ KeyKind::CapsLock };
 }

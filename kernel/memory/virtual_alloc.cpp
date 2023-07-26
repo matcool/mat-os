@@ -1,6 +1,6 @@
+#include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
-#include <kernel/log.hpp>
 
 // start virtual allocations at 4 MiB, why not :-)
 static constexpr uptr BASE_ADDRESS = 4 * 1024 * 1024;

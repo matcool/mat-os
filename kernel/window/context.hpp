@@ -1,10 +1,10 @@
 #pragma once
 
-#include <stl/types.hpp>
-#include <stl/math.hpp>
-#include <stl/vector.hpp>
-#include <stl/string.hpp>
 #include <kernel/screen/canvas.hpp>
+#include <stl/math.hpp>
+#include <stl/string.hpp>
+#include <stl/types.hpp>
+#include <stl/vector.hpp>
 
 #define DEBUG_DRAW_RECTS 0
 
@@ -17,6 +17,7 @@ class WindowContext : public Canvas {
 	Vector<Rect> clip_rects;
 	Point offset = Point(0, 0);
 	bool should_clip = false;
+
 public:
 	WindowContext(const Canvas& canvas) : Canvas(canvas) {}
 
@@ -25,7 +26,7 @@ public:
 
 	// Adds a clipping rectangle, cutting the existing ones if needed.
 	void add_clip_rect(const Rect& rect);
-	
+
 	// Intersects the clipping rect list.
 	void intersect_clip_rect(const Rect& rect);
 
@@ -39,9 +40,7 @@ public:
 	void fill(const Rect& rect, Color color);
 
 	// Draws a rectangle directly.
-	void fill_unclipped(const Rect& rect, Color color) {
-		Canvas::fill(rect, color);
-	}
+	void fill_unclipped(const Rect& rect, Color color) { Canvas::fill(rect, color); }
 
 	// Draws only the outline of the rectangle. Width goes inwards.
 	void draw_rect_outline(const Rect& rect, i32 width, Color color);
@@ -56,9 +55,7 @@ public:
 	// Returns a rect of the area the text occupies.
 	Rect draw_text(StringView str, const Point& pos, Color color);
 
-	void set_offset(const Point& point) {
-		offset = point;
-	}
+	void set_offset(const Point& point) { offset = point; }
 
 	auto get_clip_rects() const { return clip_rects; }
 

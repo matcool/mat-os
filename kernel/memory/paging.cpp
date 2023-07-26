@@ -1,12 +1,12 @@
-#include <limine/limine.h>
-#include <stl/format.hpp>
-#include <stl/span.hpp>
-#include <stl/math.hpp>
-#include <stl/memory.hpp>
+#include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
-#include <kernel/log.hpp>
-#include <kernel/intrinsics.hpp>
+#include <limine/limine.h>
+#include <stl/format.hpp>
+#include <stl/math.hpp>
+#include <stl/memory.hpp>
+#include <stl/span.hpp>
 
 using math::bit_mask;
 
@@ -25,14 +25,12 @@ uptr kernel::paging::physical_to_virtual(uptr addr) {
 }
 
 uptr kernel::paging::virtual_to_physical(uptr addr) {
-	if (addr > hhdm_base)
-		return addr - hhdm_base;
+	if (addr > hhdm_base) return addr - hhdm_base;
 	return addr;
 }
 
 void kernel::paging::init() {
-	if (!hhdm_request.response)
-		panic("No response for HHDM request");
+	if (!hhdm_request.response) panic("No response for HHDM request");
 
 	hhdm_base = hhdm_request.response->offset;
 
@@ -47,7 +45,7 @@ kernel::paging::PageTableEntry* get_base_entries() {
 
 void kernel::paging::explore_addr(uptr target_addr) {
 	auto* entries = get_base_entries();
-	
+
 	kdbgln("Target addr ({:#x}) entries are:", target_addr);
 
 	PhysicalAddress phys_addr(0);
@@ -59,7 +57,7 @@ void kernel::paging::explore_addr(uptr target_addr) {
 
 	auto& pdpt = pml4.follow()[target_addr >> 30 & mask9];
 	kdbgln("PDPT = {}", pdpt);
-	
+
 	if (pdpt.is_ps()) {
 		// 1 GiB pages
 		kdbgln("Stopping early, this is a 1 GiB page");
@@ -95,11 +93,19 @@ void kernel::paging::explore_addr(uptr target_addr) {
 	kdbgln("Physical + HHDM is: {:#x}", virt.value());
 
 	auto* bytes = reinterpret_cast<u8*>(target_addr);
-	kdbgln("Bytes at target_addr:      {:02x} {:02x} {:02x} {:02x}", bytes[0], bytes[1], bytes[2], bytes[3]);
+	kdbgln(
+		"Bytes at target_addr:      {:02x} {:02x} {:02x} {:02x}", bytes[0], bytes[1], bytes[2], bytes[3]
+	);
 
 	auto* bytes_virt = reinterpret_cast<u8*>(virt.ptr());
-	
-	kdbgln("Bytes at phys_addr + HHDM: {:02x} {:02x} {:02x} {:02x}", bytes_virt[0], bytes_virt[1], bytes_virt[2], bytes_virt[3]);
+
+	kdbgln(
+		"Bytes at phys_addr + HHDM: {:02x} {:02x} {:02x} {:02x}",
+		bytes_virt[0],
+		bytes_virt[1],
+		bytes_virt[2],
+		bytes_virt[3]
+	);
 }
 
 // if present, this means the table was allocated here, not by limine
@@ -132,7 +138,7 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 
 			auto page = kernel::alloc::allocate_physical_page();
 			memset(page.to_virtual().ptr(), 0, PAGE_SIZE);
-			
+
 			entry.set_addr(page);
 		}
 		return entry.follow();
@@ -144,8 +150,13 @@ void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
 	auto& entry = allocate_entry_and_follow(entry_pd)[index_pt];
 
 	if (entry.is_present() && entry.get_available() == MAT_MAPPED_MAGIC) {
-		panic("Tried to map to address that was already mapped! ({:#x} trying to {:#x}, but is {:#x})",
-			virt.value(), phys.value(), entry.addr().value());
+		panic(
+			"Tried to map to address that was already mapped! ({:#x} trying to {:#x}, but is "
+			"{:#x})",
+			virt.value(),
+			phys.value(),
+			entry.addr().value()
+		);
 	}
 
 	entry.set_available(MAT_MAPPED_MAGIC);

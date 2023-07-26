@@ -1,7 +1,7 @@
-#include <kernel/device/pit.hpp>
 #include <kernel/device/pic.hpp>
-#include <kernel/log.hpp>
+#include <kernel/device/pit.hpp>
 #include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
 
 static constexpr u32 PIT_CLOCK_HZ = 1.193182 * 1'000'000;
 static constexpr u16 PIT_CHANNEL0_PORT = 0x40;

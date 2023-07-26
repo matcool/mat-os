@@ -1,5 +1,5 @@
-#include <stl/types.hpp>
 #include <kernel/log.hpp>
+#include <stl/types.hpp>
 
 extern "C" {
 	// https://libcxxabi.llvm.org/spec.html

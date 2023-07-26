@@ -1,10 +1,10 @@
 #pragma once
 
+#include <kernel/window/context.hpp>
+#include <stl/iterator.hpp>
 #include <stl/pointer.hpp>
 #include <stl/span.hpp>
-#include <stl/iterator.hpp>
 #include <stl/string.hpp>
-#include <kernel/window/context.hpp>
 
 namespace kernel::window {
 
@@ -91,9 +91,8 @@ struct Window {
 };
 
 struct Button : public Window {
-	Button(Rect rect) : Window(rect) {
-		decoration = false;
-	}
+	Button(Rect rect) : Window(rect) { decoration = false; }
+
 	bool active = false;
 
 	void draw() override;

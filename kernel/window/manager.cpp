@@ -1,8 +1,8 @@
-#include <kernel/window/manager.hpp>
-#include <kernel/window/theme.hpp>
-#include <kernel/screen/framebuffer.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
+#include <kernel/screen/framebuffer.hpp>
+#include <kernel/window/manager.hpp>
+#include <kernel/window/theme.hpp>
 
 using namespace kernel::window;
 
@@ -12,7 +12,7 @@ void WindowManager::draw() {
 
 #if DEBUG_DRAW_RECTS
 void WindowManager::draw_debug(Canvas* canvas) {
-	static constexpr auto blend_colors = [] (Color a, Color b) {
+	static constexpr auto blend_colors = [](Color a, Color b) {
 		const i32 a_alpha = a.a ? a.a : 255;
 		const i32 b_alpha = b.a ? b.a : 255;
 		const auto sum = a_alpha + b_alpha;
@@ -22,7 +22,7 @@ void WindowManager::draw_debug(Canvas* canvas) {
 			(a.b * a_alpha + b.b * b_alpha) / sum
 		);
 	};
-	
+
 	for (const auto& rect : context->drawn_rects) {
 		const auto mid_point = rect.size;
 		const auto color = Color(mid_point.x + mid_point.y, mid_point.x * mid_point.y, 0, 200);
@@ -49,8 +49,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 		draw_mouse();
 		prev_mouse_pos = mouse_pos;
 #if DEBUG_DRAW_RECTS
-		if (pressed)
-			context->drawn_rects.push(Rect(0, 0, 0, 0));
+		if (pressed) context->drawn_rects.push(Rect(0, 0, 0, 0));
 #endif
 	}
 }
@@ -62,6 +61,7 @@ constexpr u32 WHITE = 0xFFFFFFFF;
 constexpr usize MOUSE_WIDTH = 9;
 constexpr usize MOUSE_HEIGHT = 13;
 
+// clang-format off
 u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
 	BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
 	BLACK, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
@@ -78,6 +78,8 @@ u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
 	EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, BLACK, EMPTY, EMPTY, EMPTY,
 };
 
+// clang-format on
+
 void WindowManager::draw_mouse() {
 	Canvas mouse_canvas(mouse_sprite, MOUSE_WIDTH, MOUSE_HEIGHT);
 	const auto old_mouse_rect = Rect(prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
@@ -85,8 +87,8 @@ void WindowManager::draw_mouse() {
 	context->paste_alpha_masked(mouse_canvas, mouse_pos.x, mouse_pos.y);
 }
 
-WindowManager::WindowManager(WindowContext context)
-	: Window(Rect(0, 0, context.width(), context.height())), real_context(context) {
+WindowManager::WindowManager(WindowContext context) :
+	Window(Rect(0, 0, context.width(), context.height())), real_context(context) {
 	decoration = false;
 	mouse_pos = window_rect.mid_point();
 	// nice

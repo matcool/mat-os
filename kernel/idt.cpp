@@ -1,10 +1,10 @@
-#include <stl/types.hpp>
-#include <kernel/idt.hpp>
-#include <kernel/log.hpp>
-#include <kernel/intrinsics.hpp>
 #include <kernel/device/pic.hpp>
-#include <kernel/device/ps2.hpp>
 #include <kernel/device/pit.hpp>
+#include <kernel/device/ps2.hpp>
+#include <kernel/idt.hpp>
+#include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
+#include <stl/types.hpp>
 
 struct IDTEntry {
 	u16 offset1;
@@ -48,7 +48,8 @@ static struct [[gnu::packed]] {
 static_assert(sizeof(idt_register) == 10);
 static_assert(sizeof(IDTEntry) == 16);
 
-#define PUSH_REGS "\
+#define PUSH_REGS \
+	"\
 	push %%r10; \
 	push %%r11; \
 	push %%r12; \
@@ -65,7 +66,8 @@ static_assert(sizeof(IDTEntry) == 16);
 	push %%rdx; \
 	push %%rsi;"
 
-#define POP_REGS "\
+#define POP_REGS \
+	"\
 	pop %%rsi; \
 	pop %%rdx; \
 	pop %%rdi; \
@@ -140,8 +142,7 @@ static StringView get_interrupt_name(u64 idx) {
 		case 0x12: return "Machine check";
 		case 0x13: return "SIMD Floating-Point Exception";
 		case kernel::PIC_IRQ_OFFSET + 1: return "Keyboard";
-		default:
-			return "Unknown";
+		default: return "Unknown";
 	}
 }
 
@@ -153,14 +154,16 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		kdbgln("[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code);
 		const auto id = static_cast<InterruptId>(which);
 		if (id == InterruptId::PageFault) {
-			kdbgln("[page fault] {} on {} at {:#08x} by {}",
+			kdbgln(
+				"[page fault] {} on {} at {:#08x} by {}",
 				error_code & 1 ? "Page-protection violation" : "Non-present page",
 				error_code & 0b10 ? "write" : "read",
 				get_cr2(),
 				error_code & 0b100 ? "user" : "kernel"
 			);
 		} else if (id == InterruptId::SegmentNotPresent) {
-			kdbgln("The fault occurred {}, in the {} at index {:#x}",
+			kdbgln(
+				"The fault occurred {}, in the {} at index {:#x}",
 				error_code & 1 ? "externally" : "internally",
 				error_code & 0b10 ? "IDT" : "GDT",
 				error_code >> 3 >> 1 // doubled for some reason?
@@ -177,7 +180,12 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		} else if (which == kernel::PIC_IRQ_OFFSET + 12) {
 			kernel::ps2::handle_mouse();
 		} else {
-			kdbgln("[INT] ({:#x}) Unknown IRQ {}, error code {:#x}", which, which - kernel::PIC_IRQ_OFFSET, error_code);
+			kdbgln(
+				"[INT] ({:#x}) Unknown IRQ {}, error code {:#x}",
+				which,
+				which - kernel::PIC_IRQ_OFFSET,
+				error_code
+			);
 			halt();
 		}
 	}
@@ -194,7 +202,9 @@ template <u64 Number>
 		xor %%rsi, %%rsi
 		movq %%rsp, %%rdx
 		call *%1
-	)asm" POP_REGS "iretq" : /* output */ : "i"(Number), "m"(kernel_interrupt_handler_ptr));
+	)asm" POP_REGS "iretq"
+	    : /* output */
+	    : "i"(Number), "m"(kernel_interrupt_handler_ptr));
 }
 
 // a place to store the error code before the registers are saved
@@ -209,7 +219,9 @@ template <u64 Number>
 		movq %2, %%rsi
 		movq %%rsp, %%rdx
 		call *%1
-	)asm" POP_REGS "iretq" : /* output */ : "i"(Number), "m"(kernel_interrupt_handler_ptr), "m"(error_code_storage));
+	)asm" POP_REGS "iretq"
+	    : /* output */
+	    : "i"(Number), "m"(kernel_interrupt_handler_ptr), "m"(error_code_storage));
 }
 
 void kernel::idt::init() {
@@ -218,18 +230,28 @@ void kernel::idt::init() {
 		idt_table[i] = IDTEntry();
 	}
 
-	([] <u64... Values> {
-		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<Values>))), ...);
-	}).operator()<0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16>();
+	([]<u64... Values> {
+		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<Values>))),
+		 ...);
+	})
+		.
+		operator()<0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16>();
 
-	([] <u64... Values> {
-		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_error_handler<Values>))), ...);
-	}).operator()<8, 10, 11, 12, 13, 14>();
+	([]<u64... Values> {
+		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_error_handler<Values>))),
+		 ...);
+	})
+		.
+		operator()<8, 10, 11, 12, 13, 14>();
 
 	// setup handlers for IRQs
-	([] <u64... Values> {
-		((idt_table[PIC_IRQ_OFFSET + Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<PIC_IRQ_OFFSET + Values>))), ...);
-	}).operator()<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>();
+	([]<u64... Values> {
+		((idt_table[PIC_IRQ_OFFSET + Values] =
+		      IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<PIC_IRQ_OFFSET + Values>))),
+		 ...);
+	})
+		.
+		operator()<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>();
 
 	idt_register.size = sizeof(idt_table) - 1;
 	idt_register.addr = &idt_table[0];

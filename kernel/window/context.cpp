@@ -1,6 +1,6 @@
-#include <stl/iterator.hpp>
-#include <kernel/window/context.hpp>
 #include <kernel/screen/terminal_font.hpp>
+#include <kernel/window/context.hpp>
+#include <stl/iterator.hpp>
 
 using namespace kernel::window;
 
@@ -35,7 +35,7 @@ static void cut_out_rect(Vector<Rect>& out, Rect target, const Rect& cut) {
 
 void WindowContext::subtract_clip_rect(const Rect& rect) {
 	should_clip = true;
-	for (usize i = 0; i < clip_rects.size(); ) {
+	for (usize i = 0; i < clip_rects.size();) {
 		if (!clip_rects[i].intersects(rect)) {
 			++i;
 			continue;
@@ -127,8 +127,7 @@ void WindowContext::draw_char_clipped(char ch, const Point& pos, const Rect& cli
 	for (auto y : iterators::range(char_rect.top(), char_rect.bottom() + 1)) {
 		const auto row = terminal_font[ch][y];
 		for (auto x : iterators::range(char_rect.left(), char_rect.right() + 1)) {
-			if (math::get_bit(row, x))
-				this->set(x + offset.x + pos.x, y + offset.y + pos.y, color);
+			if (math::get_bit(row, x)) this->set(x + offset.x + pos.x, y + offset.y + pos.y, color);
 		}
 	}
 }

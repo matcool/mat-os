@@ -1,8 +1,8 @@
 #pragma once
 
-#include <stl/types.hpp>
-#include <stl/string.hpp>
 #include <stl/format.hpp>
+#include <stl/string.hpp>
+#include <stl/types.hpp>
 
 namespace kernel::serial {
 

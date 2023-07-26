@@ -20,7 +20,7 @@ u32 PCGenerator::next_value() {
 	m_state = old_state * 0x5851f42d4c957f2d + m_inc;
 	const u32 xor_shifted = ((old_state >> 18u) ^ old_state) >> 27u;
 	const u32 rot = old_state >> 59u;
-	return (xor_shifted >> rot) | (xor_shifted << ((-rot) & 31));	
+	return (xor_shifted >> rot) | (xor_shifted << ((-rot) & 31));
 }
 
 u32 PCGenerator::range(u32 end) {

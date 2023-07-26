@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stl/types.hpp>
 #include <stl/format.hpp>
+#include <stl/types.hpp>
 
 namespace kernel {
 
@@ -11,9 +11,12 @@ class VirtualAddress;
 
 class PhysicalAddress {
 	uptr m_value;
+
 public:
 	explicit PhysicalAddress(uptr value) : m_value(value) {}
+
 	PhysicalAddress() : PhysicalAddress(0) {}
+
 	PhysicalAddress(VirtualAddress);
 
 	// Converts to a HHDM virtual address
@@ -26,16 +29,21 @@ public:
 
 class VirtualAddress {
 	uptr m_value;
+
 public:
 	explicit VirtualAddress(uptr value) : m_value(value) {}
+
 	// Any pointer is a valid virtual address
 	explicit VirtualAddress(const void* addr) : VirtualAddress(reinterpret_cast<uptr>(addr)) {}
+
 	VirtualAddress() : VirtualAddress(uptr(0)) {}
+
 	VirtualAddress(PhysicalAddress);
 
 	PhysicalAddress to_physical() const;
 
 	auto value() const { return m_value; }
+
 	void* ptr() const { return reinterpret_cast<void*>(m_value); }
 
 	VirtualAddress operator+(uptr offset) const;
@@ -48,10 +56,12 @@ class PageTableEntry {
 
 	constexpr bool get_bit(u64 idx) const;
 	constexpr void set_bit(u64 idx, bool value);
+
 public:
 	PageTableEntry(u64 value) : m_value(value) {}
 
 	auto value() const { return m_value; }
+
 	auto& value() { return m_value; }
 
 	PhysicalAddress addr() const;
@@ -116,7 +126,16 @@ void invalidate_cache(VirtualAddress virt);
 template <class Func>
 struct Formatter<Func, kernel::paging::PageTableEntry> {
 	static void format(Func func, kernel::paging::PageTableEntry entry) {
-		format_to(func, "[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
-			entry.is_present(), entry.is_writable(), entry.is_user(), entry.is_ps(), entry.get_available(), entry.addr().value(), entry.value());
+		format_to(
+			func,
+			"[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
+			entry.is_present(),
+			entry.is_writable(),
+			entry.is_user(),
+			entry.is_ps(),
+			entry.get_available(),
+			entry.addr().value(),
+			entry.value()
+		);
 	}
 };

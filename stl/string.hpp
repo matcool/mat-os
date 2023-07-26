@@ -1,16 +1,17 @@
 #pragma once
 
+#include "span.hpp"
 #include "stl.hpp"
 #include "types.hpp"
 #include "utils.hpp"
 #include "vector.hpp"
-#include "span.hpp"
 
 namespace STL_NS {
 
 class StringView {
-	char const* m_data = nullptr;
+	const char* m_data = nullptr;
 	usize m_size = 0;
+
 public:
 	StringView(const char* c_str) : m_data(c_str) {
 		while (*c_str != 0) {
@@ -18,18 +19,19 @@ public:
 			++c_str;
 		}
 	}
-	StringView(const char* begin, const char* end) : m_data(begin) {
-		m_size = end - begin;
-	}
+
+	StringView(const char* begin, const char* end) : m_data(begin) { m_size = end - begin; }
 
 	const char* data() const { return m_data; }
+
 	auto size() const { return m_size; }
 
 	const char* begin() const { return data(); }
+
 	const char* end() const { return data() + size(); }
 
 	char operator[](usize index) const { return data()[index]; }
-	
+
 	bool operator==(const StringView& other) const {
 		if (size() != other.size()) return false;
 		for (usize i = 0; i < size(); ++i) {
@@ -46,9 +48,7 @@ public:
 		return *c_str == 0;
 	}
 
-	operator bool() const {
-		return size();
-	}
+	operator bool() const { return size(); }
 
 	StringView slice(usize start, usize end = -1) const {
 		if (end == usize(-1)) end = size();
@@ -104,27 +104,37 @@ char to_ascii_lowercase(char c);
 // A heap allocated string which can grow.
 class String {
 	Vector<char> m_data;
+
 public:
 	String(const char* c_str) : String(StringView(c_str)) {}
+
 	String(StringView str) {
 		m_data.reserve(str.size());
 		m_data.concat(str.span());
 	}
+
 	String() = default;
 
 	auto size() const { return m_data.size(); }
+
 	auto data() { return m_data.data(); }
+
 	auto data() const { return m_data.data(); }
 
 	Span<char> span() { return Span(data(), size()); }
+
 	Span<const char> span() const { return Span(data(), size()); }
 
 	auto begin() { return data(); }
+
 	auto begin() const { return data(); }
+
 	auto end() { return data() + size(); }
+
 	auto end() const { return data() + size(); }
 
 	auto iter() { return Iterator(begin(), end()); }
+
 	auto iter() const { return Iterator(begin(), end()); }
 
 	operator StringView() const { return StringView(begin(), end()); }

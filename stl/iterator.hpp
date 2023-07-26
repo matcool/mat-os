@@ -16,16 +16,16 @@ struct IteratorEndTag {};
 
 // i dont like this name
 template <class Inner>
-concept InnerIterator = requires (Inner value) {
-	{ value.at_end() } -> types::is_same<bool>;
-	value.next();
-	value.value();
-};
+concept InnerIterator = requires(Inner value) {
+							{ value.at_end() } -> types::is_same<bool>;
+							value.next();
+							value.value();
+						};
 
 template <class Inner>
-concept has_size_hint = requires (Inner value) {
-	{ value.size_hint() } -> types::is_same<usize>;
-};
+concept has_size_hint = requires(Inner value) {
+							{ value.size_hint() } -> types::is_same<usize>;
+						};
 
 template <class It, class EndIt>
 struct ItPair {
@@ -33,11 +33,16 @@ struct ItPair {
 	EndIt end_iterator;
 
 	bool at_end() const { return iterator == end_iterator; }
-	void next() { if (!at_end()) ++iterator; }
+
+	void next() {
+		if (!at_end()) ++iterator;
+	}
+
 	decltype(auto) value() { return *iterator; }
-	
+
 	usize size_hint() const
-	requires requires(It a, EndIt b) { b - a; } {
+	requires requires(It a, EndIt b) { b - a; }
+	{
 		return end_iterator - iterator;
 	}
 };
@@ -46,13 +51,13 @@ template <InnerIterator Inner, class Func>
 struct Filter {
 	Inner inner;
 	Func func;
-	
-	Filter(Inner value, Func func) : inner(value), func(func) {
-		skip();
-	}
-	
+
+	Filter(Inner value, Func func) : inner(value), func(func) { skip(); }
+
 	bool at_end() const { return inner.at_end(); }
+
 	decltype(auto) value() { return inner.value(); }
+
 	void next() {
 		inner.next();
 		skip();
@@ -70,19 +75,21 @@ struct Take {
 	Inner inner;
 	usize counter = 0;
 	usize max;
-	
+
 	Take(Inner value, usize max) : inner(value), max(max) {}
-	
+
 	decltype(auto) value() { return inner.value(); }
-	bool at_end() const {
-		return counter >= max || inner.at_end();
-	}
+
+	bool at_end() const { return counter >= max || inner.at_end(); }
+
 	void next() {
 		inner.next();
 		++counter;
 	}
 
-	usize size_hint() const requires has_size_hint<Inner> {
+	usize size_hint() const
+	requires has_size_hint<Inner>
+	{
 		const auto hint = inner.size_hint();
 		return max > hint ? hint : max;
 	}
@@ -96,8 +103,10 @@ struct Enumerate {
 	using Type = decltype(inner.value());
 	using ConvertedType = types::ternary<types::is_reference<Type>, types::remove_ref<Type>*, Type>;
 	using TargetPair = Pair<usize, Type>;
+
 	struct {
 		usize index = 0;
+
 		// Use this hacky union to store optional reference,
 		// and also not require default construction of Type.
 		union {
@@ -107,15 +116,20 @@ struct Enumerate {
 	} hack;
 
 	Enumerate(Inner value) : inner(value) {}
-	
+
 	bool at_end() const { return inner.at_end(); }
-	usize size_hint() const requires has_size_hint<Inner> {
+
+	usize size_hint() const
+	requires has_size_hint<Inner>
+	{
 		return inner.size_hint();
 	}
+
 	void next() {
 		inner.next();
 		++index;
 	}
+
 	auto& value() {
 		hack.index = index;
 		if constexpr (types::is_reference<Type>) {
@@ -134,13 +148,19 @@ template <InnerIterator Inner, class Func>
 struct Map {
 	Inner inner;
 	Func func;
+
 	Map(Inner inner, Func func) : inner(inner), func(func) {}
 
 	bool at_end() const { return inner.at_end(); }
+
 	void next() { inner.next(); }
-	usize size_hint() const requires has_size_hint<Inner> {
+
+	usize size_hint() const
+	requires has_size_hint<Inner>
+	{
 		return inner.size_hint();
 	}
+
 	decltype(auto) value() { return func(inner.value()); }
 };
 
@@ -151,18 +171,23 @@ struct Map {
 template <iterators::InnerIterator Inner>
 class Iterator {
 	Inner inner;
+
 public:
 	template <class T, class E>
 	Iterator(T begin, E end) : inner(iterators::ItPair(begin, end)) {}
+
 	Iterator(Inner inner) : inner(inner) {}
 
 	auto& begin() { return *this; }
+
 	// This value should never be accessed directly,
 	// it is only for tricking c++'s range for syntax.
 	auto end() { return iterators::IteratorEndTag(); }
 
 	bool operator!=(iterators::IteratorEndTag) const { return !inner.at_end(); }
+
 	void operator++() { inner.next(); }
+
 	decltype(auto) operator*() { return inner.value(); }
 
 	using ValueType = decltype(inner.value());
@@ -207,16 +232,16 @@ public:
 	// Filters element from the iterator according to `func`.
 	// Only elements which `func(x) -> true` will be kept.
 	template <class FilterFunc>
-	requires requires (FilterFunc func, ValueType value) {
-		{ func(value) } -> types::is_same<bool>;
-	}
+	requires requires(FilterFunc func, ValueType value) {
+				 { func(value) } -> types::is_same<bool>;
+			 }
 	auto filter(FilterFunc func) {
 		return stl::Iterator(iterators::Filter(inner, func));
 	}
 
 	// Maps every element through a mapping function, yielding the result.
 	template <class MapFunc>
-	requires requires (MapFunc func, ValueType value) { func(value); }
+	requires requires(MapFunc func, ValueType value) { func(value); }
 	auto map(MapFunc func) {
 		return stl::Iterator(iterators::Map(inner, func));
 	}
@@ -231,9 +256,7 @@ public:
 	}
 
 	// Stops the iterator after `n` iterations.
-	auto take(usize n) {
-		return stl::Iterator(iterators::Take(inner, n));
-	}
+	auto take(usize n) { return stl::Iterator(iterators::Take(inner, n)); }
 
 	// Enumerates the iterator by returning a pair of (index, value).
 	auto enumerate() {
@@ -253,11 +276,15 @@ namespace STL_NS_IMPL {
 template <class Int>
 struct Range {
 	Int counter, end;
+
 	Range(Int start, Int end) : counter(start), end(end) {}
 
 	bool at_end() const { return counter >= end; }
+
 	void next() { ++counter; }
+
 	Int value() { return counter; }
+
 	usize size_hint() const { return end - counter; }
 };
 
@@ -265,7 +292,9 @@ struct Naturals {
 	usize counter = 0;
 
 	bool at_end() const { return false; }
+
 	void next() { ++counter; }
+
 	auto value() { return counter; }
 };
 

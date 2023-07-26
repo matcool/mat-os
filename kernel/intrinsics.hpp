@@ -13,9 +13,9 @@ inline void outb(u16 port, u8 value) {
 }
 
 [[gnu::noreturn]] inline void halt() {
-	asm ("cli");
+	asm("cli");
 	while (true) {
-		asm ("hlt");
+		asm("hlt");
 	}
 }
 

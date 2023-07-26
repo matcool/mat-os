@@ -1,7 +1,7 @@
-#include <stl/memory.hpp>
-#include <stl/math.hpp>
-#include <kernel/memory/allocator.hpp>
 #include <kernel/log.hpp>
+#include <kernel/memory/allocator.hpp>
+#include <stl/math.hpp>
+#include <stl/memory.hpp>
 
 using math::div_ceil;
 
@@ -49,13 +49,12 @@ struct HeapBlock {
 		// get rid of the 1/4:
 		// entries = (block_size - sizeof(HeapBlock)) / ((4*ALLOC_ALIGN + 1) / 4)
 		// entries = (block_size - sizeof(HeapBlock)) * 4 / (4 * ALLOC_ALIGN + 1)
-		return (block_size - sizeof(HeapBlock)) * entries_per_byte / (entries_per_byte * ALLOC_ALIGN + 1);
+		return (block_size - sizeof(HeapBlock)) * entries_per_byte /
+			(entries_per_byte * ALLOC_ALIGN + 1);
 	}
 
 	// amount of bytes occupied by the bitmap array
-	usize entries_size() const {
-		return div_ceil<usize>(entries(), entries_per_byte);
-	}
+	usize entries_size() const { return div_ceil<usize>(entries(), entries_per_byte); }
 
 	// total amount of bytes occupied by the metadata itself
 	usize metadata_size() const {
@@ -67,14 +66,17 @@ struct HeapBlock {
 		// block_size must be big enough so that block_size >= metadata_size + alloc_size
 		// so: block_size >= sizeof(HeapBlock) + entries_size + alloc_size
 		// block_size >= sizeof(HeapBlock) + (entries / 4) + alloc_size
-		// block_size >= sizeof(HeapBlock) + (((block_size - sizeof(HeapBlock)) / ALLOC_ALIGN) / 4) + alloc_size
-		// block_size >= sizeof(HeapBlock) + ((block_size - sizeof(HeapBlock)) / (ALLOC_ALIGN * 4)) + alloc_size
-		// 4*ALLOC_ALIGN * block_size >= 4*ALLOC_ALIGN * sizeof(HeapBlock) + block_size - sizeof(HeapBlock) + 4*ALLOC_ALIGN * alloc_size
-		// 4*ALLOC_ALIGN * block_size - block_size >= 4*ALLOC_ALIGN * sizeof(HeapBlock) - sizeof(HeapBlock) + 4*ALLOC_ALIGN * alloc_size
-		// block_size * (4*ALLOC_ALIGN - 1) >= sizeof(HeapBlock) * (4*ALLOC_ALIGN - 1) + 4*ALLOC_ALIGN * alloc_size
-		// block_size >= (sizeof(HeapBlock) * (4*ALLOC_ALIGN - 1) + 4*ALLOC_ALIGN * alloc_size) / (4*ALLOC_ALIGN - 1)
+		// block_size >= sizeof(HeapBlock) + (((block_size - sizeof(HeapBlock)) / ALLOC_ALIGN) / 4)
+		// + alloc_size block_size >= sizeof(HeapBlock) + ((block_size - sizeof(HeapBlock)) /
+		// (ALLOC_ALIGN * 4)) + alloc_size 4*ALLOC_ALIGN * block_size >= 4*ALLOC_ALIGN *
+		// sizeof(HeapBlock) + block_size - sizeof(HeapBlock) + 4*ALLOC_ALIGN * alloc_size 4*ALLOC_ALIGN
+		// * block_size - block_size >= 4*ALLOC_ALIGN * sizeof(HeapBlock) - sizeof(HeapBlock) +
+		// 4*ALLOC_ALIGN * alloc_size block_size * (4*ALLOC_ALIGN - 1) >= sizeof(HeapBlock) *
+		// (4*ALLOC_ALIGN - 1) + 4*ALLOC_ALIGN * alloc_size block_size >= (sizeof(HeapBlock) *
+		// (4*ALLOC_ALIGN - 1) + 4*ALLOC_ALIGN * alloc_size) / (4*ALLOC_ALIGN - 1)
 		static constexpr auto mult = entries_per_byte * ALLOC_ALIGN;
-		return div_ceil((sizeof(HeapBlock) * (mult - 1) + alloc_size * mult) / (mult - 1), PAGE_SIZE) * PAGE_SIZE;
+		return div_ceil((sizeof(HeapBlock) * (mult - 1) + alloc_size * mult) / (mult - 1), PAGE_SIZE) *
+			PAGE_SIZE;
 	}
 
 	// check if a pointer is contained within this block
@@ -184,8 +186,7 @@ void kernel::alloc::init_heap_allocator() {
 void* kernel::alloc::heap_allocate(usize size) {
 	// Current design can't handle 0 size allocations (if they even have a purpose),
 	// so return a nullptr
-	if (size == 0)
-		return nullptr;
+	if (size == 0) return nullptr;
 
 	HeapBlock* prev_block = nullptr;
 	for (auto* block = first_block; block != nullptr; block = block->next_block) {
@@ -206,8 +207,7 @@ void* kernel::alloc::heap_allocate(usize size) {
 
 void kernel::alloc::heap_free(void* ptr) {
 	// do nothing if trying to free a nullptr
-	if (ptr == nullptr)
-		return;
+	if (ptr == nullptr) return;
 
 	for (auto* block = first_block; block != nullptr; block = block->next_block) {
 		if (block->contains(ptr)) {

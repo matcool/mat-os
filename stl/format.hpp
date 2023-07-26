@@ -1,8 +1,8 @@
 #pragma once
 
 #include "stl.hpp"
-#include "types.hpp"
 #include "string.hpp"
+#include "types.hpp"
 #include "utils.hpp"
 
 namespace STL_NS {
@@ -39,7 +39,9 @@ struct Formatter;
 template <class Type, FormatOutFunc Func>
 void formatter_as(Func func, Type value, StringView spec = "") {
 	using Fmter = Formatter<Func, types::decay<Type>>;
-	if constexpr (requires(Func func, Type value, StringView str) { Fmter::format(func, value, str); }) {
+	if constexpr (requires(Func func, Type value, StringView str) {
+					  Fmter::format(func, value, str);
+				  }) {
 		Fmter::format(func, value, spec);
 	} else {
 		Fmter::format(func, value);
@@ -48,9 +50,7 @@ void formatter_as(Func func, Type value, StringView spec = "") {
 
 template <FormatOutFunc Func>
 struct Formatter<Func, char> {
-	static void format(Func func, char value) {
-		func(value);
-	}
+	static void format(Func func, char value) { func(value); }
 };
 
 template <FormatOutFunc Func>
@@ -70,7 +70,7 @@ struct Formatter<Func, Int> {
 		const auto spec = parse_format_spec(str_spec);
 
 		types::to_unsigned<Int> absolute_value = value;
-		
+
 		if (types::is_signed<Int> && value < 0) {
 			absolute_value = -value;
 			func('-');
@@ -86,8 +86,9 @@ struct Formatter<Func, Int> {
 				func('x');
 			}
 		}
-		
-		static constexpr char digits[] = {'0','1','2','3','4','5','6','7','8','9','a','b','c','d','e','f'};
+
+		static constexpr char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+			                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
 
 		char buffer[64];
 		usize index = sizeof(buffer);
@@ -122,7 +123,7 @@ struct Formatter<Func, StringLike> {
 };
 
 template <FormatOutFunc Func, class Pointer>
-requires (types::is_pointer<Pointer> && !types::is_one_of<Pointer, const char*, char*>)
+requires(types::is_pointer<Pointer> && !types::is_one_of<Pointer, const char*, char*>)
 struct Formatter<Func, Pointer> {
 	static void format(Func func, Pointer ptr) {
 		formatter_as(func, reinterpret_cast<uptr>(ptr), "#016x");
@@ -147,19 +148,17 @@ void format_to(Func func, StringView str, Args... args) {
 		// much of this indirection is used to avoid doing any allocations,
 		// while still being able to "index" the list of arguments based on a
 		// runtime index
-		
+
 		// array of type-erased args, for the runtime part of the code
 		const void* const arg_ptrs[] = { reinterpret_cast<const void*>(&args)... };
-		
+
 		// array of function pointers, capable of formatting each argument
 		// takes in a void* as to be type-erased
-		using InnerFunc = void(*)(Func, const void*, StringView);
-		InnerFunc arg_funcs[] = {
-			+[](Func func, const void* arg, StringView spec) {
-				formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
-			}...
-		};
-		
+		using InnerFunc = void (*)(Func, const void*, StringView);
+		InnerFunc arg_funcs[] = { +[](Func func, const void* arg, StringView spec) {
+			formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
+		}... };
+
 		for (usize i = 0; i < str.size(); ++i) {
 			const char cur = str[i];
 			// if we're at the end of the string then assume

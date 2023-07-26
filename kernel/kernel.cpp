@@ -1,13 +1,13 @@
-#include <kernel/intrinsics.hpp>
-#include <kernel/serial.hpp>
+#include <kernel/device/pic.hpp>
+#include <kernel/device/pit.hpp>
+#include <kernel/device/ps2.hpp>
 #include <kernel/idt.hpp>
+#include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
-#include <kernel/device/pic.hpp>
-#include <kernel/device/ps2.hpp>
-#include <kernel/device/pit.hpp>
 #include <kernel/screen/framebuffer.hpp>
+#include <kernel/serial.hpp>
 
 using namespace kernel;
 

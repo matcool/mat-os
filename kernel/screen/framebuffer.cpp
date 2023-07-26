@@ -1,11 +1,11 @@
-#include <limine/limine.h>
-#include <stl/types.hpp>
-#include <stl/memory.hpp>
-#include <kernel/intrinsics.hpp>
-#include <kernel/screen/framebuffer.hpp>
-#include <kernel/log.hpp>
-#include <kernel/window/manager.hpp>
 #include <kernel/device/pit.hpp>
+#include <kernel/intrinsics.hpp>
+#include <kernel/log.hpp>
+#include <kernel/screen/framebuffer.hpp>
+#include <kernel/window/manager.hpp>
+#include <limine/limine.h>
+#include <stl/memory.hpp>
+#include <stl/types.hpp>
 
 static volatile limine_framebuffer_request framebuffer_request = {
 	.id = LIMINE_FRAMEBUFFER_REQUEST,
@@ -33,11 +33,12 @@ void kernel::framebuffer::init() {
 	auto* const pixels = reinterpret_cast<u32*>(framebuffer->address);
 	const auto stride = framebuffer->pitch / 4;
 
-	auto& fb = get_screen_framebuffer() = Canvas(pixels, framebuffer->width, framebuffer->height, stride);
+	auto& fb = get_screen_framebuffer() =
+		Canvas(pixels, framebuffer->width, framebuffer->height, stride);
 
 	const auto width = fb.width();
 	const auto height = fb.height();
-	auto* const new_pixels = (u32*)(operator new(width * height * sizeof(u32)));
+	auto* const new_pixels = (u32*)(operator new(width* height * sizeof(u32)));
 	kdbgln("new_pixels is at {}", new_pixels);
 	memset(new_pixels, 0, width * height * sizeof(u32));
 	get_framebuffer() = Canvas(new_pixels, width, height, width);

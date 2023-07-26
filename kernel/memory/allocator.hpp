@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stl/types.hpp>
 #include <kernel/memory/paging.hpp>
+#include <stl/types.hpp>
 
 namespace kernel {
 
@@ -14,7 +14,6 @@ void init_physical_allocator();
 
 // Frees a physical page of memory by marking it as unused.
 void free_physical_page(PhysicalAddress addr);
-
 
 void init_virtual_allocator();
 
@@ -29,7 +28,6 @@ void init_virtual_allocator();
 // Frees a single virtual page that was allocated via allocate_page(s).
 void free_page(void* addr);
 
-
 void init_heap_allocator();
 
 // Allocates some amount of memory on the kernel heap.
@@ -39,7 +37,6 @@ void init_heap_allocator();
 
 // Frees some memory allocated by heap_allocate.
 void heap_free(void* ptr);
-
 
 // Initializes all allocators in the correct order.
 inline void init() {

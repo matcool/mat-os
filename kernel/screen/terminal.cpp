@@ -1,8 +1,8 @@
-#include <stl/math.hpp>
-#include <kernel/screen/terminal.hpp>
-#include <kernel/screen/framebuffer.hpp>
-#include <kernel/screen/terminal_font.hpp>
 #include <kernel/log.hpp>
+#include <kernel/screen/framebuffer.hpp>
+#include <kernel/screen/terminal.hpp>
+#include <kernel/screen/terminal_font.hpp>
+#include <stl/math.hpp>
 
 using math::get_bit;
 
@@ -17,11 +17,9 @@ void kernel::terminal::type_character(char ch) {
 	auto* fb = &framebuffer::get_framebuffer();
 	if (!fb->data()) return;
 
-	if (columns == 0)
-		columns = fb->width() / width;
-	if (row >= fb->height() / height)
-		row = 0;
-	
+	if (columns == 0) columns = fb->width() / width;
+	if (row >= fb->height() / height) row = 0;
+
 	if (ch == '\n') {
 		column = 0;
 		row++;

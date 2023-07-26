@@ -1,10 +1,10 @@
-#include <limine/limine.h>
-#include <stl/span.hpp>
-#include <stl/math.hpp>
-#include <kernel/memory/allocator.hpp>
-#include <kernel/memory/paging.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
+#include <kernel/memory/allocator.hpp>
+#include <kernel/memory/paging.hpp>
+#include <limine/limine.h>
+#include <stl/math.hpp>
+#include <stl/span.hpp>
 
 static volatile limine_memmap_request memmap_request = {
 	.id = LIMINE_MEMMAP_REQUEST,
@@ -18,11 +18,13 @@ class PageBitmap {
 	using ElementType = u64;
 	static constexpr auto bits_per_element = sizeof(ElementType) * 8;
 	Span<ElementType> m_data;
+
 public:
-	PageBitmap(void* address, usize byte_size)
-		: m_data(reinterpret_cast<ElementType*>(address), byte_size / sizeof(ElementType)) {}
+	PageBitmap(void* address, usize byte_size) :
+		m_data(reinterpret_cast<ElementType*>(address), byte_size / sizeof(ElementType)) {}
+
 	PageBitmap() : PageBitmap(nullptr, 0) {}
-	
+
 	void set(usize index, bool value) {
 		const auto array_index = index / bits_per_element;
 		const auto bit_index = index % bits_per_element;
@@ -64,8 +66,7 @@ void debug_print_memmap() {
 }
 
 void kernel::alloc::init_physical_allocator() {
-	if (!memmap_request.response)
-		panic("No response for memmap request");
+	if (!memmap_request.response) panic("No response for memmap request");
 
 	debug_print_memmap();
 
@@ -102,7 +103,10 @@ void kernel::alloc::init_physical_allocator() {
 		}
 	}
 	if (!bitmap_array_addr) {
-		panic("Couldn't find a memory region big enough for the bitmap array (size 0x{:x})", bitmap_array_size);
+		panic(
+			"Couldn't find a memory region big enough for the bitmap array (size 0x{:x})",
+			bitmap_array_size
+		);
 	}
 
 	bitmap = PageBitmap(bitmap_array_addr, bitmap_array_size);
@@ -137,7 +141,7 @@ kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 			if (page_address) break;
 		}
 	}
-	
+
 	if (!page_address) {
 		panic("Couldn't allocate a single page");
 	}
@@ -146,7 +150,8 @@ kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 	return PhysicalAddress(page_address);
 }
 
-void kernel::alloc::free_physical_page(PhysicalAddress addr) {;
+void kernel::alloc::free_physical_page(PhysicalAddress addr) {
+	;
 	if (addr.value() % PAGE_SIZE != 0) {
 		panic("Tried to free misaligned page ({:#x})", addr.value());
 	}

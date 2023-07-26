@@ -22,9 +22,18 @@ FormatSpec parse_format_spec(StringView str) {
 	}
 
 	switch (str.peek_one()) {
-		case 'b': str.take_one(); spec.base = 2; break;
-		case 'o': str.take_one(); spec.base = 8; break;
-		case 'x': str.take_one(); spec.base = 16; break;
+		case 'b':
+			str.take_one();
+			spec.base = 2;
+			break;
+		case 'o':
+			str.take_one();
+			spec.base = 8;
+			break;
+		case 'x':
+			str.take_one();
+			spec.base = 16;
+			break;
 		default: break;
 	}
 

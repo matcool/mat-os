@@ -1,7 +1,7 @@
 #pragma once
 
-#include <stl/types.hpp>
 #include <stl/math.hpp>
+#include <stl/types.hpp>
 
 // Represents a RGBA8888 color
 struct Color {
@@ -9,12 +9,16 @@ struct Color {
 		struct {
 			u8 b, g, r, a;
 		};
+
 		u32 packed;
 	};
 
 	constexpr Color(u8 r, u8 g, u8 b, u8 a = 255) : b(b), g(g), r(r), a(a) {}
+
 	constexpr Color(u32 argb) : packed(argb) {}
+
 	constexpr Color() : Color(0, 0, 0) {}
+
 	constexpr static Color from_hex(u32 rgb) { return Color(rgb | 0xFF000000); }
 };
 
@@ -29,16 +33,21 @@ class Canvas {
 	usize m_stride = 0;
 	// TODO: better type?
 	u32* m_pixels = nullptr;
+
 public:
 	Canvas(u32* pixels, usize width, usize height) : Canvas(pixels, width, height, width) {}
+
 	Canvas(u32* pixels, usize width, usize height, usize stride);
 
 	auto width() const { return m_width; }
+
 	auto height() const { return m_height; }
+
 	auto stride() const { return m_stride; }
 
 	// Returns the raw pixel data
 	auto* data() { return m_pixels; }
+
 	const auto* data() const { return m_pixels; }
 
 	// Returns a subcanvas (*with the same pixels!*) at offset (x, y)
