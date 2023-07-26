@@ -1,5 +1,6 @@
 #pragma once
 
+#include "span.hpp"
 #include "stl.hpp"
 #include "string.hpp"
 #include "types.hpp"
@@ -8,17 +9,14 @@
 namespace STL_NS {
 
 // Specialize this class to implement formatting for a given type. The type given to this struct is
-// decayed, so no need to worry about qualifiers.
-// For example, you must have *one* of these functions:
-// `static void format(format::OutFunc func, Type value);`
-// or
-// `static void format(format::OutFunc func, Type value, StringView spec);`
+// decayed, so no need to worry about qualifiers. You must implement the following function:
+// `static void format(format::ctx ctx, Type value);`
 template <class Type>
 struct Formatter;
 
 namespace format {
 
-enum class FormatPadType : u8 {
+enum class PadType : u8 {
 	None,
 	Zero,
 };
@@ -28,14 +26,14 @@ struct FormatSpec {
 	// either nothing, 'b', 'o' or 'x', resulting in bases 10, 2, 8 and 16 respectively
 	u8 base = 10;
 	// type of padding, either nothing or '0'
-	FormatPadType pad_type = FormatPadType::None;
+	PadType pad_type = PadType::None;
 	// '#', will show a base prefix such as 0b or 0x
 	bool base_prefix = false;
 };
 
 // Parses a format specifier. Currently only supports the following format:
 // (#)?(0\d*)?([box])?
-FormatSpec parse_format_spec(StringView str_spec);
+FormatSpec parse_spec(StringView str_spec);
 
 template <class T>
 concept FormatOutFunc = requires(T& func, char c) { func(c); };
@@ -45,67 +43,85 @@ struct BaseFormattingFunction {
 	virtual void call(char ch) = 0;
 };
 
-// Wraps a pointer to a type erased formatting function, to be used in `Formatter` specializations.
-struct OutFunc {
+class Context;
+
+using FormatImplArgFuncs = void (*)(Context, const void*);
+
+void format_impl(
+	BaseFormattingFunction* func, StringView fmt_str, Span<const void*> args,
+	Span<FormatImplArgFuncs> arg_funcs
+);
+
+// Wraps the formatting function and specifier, to be used in Formatter specializations.
+class Context {
 	BaseFormattingFunction* m_func = nullptr;
+	StringView m_spec;
 
-	OutFunc(BaseFormattingFunction* func) : m_func(func) {}
+public:
+	Context(BaseFormattingFunction* func, StringView spec) : m_func(func), m_spec(spec) {}
 
-	void operator()(char ch) { m_func->call(ch); }
-};
+	void put(char c);
+	void put(StringView str);
 
-// Invoke the formatter for a given type, with optional spec.
-// If the formatter does not take in a spec, it is unused.
-template <class Type>
-void formatter_as(format::OutFunc func, Type value, StringView spec = "") {
-	using Fmter = Formatter<types::decay<Type>>;
-	if constexpr (requires(format::OutFunc func, Type value, StringView str) {
-					  Fmter::format(func, value, str);
-				  }) {
-		Fmter::format(func, value, spec);
-	} else {
-		Fmter::format(func, value);
+	// Accesses the specifiers as a string, unmodified
+	[[nodiscard]] StringView spec() const;
+
+	// Parses the specifiers into a standard FormatSpec.
+	// It is recommended to save this to a variable instead of calling it over and over.
+	[[nodiscard]] FormatSpec parse_spec() const;
+
+	// Formats a string into the current context.
+	template <class... Args>
+	void fmt(StringView fmt_str, Args&&... args) {
+		// TODO: this is very inefficient, no need to create a new formatting function..
+		format_to([&](char c) { m_func->call(c); }, fmt_str, forward<Args>(args)...);
 	}
-}
+
+	// Formats a single value into the current context, with an optionally given specifier.
+	template <class Type>
+	void fmt_value(Type&& value, StringView spec = ""_sv) {
+		Formatter<types::decay<Type>>::format(Context(m_func, spec), forward<Type>(value));
+	}
+};
 
 }
 
 template <>
 struct Formatter<char> {
-	static void format(format::OutFunc func, char value) { func(value); }
+	static void format(format::Context ctx, char value) { ctx.put(value); }
 };
 
 template <>
 struct Formatter<bool> {
-	static void format(format::OutFunc func, bool value, StringView spec) {
-		if (spec == "d") {
-			func(value ? '1' : '0');
+	static void format(format::Context ctx, bool value) {
+		if (ctx.spec() == "d"_sv) {
+			ctx.put(value ? '1' : '0');
 		} else {
-			formatter_as(func, value ? "true" : "false");
+			ctx.put(value ? "true"_sv : "false"_sv);
 		}
 	}
 };
 
 template <concepts::integral Int>
 struct Formatter<Int> {
-	static void format(format::OutFunc func, Int value, StringView str_spec) {
-		const auto spec = format::parse_format_spec(str_spec);
+	static void format(format::Context ctx, Int value) {
+		const auto spec = ctx.parse_spec();
 
 		types::to_unsigned<Int> absolute_value = value;
 
 		if (types::is_signed<Int> && value < 0) {
 			absolute_value = -value;
-			func('-');
+			ctx.put('-');
 		}
 
 		if (spec.base_prefix && spec.base != 10) {
-			func('0');
+			ctx.put('0');
 			if (spec.base == 2) {
-				func('b');
+				ctx.put('b');
 			} else if (spec.base == 8) {
-				func('o');
+				ctx.put('o');
 			} else if (spec.base == 16) {
-				func('x');
+				ctx.put('x');
 			}
 		}
 
@@ -121,34 +137,30 @@ struct Formatter<Int> {
 			buffer[--index] = digits[digit];
 		} while (absolute_value != 0);
 
-		if (spec.pad_type == format::FormatPadType::Zero) {
+		if (spec.pad_type == format::PadType::Zero) {
 			auto size = sizeof(buffer) - index;
 			for (auto i = size; i < spec.pad_amount; ++i) {
-				func('0');
+				ctx.put('0');
 			}
 		}
 
 		for (; index < sizeof(buffer); ++index) {
-			func(buffer[index]);
+			ctx.put(buffer[index]);
 		}
 	}
 };
 
 template <class StringLike>
-requires types::is_one_of<StringLike, StringView, const char*, char*>
+requires types::is_one_of<StringLike, String, StringView, const char*, char*>
 struct Formatter<StringLike> {
-	static void format(format::OutFunc func, StringView value) {
-		for (auto c : value) {
-			func(c);
-		}
-	}
+	static void format(format::Context ctx, StringView value) { ctx.put(value); }
 };
 
 template <class Pointer>
 requires(types::is_pointer<Pointer> && !types::is_one_of<Pointer, const char*, char*>)
 struct Formatter<Pointer> {
-	static void format(format::OutFunc func, Pointer ptr) {
-		formatter_as(func, reinterpret_cast<uptr>(ptr), "#016x");
+	static void format(format::Context ctx, Pointer ptr) {
+		ctx.fmt_value(reinterpret_cast<uptr>(ptr), "#016x");
 	}
 };
 
@@ -162,9 +174,6 @@ void format_to(Func&& func, StringView str, Args... args) {
 			func(c);
 		}
 	} else {
-		// the index for which placeholder we are currently on
-		usize index = 0;
-
 		// much of this indirection is used to avoid doing any allocations, while still being able
 		// to "index" the list of arguments based on a runtime index
 
@@ -180,62 +189,32 @@ void format_to(Func&& func, StringView str, Args... args) {
 		} out_func(forward<Func>(func));
 
 		// array of type-erased args, for the runtime part of the code
-		const void* const arg_ptrs[] = { reinterpret_cast<const void*>(&args)... };
+		const void* arg_ptrs[] = { reinterpret_cast<const void*>(&args)... };
 
 		// array of function pointers, capable of formatting each argument.
 		// takes in a void* as to be type-erased
-		using InnerFunc = void (*)(format::OutFunc, const void*, StringView);
-		InnerFunc arg_funcs[] = { +[](format::OutFunc func, const void* arg, StringView spec) {
-			format::formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
+		format::FormatImplArgFuncs arg_funcs[] = { +[](format::Context ctx, const void* arg) {
+			Formatter<types::decay<Args>>::format(ctx, *reinterpret_cast<const Args*>(arg));
 		}... };
 
-		for (usize i = 0; i < str.size(); ++i) {
-			const char cur = str[i];
-			// if we're at the end of the string then assume this isnt the start of a placeholder
-			if (i == str.size() - 1) {
-				func(cur);
-			} else {
-				const char next = str[i + 1];
-				if (cur == '{' || cur == '}') {
-					if (next == cur) {
-						// escaping the characters used for the placeholders is done by duplicating
-						// them, so if the current character and next character are the same, skip the next one.
-						++i;
-						func(cur);
-					} else if (cur == '{') {
-						auto close_index = str.slice(i).find('}');
-						if (close_index == usize(-1)) {
-							// no closing bracket found, so error
-							// TODO: error
-							return;
-						}
+		// call the inner implementation, which deals with parsing the format string. since that is
+		// always the same, it is split into a separate non templated function
+		format::format_impl(
+			&out_func, str, Span(arg_ptrs, sizeof...(Args)), Span(arg_funcs, sizeof...(Args))
+		);
+	}
+}
 
-						close_index += i;
-						const auto current_placeholder = str.slice(i, close_index);
-						i = close_index;
-
-						StringView specifiers = "";
-						if (auto colon = current_placeholder.find(':'); colon != usize(-1)) {
-							specifiers = current_placeholder.split_once(colon).second;
-						}
-
-						if (index >= sizeof...(Args)) {
-							// we've gone through more placeholders than there are args, so error
-							// TODO: error
-							return;
-						}
-						arg_funcs[index](&out_func, arg_ptrs[index], specifiers);
-						++index;
-					} else {
-						// we hit a } which wasnt actually started, so error
-						// TODO: error
-						return;
-					}
-				} else {
-					func(cur);
-				}
-			}
-		}
+// Formats arguments into a string. See `format_to` for more info.
+template <class... Args>
+String format_str(StringView str, Args&&... args) {
+	if constexpr (sizeof...(Args) == 0) {
+		// why would you do this
+		return str;
+	} else {
+		String result;
+		format_to([&](char c) { result.push(c); }, str, forward<Args>(args)...);
+		return result;
 	}
 }
 

@@ -124,9 +124,8 @@ void invalidate_cache(VirtualAddress virt);
 
 template <>
 struct stl::Formatter<kernel::paging::PageTableEntry> {
-	static void format(format::OutFunc func, kernel::paging::PageTableEntry entry) {
-		format_to(
-			func,
+	static void format(format::Context ctx, kernel::paging::PageTableEntry entry) {
+		ctx.fmt(
 			"[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",
 			entry.is_present(),
 			entry.is_writable(),

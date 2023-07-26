@@ -4,7 +4,7 @@ namespace STL_NS {
 
 using namespace format;
 
-FormatSpec format::parse_format_spec(StringView str) {
+FormatSpec format::parse_spec(StringView str) {
 	FormatSpec spec;
 
 	if (!str) return spec;
@@ -16,7 +16,7 @@ FormatSpec format::parse_format_spec(StringView str) {
 
 	if (str.peek_one() == '0') {
 		str.take_one();
-		spec.pad_type = FormatPadType::Zero;
+		spec.pad_type = PadType::Zero;
 		while (is_digit(str.peek_one())) {
 			spec.pad_amount *= 10;
 			spec.pad_amount += str.take_one() - '0';
@@ -40,6 +40,83 @@ FormatSpec format::parse_format_spec(StringView str) {
 	}
 
 	return spec;
+}
+
+void format::Context::put(char ch) {
+	m_func->call(ch);
+}
+
+void format::Context::put(StringView value) {
+	for (auto ch : value) {
+		m_func->call(ch);
+	}
+}
+
+StringView format::Context::spec() const {
+	return m_spec;
+}
+
+format::FormatSpec format::Context::parse_spec() const {
+	return format::parse_spec(m_spec);
+}
+
+void format::format_impl(
+	BaseFormattingFunction* func, StringView str, Span<const void*> args,
+	Span<FormatImplArgFuncs> arg_funcs
+) {
+	// the index for which placeholder we are currently on
+	usize index = 0;
+
+	for (usize i = 0; i < str.size(); ++i) {
+		const char cur = str[i];
+		// if we're at the end of the string then assume this isnt the start of a placeholder
+		if (i == str.size() - 1) {
+			func->call(cur);
+		} else {
+			const char next = str[i + 1];
+			if (cur == '{' || cur == '}') {
+				if (next == cur) {
+					// escaping the characters used for the placeholders is done by duplicating
+					// them, so if the current character and next character are the same, skip the next one.
+					++i;
+					func->call(cur);
+				} else if (cur == '{') {
+					auto close_index = str.slice(i).find('}');
+					if (close_index == usize(-1)) {
+						// no closing bracket found, so error
+						// TODO: error
+						return;
+					}
+
+					close_index += i;
+					const auto current_placeholder = str.slice(i, close_index);
+					i = close_index;
+
+					StringView specifiers = "";
+					if (auto colon = current_placeholder.find(':'); colon != usize(-1)) {
+						specifiers = current_placeholder.split_once(colon).second;
+					}
+
+					if (index >= args.size()) {
+						// we've gone through more placeholders than there are args, so error
+						// TODO: error
+						return;
+					}
+
+					Context ctx(func, specifiers);
+					arg_funcs[index](ctx, args[index]);
+
+					++index;
+				} else {
+					// we hit a } which wasnt actually started, so error
+					// TODO: error
+					return;
+				}
+			} else {
+				func->call(cur);
+			}
+		}
+	}
 }
 
 }
