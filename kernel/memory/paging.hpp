@@ -81,8 +81,8 @@ public:
 	bool is_user() const;
 	void set_user(bool value);
 
-	// PS flag, if true then this entry points to a page larger than 4 KiB,
-	// either 2 MiB or 1 GiB. If this is a PT entry then this is not PS, but PAT
+	// PS flag, if true then this entry points to a page larger than 4 KiB, either 2 MiB or 1 GiB.
+	// If this is a PT entry then this is not PS, but PAT
 	bool is_ps() const;
 	void set_ps(bool value);
 
@@ -90,8 +90,7 @@ public:
 	void set_execution_disabled(bool value);
 
 	// get available bits in the entry, which the cpu ignores.
-	// if this is an entry that points to a page, then some bits may be used
-	// if PGE or PKS are enabled.
+	// if this is an entry that points to a page, then some bits may be used if PGE or PKS are enabled.
 	u16 get_available() const;
 	void set_available(u16 value);
 

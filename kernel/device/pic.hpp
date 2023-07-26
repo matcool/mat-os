@@ -4,8 +4,7 @@
 
 namespace kernel {
 
-// offset at which the PIC's IRQs get turned into regular interrupts
-// so IRQ 1 will be interrupt `PIC_IRQ_OFFSET + 1`
+// offset at which the PIC's IRQs get turned into regular interrupts, so IRQ 1 will be interrupt `PIC_IRQ_OFFSET + 1`
 static constexpr u8 PIC_IRQ_OFFSET = 0x20;
 
 static constexpr u16 PIC1_COM_PORT = 0x20;

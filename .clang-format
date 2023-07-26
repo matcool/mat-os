@@ -105,6 +105,8 @@ PenaltyIndentedWhitespace: 0
 QualifierAlignment: Left
 
 RequiresClausePosition: OwnLine
+# TODO: get clang-format 16 :(
+# RequiresExpressionIndentation: OuterScope
 ReflowComments: true
 SeparateDefinitionBlocks: Always
 

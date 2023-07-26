@@ -19,8 +19,7 @@ extern "C" {
 
 	void* __dso_handle;
 
-	// this is for registering destructors on exit, however
-	// since the kernel never really "exits", its fine to not do anything
+	// this is for registering destructors on exit, however since the kernel never really "exits", its fine to not do anything
 	int __cxa_atexit(void (*)(void*), void*, void*) {
 		// > It returns zero if registration is successful, nonzero on failure.
 		return 0;

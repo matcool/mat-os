@@ -130,10 +130,8 @@ struct Formatter<Func, Pointer> {
 	}
 };
 
-// Formats a given format string into an output function,
-// which accepts each character at a time.
-// The format string follows the python-like {} formatting,
-// where {} is the placeholder for a value of any (formattable) type.
+// Formats a given format string into an output function, which accepts each character at a time.
+// The format string follows the python-like {} formatting, where {} is the placeholder for a value of any (formattable) type.
 template <FormatOutFunc Func, class... Args>
 void format_to(Func func, StringView str, Args... args) {
 	// no formatting arguments provided, just return the whole string
@@ -145,14 +143,13 @@ void format_to(Func func, StringView str, Args... args) {
 		// the index for which placeholder we are currently on
 		usize index = 0;
 
-		// much of this indirection is used to avoid doing any allocations,
-		// while still being able to "index" the list of arguments based on a
-		// runtime index
+		// much of this indirection is used to avoid doing any allocations, while still being able
+		// to "index" the list of arguments based on a runtime index
 
 		// array of type-erased args, for the runtime part of the code
 		const void* const arg_ptrs[] = { reinterpret_cast<const void*>(&args)... };
 
-		// array of function pointers, capable of formatting each argument
+		// array of function pointers, capable of formatting each argument.
 		// takes in a void* as to be type-erased
 		using InnerFunc = void (*)(Func, const void*, StringView);
 		InnerFunc arg_funcs[] = { +[](Func func, const void* arg, StringView spec) {
@@ -161,17 +158,15 @@ void format_to(Func func, StringView str, Args... args) {
 
 		for (usize i = 0; i < str.size(); ++i) {
 			const char cur = str[i];
-			// if we're at the end of the string then assume
-			// this isnt the start of a placeholder
+			// if we're at the end of the string then assume this isnt the start of a placeholder
 			if (i == str.size() - 1) {
 				func(cur);
 			} else {
 				const char next = str[i + 1];
 				if (cur == '{' || cur == '}') {
 					if (next == cur) {
-						// escaping the characters used for the placeholders
-						// is done by duplicating them, so if the current character
-						// and next character are the same, skip the next one.
+						// escaping the characters used for the placeholders is done by duplicating
+						// them, so if the current character and next character are the same, skip the next one.
 						++i;
 						func(cur);
 					} else if (cur == '{') {

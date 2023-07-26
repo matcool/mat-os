@@ -109,8 +109,7 @@ struct Enumerate {
 	struct {
 		usize index = 0;
 
-		// Use this hacky union to store optional reference,
-		// and also not require default construction of Type.
+		// Use this hacky union to store optional reference, and also not require default construction of Type.
 		union {
 			bool nothing = false;
 			ConvertedType value;

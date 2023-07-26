@@ -75,8 +75,7 @@ void Window::paint(Span<const Rect> dirty_rects, bool paint_children) {
 	for (auto& child : children) {
 		if (dirty_rects) {
 			const auto screen_rect = child->screen_window_rect();
-			// child does not intersect any of the dirty rects,
-			// so skip drawing it completely
+			// child does not intersect any of the dirty rects, so skip drawing it completely
 			if (!dirty_rects.iter()
 			         .map([&](const auto& rect) { return screen_rect.intersects(rect); })
 			         .any()) {
@@ -256,8 +255,7 @@ void Window::move_to(const Point& pos) {
 void Window::invalidate(const Rect& rect) {
 	const auto offset_rect = rect + screen_window_rect().pos;
 	const auto rects = Span(&offset_rect, 1);
-	// dont paint children, since this should only
-	// invalidate the window itself
+	// dont paint children, since this should only invalidate the window itself
 	paint(rects, false);
 }
 
