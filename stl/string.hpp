@@ -103,11 +103,11 @@ char to_ascii_lowercase(char c);
 
 // A heap allocated string which can grow.
 class String {
+	// TODO: should this class be utf-8 aware?
+	// should it enforce only utf-8 strings?
 	Vector<char> m_data;
 
 public:
-	String(const char* c_str) : String(StringView(c_str)) {}
-
 	String(StringView str) {
 		m_data.reserve(str.size());
 		m_data.concat(str.span());
@@ -138,6 +138,9 @@ public:
 	auto iter() const { return Iterator(begin(), end()); }
 
 	operator StringView() const { return StringView(begin(), end()); }
+
+	// Appends a character to the end of the string.
+	void push(char ch) { m_data.push(ch); }
 };
 
 }
