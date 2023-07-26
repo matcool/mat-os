@@ -86,7 +86,7 @@ public:
 };
 
 inline StringView operator""_sv(const char* c_str, usize len) {
-	return StringView(c_str, c_str + len - 1);
+	return StringView(c_str, c_str + len);
 }
 
 // Returns whether a character is a decimal digit (0-9)
