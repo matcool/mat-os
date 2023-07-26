@@ -122,9 +122,9 @@ void invalidate_cache(VirtualAddress virt);
 
 }
 
-template <class Func>
-struct Formatter<Func, kernel::paging::PageTableEntry> {
-	static void format(Func func, kernel::paging::PageTableEntry entry) {
+template <>
+struct stl::Formatter<kernel::paging::PageTableEntry> {
+	static void format(format::OutFunc func, kernel::paging::PageTableEntry entry) {
 		format_to(
 			func,
 			"[P={:d}, W={:d}, US={:d}, PS={:d}, avail={:04x}, addr={:#08x}], raw={:#x}",

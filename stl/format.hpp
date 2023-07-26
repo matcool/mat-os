@@ -7,7 +7,16 @@
 
 namespace STL_NS {
 
-// TODO: maybe make a format namespace?
+// Specialize this class to implement formatting for a given type. The type given to this struct is
+// decayed, so no need to worry about qualifiers.
+// For example, you must have *one* of these functions:
+// `static void format(format::OutFunc func, Type value);`
+// or
+// `static void format(format::OutFunc func, Type value, StringView spec);`
+template <class Type>
+struct Formatter;
+
+namespace format {
 
 enum class FormatPadType : u8 {
 	None,
@@ -31,15 +40,26 @@ FormatSpec parse_format_spec(StringView str_spec);
 template <class T>
 concept FormatOutFunc = requires(T& func, char c) { func(c); };
 
-template <FormatOutFunc Func, class Type>
-struct Formatter;
+// Base class for a type erased formatting output function.
+struct BaseFormattingFunction {
+	virtual void call(char ch) = 0;
+};
+
+// Wraps a pointer to a type erased formatting function, to be used in `Formatter` specializations.
+struct OutFunc {
+	BaseFormattingFunction* m_func = nullptr;
+
+	OutFunc(BaseFormattingFunction* func) : m_func(func) {}
+
+	void operator()(char ch) { m_func->call(ch); }
+};
 
 // Invoke the formatter for a given type, with optional spec.
 // If the formatter does not take in a spec, it is unused.
-template <class Type, FormatOutFunc Func>
-void formatter_as(Func func, Type value, StringView spec = "") {
-	using Fmter = Formatter<Func, types::decay<Type>>;
-	if constexpr (requires(Func func, Type value, StringView str) {
+template <class Type>
+void formatter_as(format::OutFunc func, Type value, StringView spec = "") {
+	using Fmter = Formatter<types::decay<Type>>;
+	if constexpr (requires(format::OutFunc func, Type value, StringView str) {
 					  Fmter::format(func, value, str);
 				  }) {
 		Fmter::format(func, value, spec);
@@ -48,14 +68,16 @@ void formatter_as(Func func, Type value, StringView spec = "") {
 	}
 }
 
-template <FormatOutFunc Func>
-struct Formatter<Func, char> {
-	static void format(Func func, char value) { func(value); }
+}
+
+template <>
+struct Formatter<char> {
+	static void format(format::OutFunc func, char value) { func(value); }
 };
 
-template <FormatOutFunc Func>
-struct Formatter<Func, bool> {
-	static void format(Func func, bool value, StringView spec) {
+template <>
+struct Formatter<bool> {
+	static void format(format::OutFunc func, bool value, StringView spec) {
 		if (spec == "d") {
 			func(value ? '1' : '0');
 		} else {
@@ -64,10 +86,10 @@ struct Formatter<Func, bool> {
 	}
 };
 
-template <FormatOutFunc Func, concepts::integral Int>
-struct Formatter<Func, Int> {
-	static void format(Func func, Int value, StringView str_spec) {
-		const auto spec = parse_format_spec(str_spec);
+template <concepts::integral Int>
+struct Formatter<Int> {
+	static void format(format::OutFunc func, Int value, StringView str_spec) {
+		const auto spec = format::parse_format_spec(str_spec);
 
 		types::to_unsigned<Int> absolute_value = value;
 
@@ -99,7 +121,7 @@ struct Formatter<Func, Int> {
 			buffer[--index] = digits[digit];
 		} while (absolute_value != 0);
 
-		if (spec.pad_type == FormatPadType::Zero) {
+		if (spec.pad_type == format::FormatPadType::Zero) {
 			auto size = sizeof(buffer) - index;
 			for (auto i = size; i < spec.pad_amount; ++i) {
 				func('0');
@@ -112,28 +134,28 @@ struct Formatter<Func, Int> {
 	}
 };
 
-template <FormatOutFunc Func, class StringLike>
+template <class StringLike>
 requires types::is_one_of<StringLike, StringView, const char*, char*>
-struct Formatter<Func, StringLike> {
-	static void format(Func func, StringView value) {
+struct Formatter<StringLike> {
+	static void format(format::OutFunc func, StringView value) {
 		for (auto c : value) {
 			func(c);
 		}
 	}
 };
 
-template <FormatOutFunc Func, class Pointer>
+template <class Pointer>
 requires(types::is_pointer<Pointer> && !types::is_one_of<Pointer, const char*, char*>)
-struct Formatter<Func, Pointer> {
-	static void format(Func func, Pointer ptr) {
+struct Formatter<Pointer> {
+	static void format(format::OutFunc func, Pointer ptr) {
 		formatter_as(func, reinterpret_cast<uptr>(ptr), "#016x");
 	}
 };
 
 // Formats a given format string into an output function, which accepts each character at a time.
 // The format string follows the python-like {} formatting, where {} is the placeholder for a value of any (formattable) type.
-template <FormatOutFunc Func, class... Args>
-void format_to(Func func, StringView str, Args... args) {
+template <format::FormatOutFunc Func, class... Args>
+void format_to(Func&& func, StringView str, Args... args) {
 	// no formatting arguments provided, just return the whole string
 	if constexpr (sizeof...(Args) == 0) {
 		for (char c : str) {
@@ -146,14 +168,25 @@ void format_to(Func func, StringView str, Args... args) {
 		// much of this indirection is used to avoid doing any allocations, while still being able
 		// to "index" the list of arguments based on a runtime index
 
+		// Type-erase the formatting function by using a virtual call. This will allow Formatter
+		// specializations to not have to be generic over the function type, thus giving the ability
+		// to move Formatter specializations to source files.
+		struct ErasedFormatFunc : format::BaseFormattingFunction {
+			Func&& func;
+
+			ErasedFormatFunc(Func&& func) : func(forward<Func>(func)) {}
+
+			void call(char ch) override { return func(ch); }
+		} out_func(forward<Func>(func));
+
 		// array of type-erased args, for the runtime part of the code
 		const void* const arg_ptrs[] = { reinterpret_cast<const void*>(&args)... };
 
 		// array of function pointers, capable of formatting each argument.
 		// takes in a void* as to be type-erased
-		using InnerFunc = void (*)(Func, const void*, StringView);
-		InnerFunc arg_funcs[] = { +[](Func func, const void* arg, StringView spec) {
-			formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
+		using InnerFunc = void (*)(format::OutFunc, const void*, StringView);
+		InnerFunc arg_funcs[] = { +[](format::OutFunc func, const void* arg, StringView spec) {
+			format::formatter_as<Args>(func, *reinterpret_cast<const Args*>(arg), spec);
 		}... };
 
 		for (usize i = 0; i < str.size(); ++i) {
@@ -191,7 +224,7 @@ void format_to(Func func, StringView str, Args... args) {
 							// TODO: error
 							return;
 						}
-						arg_funcs[index](func, arg_ptrs[index], specifiers);
+						arg_funcs[index](&out_func, arg_ptrs[index], specifiers);
 						++index;
 					} else {
 						// we hit a } which wasnt actually started, so error

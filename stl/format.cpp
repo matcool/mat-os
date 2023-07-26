@@ -2,7 +2,9 @@
 
 namespace STL_NS {
 
-FormatSpec parse_format_spec(StringView str) {
+using namespace format;
+
+FormatSpec format::parse_format_spec(StringView str) {
 	FormatSpec spec;
 
 	if (!str) return spec;
