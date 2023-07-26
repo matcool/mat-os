@@ -1,8 +1,7 @@
 #include "format.hpp"
+#include "array.hpp"
 
-namespace STL_NS {
-
-using namespace format;
+using namespace STL_NS::format;
 
 FormatSpec format::parse_spec(StringView str) {
 	FormatSpec spec;
@@ -119,4 +118,45 @@ void format::format_impl(
 	}
 }
 
+void format::format_integer(Context ctx, u64 value, bool is_negative) {
+	const auto spec = ctx.parse_spec();
+
+	if (is_negative) {
+		ctx.put('-');
+	}
+
+	if (spec.base_prefix && spec.base != 10) {
+		ctx.put('0');
+		if (spec.base == 2) {
+			ctx.put('b');
+		} else if (spec.base == 8) {
+			ctx.put('o');
+		} else if (spec.base == 16) {
+			ctx.put('x');
+		}
+	}
+
+	static constexpr char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7',
+		                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
+
+	Array<char, 64> buffer;
+
+	usize index = buffer.size();
+
+	do {
+		const auto digit = value % spec.base;
+		value /= spec.base;
+		buffer[--index] = digits[digit];
+	} while (value != 0);
+
+	if (spec.pad_type == format::PadType::Zero) {
+		auto size = buffer.size() - index;
+		for (auto i = size; i < spec.pad_amount; ++i) {
+			ctx.put('0');
+		}
+	}
+
+	for (; index < buffer.size(); ++index) {
+		ctx.put(buffer[index]);
+	}
 }

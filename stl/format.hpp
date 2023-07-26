@@ -84,6 +84,8 @@ public:
 	}
 };
 
+void format_integer(Context ctx, u64 value, bool is_negative);
+
 }
 
 template <>
@@ -105,48 +107,10 @@ struct Formatter<bool> {
 template <concepts::integral Int>
 struct Formatter<Int> {
 	static void format(format::Context ctx, Int value) {
-		const auto spec = ctx.parse_spec();
+		const bool is_negative = types::is_signed<Int> && value < 0;
+		const u64 absolute_value = is_negative ? -value : value;
 
-		types::to_unsigned<Int> absolute_value = value;
-
-		if (types::is_signed<Int> && value < 0) {
-			absolute_value = -value;
-			ctx.put('-');
-		}
-
-		if (spec.base_prefix && spec.base != 10) {
-			ctx.put('0');
-			if (spec.base == 2) {
-				ctx.put('b');
-			} else if (spec.base == 8) {
-				ctx.put('o');
-			} else if (spec.base == 16) {
-				ctx.put('x');
-			}
-		}
-
-		static constexpr char digits[] = { '0', '1', '2', '3', '4', '5', '6', '7',
-			                               '8', '9', 'a', 'b', 'c', 'd', 'e', 'f' };
-
-		char buffer[64];
-		usize index = sizeof(buffer);
-
-		do {
-			const auto digit = absolute_value % spec.base;
-			absolute_value /= spec.base;
-			buffer[--index] = digits[digit];
-		} while (absolute_value != 0);
-
-		if (spec.pad_type == format::PadType::Zero) {
-			auto size = sizeof(buffer) - index;
-			for (auto i = size; i < spec.pad_amount; ++i) {
-				ctx.put('0');
-			}
-		}
-
-		for (; index < sizeof(buffer); ++index) {
-			ctx.put(buffer[index]);
-		}
+		format::format_integer(ctx, absolute_value, is_negative);
 	}
 };
 

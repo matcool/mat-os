@@ -14,6 +14,8 @@ public:
 	requires(sizeof...(Args) <= Size && sizeof...(Args) != 0)
 	Array(Args&&... args) : m_data{ args... } {}
 
+	Array() = default;
+
 	auto* data() { return m_data; }
 
 	const auto* data() const { return m_data; }
