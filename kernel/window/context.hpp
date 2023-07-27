@@ -55,6 +55,9 @@ public:
 	// Returns a rect of the area the text occupies.
 	Rect draw_text(StringView str, const Point& pos, Color color);
 
+	// Calculates the area the text would take up.
+	Point calculate_text_area(StringView str);
+
 	void set_offset(const Point& point) { offset = point; }
 
 	auto get_clip_rects() const { return clip_rects; }

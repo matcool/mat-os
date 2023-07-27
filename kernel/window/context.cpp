@@ -150,3 +150,7 @@ Rect WindowContext::draw_text(StringView str, const Point& pos, Color color) {
 	}
 	return Rect(pos, Point(offset.x, 10));
 }
+
+Point WindowContext::calculate_text_area(StringView str) {
+	return Point(str.size() * 7, 10);
+}
