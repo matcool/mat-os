@@ -83,23 +83,23 @@ public:
 		m_control = nullptr;
 	}
 
-	Type* data() { return get_value(); }
+	Type* ptr() { return get_value(); }
 
-	const Type* data() const { return get_value(); }
+	const Type* ptr() const { return get_value(); }
 
-	Type* operator->() { return data(); }
+	Type* operator->() { return ptr(); }
 
-	const Type* operator->() const { return data(); }
+	const Type* operator->() const { return ptr(); }
 
-	Type& operator*() { return *data(); }
+	Type& operator*() { return *ptr(); }
 
-	const Type& operator*() const { return *data(); }
+	const Type& operator*() const { return *ptr(); }
 
-	operator bool() const { return data(); }
+	operator bool() const { return ptr(); }
 
 	bool operator==(const SharedPtr& other) const { return m_control == other.m_control; }
 
-	bool operator==(const Type* raw_ptr) const { return data() == raw_ptr; }
+	bool operator==(const Type* raw_ptr) const { return ptr() == raw_ptr; }
 };
 
 template <class Type, class... Args>
