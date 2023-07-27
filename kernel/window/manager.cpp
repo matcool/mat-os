@@ -7,7 +7,7 @@
 using namespace kernel::window;
 
 void WindowManager::draw() {
-	context->fill(window_rect, theme::DESKTOP_COLOR);
+	context->fill(client_rect(), theme::DESKTOP_COLOR);
 }
 
 #if DEBUG_DRAW_RECTS
@@ -44,7 +44,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	// window dragging even with our optimized system, so limit it
 	// to every 2ms (500fps)
 	if (kernel::pit::get_ticks() - last_render > 2) {
-		Window::handle_mouse(mouse_pos, pressed);
+		Widget::handle_mouse(mouse_pos, pressed);
 		last_render = kernel::pit::get_ticks();
 		draw_mouse();
 		prev_mouse_pos = mouse_pos;
@@ -83,14 +83,13 @@ u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
 void WindowManager::draw_mouse() {
 	Canvas mouse_canvas(mouse_sprite, MOUSE_WIDTH, MOUSE_HEIGHT);
 	const auto old_mouse_rect = Rect(prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
-	Window::paint(Span(&old_mouse_rect, 1), true);
+	Widget::paint(Span(&old_mouse_rect, 1), true);
 	context->paste_alpha_masked(mouse_canvas, mouse_pos.x, mouse_pos.y);
 }
 
 WindowManager::WindowManager(WindowContext context) :
-	Window(Rect(0, 0, context.width(), context.height())), real_context(context) {
-	decoration = false;
-	mouse_pos = window_rect.mid_point();
+	Widget(Rect(0, 0, context.width(), context.height())), real_context(context) {
+	mouse_pos = rect().mid_point();
 	// nice
 	this->context = &real_context;
 }
@@ -101,9 +100,9 @@ WindowManager& WindowManager::get() {
 }
 
 void WindowManager::init() {
-	add_child(make_shared<Window>(Rect(20, 20, 300, 200)));
-	add_child(make_shared<Window>(Rect(100, 150, 400, 400)));
-	add_child(make_shared<Window>(Rect(200, 100, 200, 600)));
+	add_child(make_shared<Window>(Rect(20, 20, 300, 200), "with button"_sv));
+	add_child(make_shared<Window>(Rect(100, 150, 400, 400), "with child"_sv));
+	add_child(make_shared<Window>(Rect(200, 100, 200, 600), "long"_sv));
 	children[0]->add_child(make_shared<Button>(Rect(50, 50, 20, 20)));
-	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100)));
+	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100), "inner"_sv));
 }

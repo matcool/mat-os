@@ -21,7 +21,9 @@ add_executable(kernel
 	screen/canvas.cpp
 	window/manager.cpp
 	window/context.cpp
+	window/widget.cpp
 	window/window.cpp
+	window/button.cpp
 )
 
 target_link_libraries(kernel limine stl)

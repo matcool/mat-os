@@ -1,12 +1,12 @@
 #pragma once
 
 #include <kernel/window/context.hpp>
-#include <kernel/window/window.hpp>
+#include <kernel/window/widget.hpp>
 
 namespace kernel::window {
 
 // The window manager, which holds all windows
-class WindowManager : public Window {
+class WindowManager : public Widget {
 	WindowContext real_context;
 
 	Point mouse_pos = Point(0, 0);
