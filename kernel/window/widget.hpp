@@ -97,7 +97,6 @@ public:
 
 struct Window : public Widget {
 	String title;
-	// WidgetPtr drag_child;
 	Point drag_offset = Point(0, 0);
 	bool dragging = false;
 
