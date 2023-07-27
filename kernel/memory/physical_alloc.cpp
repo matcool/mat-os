@@ -5,6 +5,7 @@
 #include <limine/limine.h>
 #include <stl/math.hpp>
 #include <stl/span.hpp>
+#include <stl/units.hpp>
 
 static volatile limine_memmap_request memmap_request = {
 	.id = LIMINE_MEMMAP_REQUEST,
@@ -61,7 +62,9 @@ void debug_print_memmap() {
 			case LIMINE_MEMMAP_KERNEL_AND_MODULES: type = "KERNEL_AND_MODULES"; break;
 			case LIMINE_MEMMAP_FRAMEBUFFER: type = "FRAMEBUFFER"; break;
 		}
-		kdbgln("[{}] - base: {:x} - length: {:x} - type: {}", i, entry->base, entry->length, type);
+		kdbgln(
+			"- base: {:#08x} - length: {} - type: {}", entry->base, units::Bytes(entry->length), type
+		);
 	}
 }
 
@@ -79,7 +82,7 @@ void kernel::alloc::init_physical_allocator() {
 		}
 	}
 
-	kdbgln("In total, there seems to be {} MiB of usable memory", usable_memory / 1024 / 1024);
+	kdbgln("In total, there seems to be {} of usable memory", units::Bytes(usable_memory));
 
 	const auto pages = usable_memory / PAGE_SIZE;
 	// each byte holds 8 bits, each bit representing a page
@@ -118,7 +121,7 @@ void kernel::alloc::init_physical_allocator() {
 		bitmap.set(i + skipped_pages, true);
 	}
 
-	kdbgln("The bitmap array occupies {} KiB of space", bitmap_array_size / 1024);
+	kdbgln("The bitmap array occupies {} of space", units::Bytes(bitmap_array_size));
 }
 
 // both of these implementations are incredibly inefficient, but they should at least work
