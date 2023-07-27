@@ -68,6 +68,8 @@ struct Vec2 {
 
 	Vec2(Type x, Type y) : x(x), y(y) {}
 
+	Vec2() : x(0), y(0) {}
+
 	bool operator==(const Vec2& other) const { return x == other.x && y == other.y; }
 
 	Vec2 operator+(const Vec2& other) const { return Vec2(x + other.x, y + other.y); }
@@ -152,6 +154,8 @@ struct Rect {
 	}
 
 	Rect with_pos(const Point& point) const { return Rect(point, size); }
+
+	Rect reset_pos() const { return with_pos(Point()); }
 };
 
 }
