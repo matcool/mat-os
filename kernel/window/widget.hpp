@@ -36,6 +36,8 @@ public:
 
 	void move_to(const Point& pos);
 
+	void resize(const Point& new_size);
+
 	usize get_child_index(Widget* child) const;
 
 	// Reorders the given child to be the top most one.
@@ -116,12 +118,15 @@ struct Window : public Widget {
 };
 
 struct Button : public Widget {
-	Button(Rect rect) : Widget(rect) {}
+	String m_text;
+
+	Button(Rect rect, String text) : Widget(rect), m_text(text) {}
 
 	bool active = false;
 
 	void draw() override;
 	void on_mouse_down(Point) override;
+	void on_mouse_up(Point) override;
 
 	String debug() override { return "Button"_sv; }
 };

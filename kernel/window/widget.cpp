@@ -170,6 +170,8 @@ void Widget::handle_mouse(Point mouse_pos, bool pressed) {
 }
 
 void Widget::move_to(const Point& pos) {
+	if (!parent) return;
+
 	clip_bounds(false);
 
 	const auto new_window_rect =
@@ -194,6 +196,10 @@ void Widget::move_to(const Point& pos) {
 	parent->paint(dirty_rects.span(), false);
 
 	paint();
+}
+
+void Widget::resize(const Point& new_size) {
+	m_rect.size = new_size;
 }
 
 void Widget::invalidate(const Rect& rect) {
