@@ -10,6 +10,7 @@ void Widget::add_child(WidgetPtr window) {
 	children.push(window);
 	window->parent = this;
 	window->context = context;
+	window->init();
 }
 
 usize Widget::get_child_index(Widget* child) const {

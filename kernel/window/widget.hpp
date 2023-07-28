@@ -34,6 +34,9 @@ public:
 
 	void add_child(WidgetPtr window);
 
+	// This is called after the widget is added to the parent, and things such as the context are set up.
+	virtual void init() {}
+
 	void move_to(const Point& pos);
 
 	void resize(const Point& new_size);
@@ -124,6 +127,7 @@ struct Button : public Widget {
 
 	bool active = false;
 
+	void init() override;
 	void draw() override;
 	void on_mouse_down(Point) override;
 	void on_mouse_up(Point) override;

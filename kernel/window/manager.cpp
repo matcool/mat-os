@@ -103,7 +103,7 @@ void WindowManager::init() {
 	add_child(make_shared<Window>(Rect(20, 20, 300, 200), "with button"_sv));
 	add_child(make_shared<Window>(Rect(100, 150, 400, 400), "with child"_sv));
 	add_child(make_shared<Window>(Rect(200, 100, 200, 600), "long"_sv));
-	children[0]->add_child(make_shared<Button>(Rect(50, 50, -1, -1), "Hello"_sv));
-	children[0]->add_child(make_shared<Button>(Rect(50, 80, -1, -1), "World!"_sv));
+	children[0]->add_child(make_shared<Button>(Rect(50, 50, 0, 0), "Hello"_sv));
+	children[0]->add_child(make_shared<Button>(Rect(50, 80, 0, 0), "World!"_sv));
 	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100), "inner"_sv));
 }
