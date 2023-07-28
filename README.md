@@ -25,7 +25,7 @@ its mat-os again. this time using limine on x86_64 because it does most of the b
 - [X] Drawing to the screen
 - [X] Kernel heap allocator
 - [X] Begin windowing system
-- - [ ] Fix that paint trail bug
+- - [X] Fix that paint trail bug
 - [X] PS/2 mouse input
 - [X] GUI system
 - [ ] A basic in-memory filesystem

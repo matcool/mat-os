@@ -1,3 +1,4 @@
+#include <kernel/log.hpp>
 #include <kernel/screen/terminal_font.hpp>
 #include <kernel/window/context.hpp>
 #include <stl/iterator.hpp>
@@ -70,6 +71,10 @@ void WindowContext::intersect_clip_rect(const Rect& clip) {
 	}
 
 	clip_rects = new_rects;
+
+	// this is noticeably slower for some reason
+	// clip_rects = clip_rects.iter().filter([&](const auto& rect) { return
+	// !rect.intersection(clip).empty(); }).collect_vec();
 }
 
 void WindowContext::clear_clip_rects() {
@@ -77,27 +82,15 @@ void WindowContext::clear_clip_rects() {
 	clip_rects.clear();
 }
 
-void WindowContext::fill_clipped(Rect rect, const Rect& clip, Color color) {
-	rect.pos += offset;
+void WindowContext::fill_clipped(const Rect& rect, const Rect& clip, Color color) {
+	const auto clipped_rect = (rect + offset).intersection(clip);
+	if (clipped_rect.empty()) return;
 
-	if (rect.pos.x < clip.pos.x) {
-		rect.size.width -= clip.pos.x - rect.pos.x;
-		rect.pos.x = clip.pos.x;
-	}
-	if (rect.pos.y < clip.pos.y) {
-		rect.size.height -= clip.pos.y - rect.pos.y;
-		rect.pos.y = clip.pos.y;
-	}
-	if (rect.right() > clip.right()) {
-		rect.size.width -= rect.right() - clip.right();
-	}
-	if (rect.bottom() > clip.bottom()) {
-		rect.size.height -= rect.bottom() - clip.bottom();
-	}
 #if DEBUG_DRAW_RECTS
-	drawn_rects.push(rect);
+	drawn_rects.push(clipped_rect);
 #endif
-	fill_unclipped(rect, color);
+
+	fill_unclipped(clipped_rect, color);
 }
 
 void WindowContext::fill(const Rect& rect, Color color) {

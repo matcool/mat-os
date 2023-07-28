@@ -34,7 +34,7 @@ public:
 	void clear_clip_rects();
 
 	// Draws a rectangle clipped by `clip`.
-	void fill_clipped(Rect rect, const Rect& clip, Color color);
+	void fill_clipped(const Rect& rect, const Rect& clip, Color color);
 
 	// Draws a rectangle, taking into account the clipping rects.
 	void fill(const Rect& rect, Color color);
