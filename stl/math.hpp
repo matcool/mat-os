@@ -114,8 +114,8 @@ struct Rect {
 	}
 
 	bool intersects(const Rect& other) const {
-		return math::max(left(), other.left()) < math::min(right(), other.right()) &&
-			math::max(top(), other.top()) < math::min(bottom(), other.bottom());
+		return left() <= other.right() && right() >= other.left() && top() <= other.bottom() &&
+			bottom() >= other.top();
 	}
 
 	Point top_left() const { return pos; }
