@@ -1,5 +1,6 @@
 #pragma once
 
+#include <kernel/device/ps2.hpp>
 #include <kernel/window/context.hpp>
 #include <stl/iterator.hpp>
 #include <stl/pointer.hpp>
@@ -26,11 +27,15 @@ protected:
 
 	// Child which is currently taking mouse inputs
 	WidgetPtr event_child;
+	// Child which is currently focused, which is the last one that was clicked on. If the last mouse
+	// click was on none of the children, then this is null, indicating that the focus is on ourselves.
+	WidgetPtr focus_child;
 
 public:
 	Widget(Rect rect);
 
 	void handle_mouse(Point mouse_pos, bool pressed);
+	void handle_keyboard(ps2::Key key, bool pressed);
 
 	void add_child(WidgetPtr window);
 
@@ -92,10 +97,15 @@ public:
 	// Draws decoration, such as window borders and title bar. The decorations are drawn first, and are above children.
 	virtual void draw_decoration();
 
-	virtual void on_mouse_down(Point);
-	virtual void on_mouse_up(Point);
-	virtual void on_mouse_move(Point);
-	virtual void on_focus();
+	virtual void on_mouse_down(Point) {}
+
+	virtual void on_mouse_up(Point) {}
+
+	virtual void on_mouse_move(Point) {}
+
+	virtual void on_focus() {}
+
+	virtual void on_key_press(ps2::Key) {}
 
 	virtual String debug() { return "Widget"_sv; }
 };

@@ -123,32 +123,27 @@ void Widget::draw() {
 	context->fill(client_rect(), Color(255, 0, 0));
 }
 
-void Widget::on_mouse_down(Point) {}
-
-void Widget::on_mouse_up(Point) {}
-
-void Widget::on_mouse_move(Point) {}
-
-void Widget::on_focus() {}
-
 void Widget::handle_mouse(Point mouse_pos, bool pressed) {
 	// mouse position relative to the client rect
 	const auto client_mouse_pos = mouse_pos - relative_client_rect().pos;
 
-	// if the client rect does not contain the mouse, then the click is in the widget decoration, so
-	// dont send the event to a child
 	if (pressed && !last_pressed) {
+		focus_child.clear();
+
+		// if the client rect does not contain the mouse, then the click is in the widget
+		// decoration, so dont send the event to a child
 		if (relative_client_rect().contains(mouse_pos)) {
 			// TODO: reverse iterator
 			for (usize i = children.size(); i--;) {
 				auto child = children[i];
-				// TODO: clip with own rect
 				if (child->rect().contains(client_mouse_pos)) {
 					event_child = child;
+					focus_child = child;
 					break;
 				}
 			}
 		}
+
 		// Send on focus event regardless if child will eat mouse events
 		this->on_focus();
 	}
@@ -168,6 +163,14 @@ void Widget::handle_mouse(Point mouse_pos, bool pressed) {
 	if (!pressed) event_child.clear();
 
 	last_pressed = pressed;
+}
+
+void Widget::handle_keyboard(ps2::Key key, bool pressed) {
+	if (focus_child) {
+		focus_child->handle_keyboard(key, pressed);
+	} else if (pressed) {
+		this->on_key_press(key);
+	}
 }
 
 void Widget::move_to(const Point& pos) {

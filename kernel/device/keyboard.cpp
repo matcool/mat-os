@@ -2,7 +2,7 @@
 #include <kernel/device/ps2.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/terminal.hpp>
+#include <kernel/window/manager.hpp>
 #include <stl/string.hpp>
 
 using namespace kernel::ps2;
@@ -51,22 +51,16 @@ void kernel::ps2::handle_keyboard() {
 		const bool pressed = !(byte & 0x80);
 		const auto code = byte & ~0x80;
 
-		const auto key = key_map[code];
+		auto key = key_map[code];
 
 		if (key.kind == KeyKind::Printable) {
 			if (pressed) {
-				char ch = key.ch;
 				if (is_ascii_alpha(key.ch)) {
 					// the character is uppercase by default
-					ch = modifiers.shift != modifiers.caps ? key.ch : to_ascii_lowercase(key.ch);
+					key.ch = modifiers.shift != modifiers.caps ? key.ch : to_ascii_lowercase(key.ch);
 				} else if (modifiers.shift) {
-					ch = apply_shift(key);
+					key.ch = apply_shift(key);
 				}
-				kernel::terminal::type_character(ch);
-			}
-		} else if (key.kind == KeyKind::Enter || key.kind == KeyKind::Backspace) {
-			if (pressed) {
-				kernel::terminal::type_character(key.ch);
 			}
 		} else if (key.kind == KeyKind::LeftCtrl || key.kind == KeyKind::RightCtrl) {
 			modifiers.ctrl = pressed;
@@ -81,6 +75,9 @@ void kernel::ps2::handle_keyboard() {
 		} else {
 			kdbg("({:02x})", byte);
 		}
+
+		if (window::WindowManager::initialized())
+			window::WindowManager::get().handle_keyboard(key, pressed);
 	}
 
 	pic::send_eoi(1);

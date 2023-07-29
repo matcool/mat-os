@@ -19,8 +19,9 @@ class WindowManager : public Widget {
 
 public:
 	static WindowManager& get();
+	static bool initialized();
 
-	void init();
+	void init() override;
 
 	void handle_mouse(Point off, bool pressed);
 

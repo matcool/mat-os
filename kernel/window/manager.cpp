@@ -94,8 +94,15 @@ WindowManager::WindowManager(WindowContext context) :
 	this->context = &real_context;
 }
 
+bool manager_initialized = false;
+
+bool WindowManager::initialized() {
+	return manager_initialized;
+}
+
 WindowManager& WindowManager::get() {
 	static WindowManager instance(kernel::framebuffer::get_framebuffer());
+	manager_initialized = true;
 	return instance;
 }
 
