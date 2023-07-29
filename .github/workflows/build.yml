@@ -1,0 +1,32 @@
+name: Build
+
+on:
+  workflow_dispatch:
+  push:
+    branches: 
+    - limine
+    - limine-workflow
+    
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      
+      - name: Install packages
+        run: sudo apt install -y make gcc xorriso cmake git
+        
+      - name: Setup limine
+        run: ./setup.sh
+
+      - name: Configure CMake
+        run: cmake -B build
+        
+      - name: Build
+        run: cmake --build build
+        
+      - name: Upload built ISO
+        uses: actions/upload-artifact@v3
+        with:
+          name: mat-os
+          path: build/kernel.iso
