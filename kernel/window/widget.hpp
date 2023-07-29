@@ -115,7 +115,7 @@ struct Window : public Widget {
 	Point drag_offset = Point(0, 0);
 	bool dragging = false;
 
-	Window(Rect rect, StringView title = "hello world"_sv) : Widget(rect), title(title) {}
+	Window(Rect rect, StringView title = "hello world"_sv);
 
 	void raise(bool redraw = true);
 

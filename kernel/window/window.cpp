@@ -4,6 +4,13 @@
 
 using namespace kernel::window;
 
+Window::Window(Rect rect, StringView title) :
+	Widget(Rect(
+		rect.pos,
+		rect.size + Point(theme::OUTLINE_WIDTH * 2, theme::OUTLINE_WIDTH * 3 + theme::TITLEBAR_HEIGHT)
+	)),
+	title(title) {}
+
 void Window::draw() {
 	context->fill(client_rect(), theme::WINDOW_COLOR);
 }
