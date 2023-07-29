@@ -20,7 +20,7 @@ its mat-os again. this time using limine on x86_64 because it does most of the b
 - [X] Working timer (PIT)
 - - [ ] Events? Scheduling?
 - [X] Working screen
-- [ ] Basic on screen "terminal"
+- [X] Basic on screen "terminal"
 - - [ ] Proper terminal interface with commands and such
 - [X] Drawing to the screen
 - [X] Kernel heap allocator
