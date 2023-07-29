@@ -1,6 +1,7 @@
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
 #include <kernel/screen/framebuffer.hpp>
+#include <kernel/terminal/terminal.hpp>
 #include <kernel/window/manager.hpp>
 #include <kernel/window/theme.hpp>
 
@@ -113,4 +114,6 @@ void WindowManager::init() {
 	children[0]->add_child(make_shared<Button>(Rect(50, 50, 0, 0), "Hello"_sv));
 	children[0]->add_child(make_shared<Button>(Rect(50, 80, 0, 0), "World!"_sv));
 	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100), "inner"_sv));
+
+	add_child(make_shared<terminal::TerminalWindow>(Point(100, 100)));
 }

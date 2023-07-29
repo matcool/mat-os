@@ -23,6 +23,7 @@ add_executable(kernel
 	window/widget.cpp
 	window/window.cpp
 	window/button.cpp
+	terminal/terminal.cpp
 )
 
 target_link_libraries(kernel limine stl)
