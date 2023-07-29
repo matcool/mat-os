@@ -5,26 +5,7 @@
 #include <kernel/screen/terminal.hpp>
 #include <stl/string.hpp>
 
-enum class KeyKind {
-	Other,
-	Printable,
-
-	Escape,
-	Enter,
-	Backspace,
-	CapsLock,
-	Left,
-	Right,
-	Up,
-	Down,
-
-	LeftCtrl,
-	RightCtrl,
-	LeftShift,
-	RightShift,
-	LeftAlt,
-	RightAlt
-};
+using namespace kernel::ps2;
 
 struct Modifiers {
 	bool ctrl = false;
@@ -32,11 +13,6 @@ struct Modifiers {
 	bool alt = false;
 	bool caps = false;
 } modifiers;
-
-struct Key {
-	KeyKind kind = KeyKind::Other;
-	char ch = 0;
-};
 
 Key key_map[256];
 

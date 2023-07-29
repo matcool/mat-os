@@ -26,4 +26,30 @@ void init_mouse();
 
 void handle_mouse();
 
+enum class KeyKind {
+	Other,
+	Printable,
+
+	Escape,
+	Enter,
+	Backspace,
+	CapsLock,
+	Left,
+	Right,
+	Up,
+	Down,
+
+	LeftCtrl,
+	RightCtrl,
+	LeftShift,
+	RightShift,
+	LeftAlt,
+	RightAlt
+};
+
+struct Key {
+	KeyKind kind = KeyKind::Other;
+	char ch = 0;
+};
+
 }
