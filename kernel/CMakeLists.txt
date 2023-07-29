@@ -17,7 +17,6 @@ add_executable(kernel
 	device/pit.cpp
 	device/mouse.cpp
 	screen/framebuffer.cpp
-	screen/terminal.cpp
 	screen/canvas.cpp
 	window/manager.cpp
 	window/context.cpp

@@ -1,6 +1,8 @@
 // font made by @raicool
 // https://github.com/raicool
-static const unsigned char terminal_font[128][10] = {
+static constexpr unsigned int PIXEL_FONT_WIDTH = 7;
+static constexpr unsigned int PIXEL_FONT_HEIGHT = 10;
+static constexpr unsigned char PIXEL_FONT[128][PIXEL_FONT_HEIGHT] = {
 	{ 0 },
 	{ 0 },
 	{ 0 },

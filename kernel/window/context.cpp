@@ -1,5 +1,5 @@
+#include <kernel/font.hpp>
 #include <kernel/log.hpp>
-#include <kernel/screen/terminal_font.hpp>
 #include <kernel/window/context.hpp>
 #include <stl/iterator.hpp>
 
@@ -114,11 +114,12 @@ void WindowContext::draw_rect_outline(const Rect& rect, i32 width, Color color) 
 }
 
 void WindowContext::draw_char_clipped(char ch, const Point& pos, const Rect& clip, Color color) {
-	const auto char_rect = Rect(Point(0, 0), Point(7, 10)).intersection(clip - offset - pos);
+	const auto char_rect =
+		Rect(Point(0, 0), Point(PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT)).intersection(clip - offset - pos);
 	if (char_rect.empty()) return;
 
 	for (auto y : iterators::range(char_rect.top(), char_rect.bottom() + 1)) {
-		const auto row = terminal_font[ch][y];
+		const auto row = PIXEL_FONT[static_cast<usize>(ch)][y];
 		for (auto x : iterators::range(char_rect.left(), char_rect.right() + 1)) {
 			if (math::get_bit(row, x)) this->set(x + offset.x + pos.x, y + offset.y + pos.y, color);
 		}
@@ -141,9 +142,9 @@ Rect WindowContext::draw_text(StringView str, const Point& pos, Color color) {
 		draw_char(c, pos + offset, color);
 		offset.x += 7;
 	}
-	return Rect(pos, Point(offset.x, 10));
+	return Rect(pos, Point(offset.x, PIXEL_FONT_HEIGHT));
 }
 
 Point WindowContext::calculate_text_area(StringView str) {
-	return Point(str.size() * 7, 10);
+	return Point(str.size() * PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT);
 }
