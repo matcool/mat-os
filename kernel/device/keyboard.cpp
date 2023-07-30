@@ -72,7 +72,7 @@ void kernel::ps2::handle_keyboard() {
 			if (pressed) {
 				modifiers.caps = !modifiers.caps;
 			}
-		} else {
+		} else if (key.kind == KeyKind::Other && key.ch == 0) {
 			kdbg("({:02x})", byte);
 		}
 
