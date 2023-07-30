@@ -26,9 +26,12 @@ its mat-os again. this time using limine on x86_64 because it does most of the b
 - [X] Kernel heap allocator
 - [X] Begin windowing system
 - - [X] Fix that paint trail bug
+- - [ ] Proper GUI system
 - [X] PS/2 mouse input
-- [X] GUI system
+- [ ] Threads
+- [ ] Processes
 - [ ] A basic in-memory filesystem
+- [ ] Begin user-space
 
 ### Apps
 - [ ] Use ELF for apps?
