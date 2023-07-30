@@ -49,7 +49,6 @@ Rect Window::relative_client_rect() const {
 }
 
 void Window::on_mouse_down(Point p) {
-	kdbgln("Window::on_mouse_down {},{} - {}", p.x, p.y, title);
 	if (p.y < 30) {
 		dragging = true;
 		drag_offset = p;
@@ -57,8 +56,7 @@ void Window::on_mouse_down(Point p) {
 	return;
 }
 
-void Window::on_mouse_up(Point p) {
-	kdbgln("Window::on_mouse_up {},{} - {}", p.x, p.y, title);
+void Window::on_mouse_up(Point) {
 	dragging = false;
 	return;
 }
