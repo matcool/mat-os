@@ -16,7 +16,7 @@ extern "C" void kernel_init() {
 
 	kdbgln("Booting up...");
 
-	idt::init();
+	interrupt::init();
 
 	paging::init();
 
