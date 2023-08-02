@@ -37,7 +37,9 @@ struct IDTEntry {
 	// last 3 bits should be 0, since i want to use the GDT and be on ring 0
 	IDTEntry(const void* address) : IDTEntry(address, 0b101'000, 0, GateType::Interrupt) {}
 
-	IDTEntry() : IDTEntry(nullptr) {}
+	IDTEntry(void (*func)()) : IDTEntry(reinterpret_cast<void*>(func)) {}
+
+	IDTEntry() : IDTEntry(static_cast<const void*>(nullptr)) {}
 };
 
 static IDTEntry idt_table[256];
@@ -208,28 +210,29 @@ void kernel::interrupt::init() {
 		idt_table[i] = IDTEntry();
 	}
 
-	([]<u64... Values> {
-		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<Values>))),
-		 ...);
-	})
-		.
-		operator()<0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16>();
+#define REMOVE_PARENS(...) __VA_ARGS__
+#define CONST_FOR_EACH(var, expr, values) \
+	([]<auto... var> { ((expr), ...); }).operator()<REMOVE_PARENS values>()
 
-	([]<u64... Values> {
-		((idt_table[Values] = IDTEntry(reinterpret_cast<void*>(&raw_interrupt_error_handler<Values>))),
-		 ...);
-	})
-		.
-		operator()<8, 10, 11, 12, 13, 14>();
+	CONST_FOR_EACH(
+		number,
+		idt_table[number] = IDTEntry(&raw_interrupt_handler<number>),
+		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16)
+	);
+
+	CONST_FOR_EACH(
+		number,
+		idt_table[number] = IDTEntry(&raw_interrupt_error_handler<number>),
+		(8, 10, 11, 12, 13, 14)
+	);
 
 	// setup handlers for IRQs
-	([]<u64... Values> {
-		((idt_table[PIC_IRQ_OFFSET + Values] =
-		      IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<PIC_IRQ_OFFSET + Values>))),
-		 ...);
-	})
-		.
-		operator()<0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15>();
+	CONST_FOR_EACH(
+		number,
+		idt_table[PIC_IRQ_OFFSET + number] =
+			IDTEntry(&raw_interrupt_handler<PIC_IRQ_OFFSET + number>),
+		(0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15)
+	);
 
 	idt_register.size = sizeof(idt_table) - 1;
 	idt_register.addr = &idt_table[0];
