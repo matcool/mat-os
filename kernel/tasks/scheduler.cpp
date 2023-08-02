@@ -22,23 +22,7 @@ void kernel::tasks::yield_thread() {
 	asm volatile("int %0;" : : "i"(SYSCALL_INTERRUPT_N));
 }
 
-void thread1_func() {
-	while (true) {
-		// kdbgln("hello from thread 1");
-		yield_thread();
-	}
-	halt(false);
-}
-
-void thread2_func() {
-	while (true) {
-		// kdbgln("hello from thread 2");
-		yield_thread();
-	}
-	halt(false);
-}
-
-void thread3_func() {
+void screen_thread() {
 	kernel::framebuffer::loop();
 }
 
@@ -55,9 +39,7 @@ Thread create_thread(usize stack_pages, void (*function)()) {
 }
 
 void Scheduler::init() {
-	m_threads.push(create_thread(1, &thread1_func));
-	m_threads.push(create_thread(1, &thread2_func));
-	m_threads.push(create_thread(3, &thread3_func));
+	m_threads.push(create_thread(3, &screen_thread));
 	::initialized = true;
 	yield_thread(); // jump into the scheduler interrupt
 }
@@ -78,6 +60,7 @@ void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 	auto& next_thread = m_threads[next_index];
 	// silly
 	if (next_thread.first_time) {
+		// copy it because i dont know what it should be :P
 		next_thread.state.cs = kernel_init_state.cs;
 		next_thread.state.rflags = 0b1000000000; // interrupt enable flag
 		next_thread.first_time = false;
