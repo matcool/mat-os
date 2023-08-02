@@ -4,6 +4,7 @@
 #include <kernel/idt.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
+#include <kernel/tasks/scheduler.hpp>
 #include <stl/types.hpp>
 
 using namespace kernel::interrupt;
@@ -131,7 +132,9 @@ static StringView get_interrupt_name(u64 idx) {
 // regs - rdx
 static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs) {
 	if (which < kernel::PIC_IRQ_OFFSET) {
-		kdbgln("[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code);
+		kdbgln(
+			"\n[INT] ({:#x}) {}, with error code {:#x}", which, get_interrupt_name(which), error_code
+		);
 		const auto id = static_cast<InterruptId>(which);
 		if (id == InterruptId::PageFault) {
 			kdbgln(
@@ -152,6 +155,9 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		kdbgln("rip - {:#x}", regs->rip);
 		kdbgln("rsp - {:#x}", regs->rsp);
 		halt();
+	} else if (which == kernel::tasks::SYSCALL_INTERRUPT_N) {
+		if (kernel::tasks::Scheduler::initialized())
+			kernel::tasks::Scheduler::get().handle_interrupt(regs);
 	} else {
 		if (which == kernel::PIC_IRQ_OFFSET + 0) {
 			kernel::pit::handle_interrupt();
@@ -161,7 +167,7 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 			kernel::ps2::handle_mouse();
 		} else {
 			kdbgln(
-				"[INT] ({:#x}) Unknown IRQ {}, error code {:#x}",
+				"\n[INT] ({:#x}) Unknown IRQ {}, error code {:#x}",
 				which,
 				which - kernel::PIC_IRQ_OFFSET,
 				error_code
@@ -217,7 +223,7 @@ void kernel::interrupt::init() {
 	CONST_FOR_EACH(
 		number,
 		idt_table[number] = IDTEntry(&raw_interrupt_handler<number>),
-		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16)
+		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16, tasks::SYSCALL_INTERRUPT_N)
 	);
 
 	CONST_FOR_EACH(

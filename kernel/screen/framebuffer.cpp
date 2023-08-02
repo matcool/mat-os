@@ -2,6 +2,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
 #include <kernel/screen/framebuffer.hpp>
+#include <kernel/tasks/scheduler.hpp>
 #include <kernel/window/manager.hpp>
 #include <limine/limine.h>
 #include <stl/memory.hpp>
@@ -60,5 +61,6 @@ void kernel::framebuffer::loop() {
 		get_screen_framebuffer().paste(get_framebuffer(), 0, 0);
 #endif
 		sleep(8);
+		kernel::tasks::yield_thread();
 	}
 }
