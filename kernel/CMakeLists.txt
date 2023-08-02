@@ -24,6 +24,7 @@ add_executable(kernel
 	window/window.cpp
 	window/button.cpp
 	terminal/terminal.cpp
+	tasks/scheduler.cpp
 )
 
 target_link_libraries(kernel limine stl)

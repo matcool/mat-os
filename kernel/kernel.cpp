@@ -8,6 +8,7 @@
 #include <kernel/memory/paging.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/serial.hpp>
+#include <kernel/tasks/scheduler.hpp>
 
 using namespace kernel;
 
@@ -30,5 +31,7 @@ extern "C" void kernel_init() {
 
 	kdbgln("Finished initialization");
 
-	framebuffer::loop();
+	tasks::Scheduler::get().init();
+
+	halt(false);
 }
