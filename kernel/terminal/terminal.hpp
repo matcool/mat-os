@@ -1,28 +1,30 @@
 #pragma once
 
-#include <kernel/window/widget.hpp>
-#include <stl/vector.hpp>
+#include <stl/format.hpp>
+#include <stl/string.hpp>
 
 namespace kernel::terminal {
 
-class TerminalWindow : public window::Window {
-	Vector<char> m_buffer;
-	usize m_columns = 0;
-	usize m_rows = 0;
-	usize m_row = 0, m_column = 0;
-	usize m_offset = 0;
+struct TerminalClient {
+	virtual void put(char ch) = 0;
+};
 
-	char& char_at(usize col, usize row);
-	void invalidate_at(usize col, usize row);
+class Terminal {
+	TerminalClient* m_client = nullptr;
+
+	void show_prompt();
+
+	template <class... Args>
+	void fmt(StringView str, const Args&... args) {
+		format_to([this](char ch) { m_client->put(ch); }, str, args...);
+	}
 
 public:
-	TerminalWindow(const window::Point& pos, usize cols = 60, usize rows = 20);
+	Terminal(TerminalClient*);
 
-	void draw() override;
-	void on_key_press(ps2::Key) override;
+	void handle_input(StringView str);
 
-	void append(char ch);
-	void next_line();
+	void init();
 };
 
 }

@@ -1,7 +1,7 @@
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
 #include <kernel/screen/framebuffer.hpp>
-#include <kernel/terminal/terminal.hpp>
+#include <kernel/terminal/window.hpp>
 #include <kernel/window/manager.hpp>
 #include <kernel/window/theme.hpp>
 

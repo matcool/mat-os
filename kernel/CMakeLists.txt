@@ -23,6 +23,7 @@ add_executable(kernel
 	window/widget.cpp
 	window/window.cpp
 	window/button.cpp
+	terminal/window.cpp
 	terminal/terminal.cpp
 	tasks/scheduler.cpp
 )
