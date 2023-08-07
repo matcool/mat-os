@@ -22,7 +22,8 @@ class SharedPtr {
 	struct ControlBlock : STL_NS_IMPL::BaseControlBlock {
 		Type value;
 
-		ControlBlock(Type value) : value(value) {}
+		template <class... Args>
+		ControlBlock(Args&&... args) : value(forward<Args>(args)...) {}
 
 		void* get_value() const override { return const_cast<Type*>(&value); }
 	};
@@ -104,7 +105,8 @@ public:
 
 template <class Type, class... Args>
 SharedPtr<Type> make_shared(Args&&... args) {
-	return SharedPtr<Type>(new typename SharedPtr<Type>::ControlBlock(Type(forward<Args>(args)...)));
+	using Block = typename SharedPtr<Type>::ControlBlock;
+	return SharedPtr<Type>(new Block(forward<Args>(args)...));
 }
 
 }
