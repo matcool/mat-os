@@ -5,6 +5,7 @@ add_executable(kernel
 	kernel.cpp
 	cxa.cpp
 	idt.cpp
+	modules.cpp
 	memory/physical_alloc.cpp
 	memory/paging.cpp
 	memory/virtual_alloc.cpp
@@ -23,10 +24,10 @@ add_executable(kernel
 	window/widget.cpp
 	window/window.cpp
 	window/button.cpp
+	window/qoi.cpp
 	terminal/window.cpp
 	terminal/terminal.cpp
 	tasks/scheduler.cpp
-	modules.cpp
 )
 
 target_link_libraries(kernel limine stl)
