@@ -35,17 +35,17 @@ static void cut_out_rect(Vector<Rect>& out, Rect target, const Rect& cut) {
 }
 
 void WindowContext::subtract_clip_rect(const Rect& rect) {
-	should_clip = true;
-	for (usize i = 0; i < clip_rects.size();) {
-		if (!clip_rects[i].intersects(rect)) {
+	m_should_clip = true;
+	for (usize i = 0; i < m_clip_rects.size();) {
+		if (!m_clip_rects[i].intersects(rect)) {
 			++i;
 			continue;
 		}
 
 		// new rectangle intersects existing one, needs to be split
-		const auto target = clip_rects[i];
-		clip_rects.remove(i);
-		cut_out_rect(clip_rects, target, rect);
+		const auto target = m_clip_rects[i];
+		m_clip_rects.remove(i);
+		cut_out_rect(m_clip_rects, target, rect);
 
 		// reiterate because of the new rects..
 		i = 0;
@@ -54,23 +54,23 @@ void WindowContext::subtract_clip_rect(const Rect& rect) {
 
 void WindowContext::add_clip_rect(const Rect& rect) {
 	// make space for it first
-	subtract_clip_rect(rect);
+	this->subtract_clip_rect(rect);
 	// then add it
-	clip_rects.push(rect);
+	m_clip_rects.push(rect);
 }
 
 void WindowContext::intersect_clip_rect(const Rect& clip) {
-	should_clip = true;
+	m_should_clip = true;
 	Vector<Rect> new_rects;
 
-	for (const auto& rect : clip_rects) {
+	for (const auto& rect : m_clip_rects) {
 		const auto intersection = rect.intersection(clip);
 		if (!intersection.empty()) {
 			new_rects.push(intersection);
 		}
 	}
 
-	clip_rects = new_rects;
+	m_clip_rects = new_rects;
 
 	// this is noticeably slower for some reason
 	// clip_rects = clip_rects.iter().filter([&](const auto& rect) { return
@@ -78,68 +78,69 @@ void WindowContext::intersect_clip_rect(const Rect& clip) {
 }
 
 void WindowContext::clear_clip_rects() {
-	should_clip = false;
-	clip_rects.clear();
+	m_should_clip = false;
+	m_clip_rects.clear();
 }
 
 void WindowContext::fill_clipped(const Rect& rect, const Rect& clip, Color color) {
-	const auto clipped_rect = (rect + offset).intersection(clip);
+	const auto clipped_rect = (rect + m_offset).intersection(clip);
 	if (clipped_rect.empty()) return;
 
 #if DEBUG_DRAW_RECTS
 	drawn_rects.push(clipped_rect);
 #endif
 
-	fill_unclipped(clipped_rect, color);
+	this->fill_unclipped(clipped_rect, color);
 }
 
 void WindowContext::fill(const Rect& rect, Color color) {
-	if (clip_rects) {
-		for (const auto& clip : clip_rects) {
-			fill_clipped(rect, clip, color);
+	if (m_clip_rects) {
+		for (const auto& clip : m_clip_rects) {
+			this->fill_clipped(rect, clip, color);
 		}
-	} else if (!should_clip) {
-		fill_unclipped(rect + offset, color);
+	} else if (!m_should_clip) {
+		this->fill_unclipped(rect + m_offset, color);
 	}
 }
 
 void WindowContext::draw_rect_outline(const Rect& rect, i32 width, Color color) {
 	const auto off_x = Point(width - 1, 0);
 	const auto off_y = Point(0, width - 1);
-	fill(Rect::from_corners(rect.top_left(), rect.top_right() + off_y), color);
-	fill(Rect::from_corners(rect.bot_left() - off_y, rect.bot_right()), color);
+	this->fill(Rect::from_corners(rect.top_left(), rect.top_right() + off_y), color);
+	this->fill(Rect::from_corners(rect.bot_left() - off_y, rect.bot_right()), color);
 
-	fill(Rect::from_corners(rect.top_left(), rect.bot_left() + off_x), color);
-	fill(Rect::from_corners(rect.top_right() - off_x, rect.bot_right()), color);
+	this->fill(Rect::from_corners(rect.top_left(), rect.bot_left() + off_x), color);
+	this->fill(Rect::from_corners(rect.top_right() - off_x, rect.bot_right()), color);
 }
 
 void WindowContext::draw_char_clipped(char ch, const Point& pos, const Rect& clip, Color color) {
-	const auto char_rect =
-		Rect(Point(0, 0), Point(PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT)).intersection(clip - offset - pos);
+	const auto char_rect = Rect(Point(0, 0), Point(PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT))
+							   .intersection(clip - m_offset - pos);
 	if (char_rect.empty()) return;
 
 	for (auto y : iterators::range(char_rect.top(), char_rect.bottom() + 1)) {
 		const auto row = PIXEL_FONT[static_cast<usize>(ch)][y];
 		for (auto x : iterators::range(char_rect.left(), char_rect.right() + 1)) {
-			if (math::get_bit(row, x)) this->set(x + offset.x + pos.x, y + offset.y + pos.y, color);
+			if (math::get_bit(row, x))
+				this->set(x + m_offset.x + pos.x, y + m_offset.y + pos.y, color);
 		}
 	}
 }
 
 void WindowContext::draw_char(char ch, const Point& pos, Color color) {
-	if (clip_rects) {
-		for (const auto& clip : clip_rects) {
-			draw_char_clipped(ch, pos, clip, color);
+	if (m_clip_rects) {
+		for (const auto& clip : m_clip_rects) {
+			this->draw_char_clipped(ch, pos, clip, color);
 		}
-	} else if (!should_clip) {
-		draw_char_clipped(ch, pos, Rect(0, 0, width(), height()), color);
+	} else if (!m_should_clip) {
+		this->draw_char_clipped(ch, pos, Rect(0, 0, width(), height()), color);
 	}
 }
 
 Rect WindowContext::draw_text(StringView str, const Point& pos, Color color) {
 	Point offset(0, 0);
 	for (char c : str) {
-		draw_char(c, pos + offset, color);
+		this->draw_char(c, pos + offset, color);
 		offset.x += 7;
 	}
 	return Rect(pos, Point(offset.x, PIXEL_FONT_HEIGHT));

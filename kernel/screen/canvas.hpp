@@ -86,6 +86,6 @@ public:
 			rect.pos.y = 0;
 		}
 		if (rect.size.width < 0 || rect.size.height < 0) return;
-		fill(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height, color);
+		this->fill(rect.pos.x, rect.pos.y, rect.size.width, rect.size.height, color);
 	}
 };

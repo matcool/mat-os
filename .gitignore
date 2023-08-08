@@ -1,5 +1,4 @@
-/limine
-/ovmf
+limine/
 *.iso
 *.hdd
 build/

@@ -26,52 +26,53 @@ void PageTableEntry::set_addr(PhysicalAddress addr) {
 }
 
 PageTableEntry* PageTableEntry::follow() const {
-	return reinterpret_cast<PageTableEntry*>(addr().to_virtual().ptr());
+	return reinterpret_cast<PageTableEntry*>(this->addr().to_virtual().ptr());
 }
 
 bool PageTableEntry::is_present() const {
-	return get_bit(0);
+	return this->get_bit(0);
 }
 
 void PageTableEntry::set_present(bool value) {
-	set_bit(0, value);
+	this->set_bit(0, value);
 }
 
 bool PageTableEntry::is_writable() const {
-	return get_bit(1);
+	return this->get_bit(1);
 }
 
 void PageTableEntry::set_writable(bool value) {
-	set_bit(1, value);
+	this->set_bit(1, value);
 }
 
 bool PageTableEntry::is_user() const {
-	return get_bit(2);
+	return this->get_bit(2);
 }
 
 void PageTableEntry::set_user(bool value) {
-	set_bit(2, value);
+	this->set_bit(2, value);
 }
 
 bool PageTableEntry::is_ps() const {
-	return get_bit(7);
+	return this->get_bit(7);
 }
 
 void PageTableEntry::set_ps(bool value) {
-	set_bit(7, value);
+	this->set_bit(7, value);
 }
 
 bool PageTableEntry::is_execution_disabled() const {
-	return get_bit(63);
+	return this->get_bit(63);
 }
 
 void PageTableEntry::set_execution_disabled(bool value) {
-	set_bit(63, value);
+	this->set_bit(63, value);
 }
 
 u16 PageTableEntry::get_available() const {
 	// leave out last bit as it can be the Dirty bit for PT entries
-	return (value() >> 47 & 0b1111111111100000) | (value() >> 7 & 0b11110); // | (value() >> 6 & 1);
+	return (this->value() >> 47 & 0b1111111111100000) |
+		(this->value() >> 7 & 0b11110); // | (value() >> 6 & 1);
 }
 
 void PageTableEntry::set_available(u16 value) {

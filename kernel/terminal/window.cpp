@@ -28,12 +28,12 @@ char& TerminalWindow::char_at(usize col, usize row) {
 }
 
 void TerminalWindow::draw() {
-	context->fill(client_rect(), Color(0, 0, 0));
+	m_context->fill(this->client_rect(), Color(0, 0, 0));
 	for (usize j = 0; j < m_rows; ++j) {
 		for (usize i = 0; i < m_columns; ++i) {
 			const char ch = this->char_at(i, j);
 			if (ch == '\0') continue;
-			context->draw_char(
+			m_context->draw_char(
 				ch, Point(i * PIXEL_FONT_WIDTH, j * PIXEL_FONT_HEIGHT), Color(255, 255, 255)
 			);
 		}
@@ -62,14 +62,14 @@ void TerminalWindow::append(char ch) {
 			--m_row;
 		}
 		if (m_column) --m_column;
-		char_at(m_column, m_row) = '\0';
-		invalidate_at(m_column, m_row);
+		this->char_at(m_column, m_row) = '\0';
+		this->invalidate_at(m_column, m_row);
 		return;
 	}
 	if (m_column == m_columns) this->next_line();
 
-	char_at(m_column, m_row) = ch;
-	invalidate_at(m_column, m_row);
+	this->char_at(m_column, m_row) = ch;
+	this->invalidate_at(m_column, m_row);
 	m_column++;
 }
 
@@ -84,10 +84,10 @@ void TerminalWindow::next_line() {
 	m_column = 0;
 	if (m_row == m_rows - 1) {
 		for (usize i = 0; i < m_columns; ++i) {
-			char_at(i, 0) = '\0';
+			this->char_at(i, 0) = '\0';
 		}
 		m_offset += m_columns;
-		this->invalidate(relative_client_rect());
+		this->invalidate(this->relative_client_rect());
 	} else {
 		m_row++;
 	}

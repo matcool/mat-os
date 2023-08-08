@@ -18,18 +18,18 @@ class Widget {
 	Rect m_rect;
 
 protected:
-	WindowContext* context = nullptr;
+	WindowContext* m_context = nullptr;
 
-	Widget* parent = nullptr;
-	Vector<WidgetPtr> children;
+	Widget* m_parent = nullptr;
+	Vector<WidgetPtr> m_children;
 
-	bool last_pressed = false;
+	bool m_last_pressed = false;
 
 	// Child which is currently taking mouse inputs
-	WidgetPtr event_child;
+	WidgetPtr m_event_child;
 	// Child which is currently focused, which is the last one that was clicked on. If the last mouse
 	// click was on none of the children, then this is null, indicating that the focus is on ourselves.
-	WidgetPtr focus_child;
+	WidgetPtr m_focus_child;
 
 public:
 	Widget(Rect rect);
@@ -54,14 +54,14 @@ public:
 
 	// Returns an iterator of all windows above this one.
 	auto iter_windows_above() {
-		const auto index = parent->get_child_index(this);
-		return parent->children.iter().skip(index + 1);
+		const auto index = m_parent->get_child_index(this);
+		return m_parent->m_children.iter().skip(index + 1);
 	}
 
 	// Returns an iterator of all windows below this one.
 	auto iter_windows_below() {
-		const auto index = parent->get_child_index(this);
-		return parent->children.iter().take(index);
+		const auto index = m_parent->get_child_index(this);
+		return m_parent->m_children.iter().take(index);
 	}
 
 	// Invalidates a portion of the window, so it can be painted onto the screen.
@@ -110,11 +110,12 @@ public:
 	virtual String debug() { return "Widget"_sv; }
 };
 
-struct Window : public Widget {
-	String title;
-	Point drag_offset = Point(0, 0);
-	bool dragging = false;
+class Window : public Widget {
+	String m_title;
+	Point m_drag_offset = Point(0, 0);
+	bool m_dragging = false;
 
+public:
 	Window(Rect rect, StringView title = "hello world"_sv);
 
 	void raise(bool redraw = true);
@@ -130,9 +131,10 @@ struct Window : public Widget {
 	String debug() override { return "Window"_sv; }
 };
 
-struct Button : public Widget {
+class Button : public Widget {
 	String m_text;
 
+public:
 	Button(Rect rect, String text) : Widget(rect), m_text(text) {}
 
 	bool active = false;

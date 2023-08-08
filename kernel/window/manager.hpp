@@ -7,13 +7,13 @@ namespace kernel::window {
 
 // The window manager, which holds all windows
 class WindowManager : public Widget {
-	WindowContext real_context;
+	WindowContext m_real_context;
 
-	Point mouse_pos = Point(0, 0);
+	Point m_mouse_pos = Point(0, 0);
 	// Last position the mouse was rendered
-	Point prev_mouse_pos = Point(0, 0);
+	Point m_prev_mouse_pos = Point(0, 0);
 
-	u64 last_render = 0;
+	u64 m_last_render = 0;
 
 	WindowManager(WindowContext context);
 
@@ -25,9 +25,9 @@ public:
 
 	void handle_mouse(Point off, bool pressed);
 
-	auto width() const { return real_context.width(); }
+	auto width() const { return m_real_context.width(); }
 
-	auto height() const { return real_context.height(); }
+	auto height() const { return m_real_context.height(); }
 
 	void draw() override;
 	void draw_mouse();

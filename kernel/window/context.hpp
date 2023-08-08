@@ -14,9 +14,9 @@ using Point = math::Vec2<i32>;
 using Rect = math::Rect<i32>;
 
 class WindowContext : public Canvas {
-	Vector<Rect> clip_rects;
-	Point offset = Point(0, 0);
-	bool should_clip = false;
+	Vector<Rect> m_clip_rects;
+	Point m_offset = Point(0, 0);
+	bool m_should_clip = false;
 
 public:
 	WindowContext(const Canvas& canvas) : Canvas(canvas) {}
@@ -58,9 +58,9 @@ public:
 	// Calculates the area the text would take up.
 	Point calculate_text_area(StringView str);
 
-	void set_offset(const Point& point) { offset = point; }
+	void set_offset(const Point& point) { m_offset = point; }
 
-	auto get_clip_rects() const { return clip_rects; }
+	auto get_clip_rects() const { return m_clip_rects; }
 
 #if DEBUG_DRAW_RECTS
 	Vector<Rect> drawn_rects;

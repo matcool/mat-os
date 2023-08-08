@@ -9,29 +9,29 @@ Window::Window(Rect rect, StringView title) :
 		rect.pos,
 		rect.size + Point(theme::OUTLINE_WIDTH * 2, theme::OUTLINE_WIDTH * 3 + theme::TITLEBAR_HEIGHT)
 	)),
-	title(title) {}
+	m_title(title) {}
 
 void Window::draw() {
-	context->fill(client_rect(), theme::WINDOW_COLOR);
+	m_context->fill(client_rect(), theme::WINDOW_COLOR);
 }
 
 void Window::draw_decoration() {
-	context->draw_rect_outline(
+	m_context->draw_rect_outline(
 		rect().with_pos(Point(0, 0)), theme::OUTLINE_WIDTH, theme::OUTLINE_COLOR
 	);
 
 	const auto outline_offset = Point(theme::OUTLINE_WIDTH, theme::OUTLINE_WIDTH);
 
 	// the title bar
-	context->fill(
+	m_context->fill(
 		Rect(outline_offset, Point(rect().size.width - theme::OUTLINE_WIDTH * 2, theme::TITLEBAR_HEIGHT)),
 		theme::TITLEBAR_COLOR
 	);
 
-	context->draw_text(title, outline_offset + Point(5, 5), theme::TITLE_TEXT_COLOR);
+	m_context->draw_text(m_title, outline_offset + Point(5, 5), theme::TITLE_TEXT_COLOR);
 
 	// outline below the title bar
-	context->fill(
+	m_context->fill(
 		Rect(
 			Point(0, theme::OUTLINE_WIDTH + theme::TITLEBAR_HEIGHT),
 			Point(rect().size.width, theme::OUTLINE_WIDTH)
@@ -50,19 +50,19 @@ Rect Window::relative_client_rect() const {
 
 void Window::on_mouse_down(Point p) {
 	if (p.y < 30) {
-		dragging = true;
-		drag_offset = p;
+		m_dragging = true;
+		m_drag_offset = p;
 	}
 	return;
 }
 
 void Window::on_mouse_up(Point) {
-	dragging = false;
+	m_dragging = false;
 	return;
 }
 
 void Window::on_mouse_move(Point p) {
-	if (dragging) this->move_to(rect().pos + p - drag_offset);
+	if (m_dragging) this->move_to(rect().pos + p - m_drag_offset);
 	return;
 }
 
@@ -71,9 +71,9 @@ void Window::on_focus() {
 }
 
 void Window::raise(bool redraw) {
-	if (!parent) return;
+	if (!m_parent) return;
 
-	parent->reorder_child_top(this);
+	m_parent->reorder_child_top(this);
 
 	if (redraw) this->paint();
 }

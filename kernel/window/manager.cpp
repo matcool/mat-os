@@ -8,7 +8,7 @@
 using namespace kernel::window;
 
 void WindowManager::draw() {
-	context->fill(client_rect(), theme::DESKTOP_COLOR);
+	m_context->fill(this->client_rect(), theme::DESKTOP_COLOR);
 }
 
 #if DEBUG_DRAW_RECTS
@@ -38,17 +38,17 @@ void WindowManager::draw_debug(Canvas* canvas) {
 #endif
 
 void WindowManager::handle_mouse(Point off, bool pressed) {
-	mouse_pos.x = math::clamp(mouse_pos.x + off.x, 0, width());
-	mouse_pos.y = math::clamp(mouse_pos.y + off.y, 0, height());
+	m_mouse_pos.x = math::clamp(m_mouse_pos.x + off.x, 0, width());
+	m_mouse_pos.y = math::clamp(m_mouse_pos.y + off.y, 0, height());
 
 	// mouse interrupts happen way too often, and end up lagging
 	// window dragging even with our optimized system, so limit it
 	// to every 2ms (500fps)
-	if (kernel::pit::get_ticks() - last_render > 2) {
-		Widget::handle_mouse(mouse_pos, pressed);
-		last_render = kernel::pit::get_ticks();
-		draw_mouse();
-		prev_mouse_pos = mouse_pos;
+	if (kernel::pit::get_ticks() - m_last_render > 2) {
+		Widget::handle_mouse(m_mouse_pos, pressed);
+		m_last_render = kernel::pit::get_ticks();
+		this->draw_mouse();
+		m_prev_mouse_pos = m_mouse_pos;
 #if DEBUG_DRAW_RECTS
 		if (pressed) context->drawn_rects.push(Rect(0, 0, 0, 0));
 #endif
@@ -83,16 +83,16 @@ u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
 
 void WindowManager::draw_mouse() {
 	Canvas mouse_canvas(mouse_sprite, MOUSE_WIDTH, MOUSE_HEIGHT);
-	const auto old_mouse_rect = Rect(prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
+	const auto old_mouse_rect = Rect(m_prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
 	Widget::paint(Span(&old_mouse_rect, 1), true);
-	context->paste_alpha_masked(mouse_canvas, mouse_pos.x, mouse_pos.y);
+	m_context->paste_alpha_masked(mouse_canvas, m_mouse_pos.x, m_mouse_pos.y);
 }
 
 WindowManager::WindowManager(WindowContext context) :
-	Widget(Rect(0, 0, context.width(), context.height())), real_context(context) {
-	mouse_pos = rect().mid_point();
+	Widget(Rect(0, 0, context.width(), context.height())), m_real_context(context) {
+	m_mouse_pos = this->rect().mid_point();
 	// nice
-	this->context = &real_context;
+	this->m_context = &m_real_context;
 }
 
 bool manager_initialized = false;
@@ -108,12 +108,12 @@ WindowManager& WindowManager::get() {
 }
 
 void WindowManager::init() {
-	add_child(make_shared<Window>(Rect(20, 20, 300, 200), "with button"_sv));
-	add_child(make_shared<Window>(Rect(100, 150, 400, 400), "with child"_sv));
-	add_child(make_shared<Window>(Rect(200, 100, 200, 600), "long"_sv));
-	children[0]->add_child(make_shared<Button>(Rect(50, 50, 0, 0), "Hello"_sv));
-	children[0]->add_child(make_shared<Button>(Rect(50, 80, 0, 0), "World!"_sv));
-	children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100), "inner"_sv));
+	this->add_child(make_shared<Window>(Rect(20, 20, 300, 200), "with button"_sv));
+	this->add_child(make_shared<Window>(Rect(100, 150, 400, 400), "with child"_sv));
+	this->add_child(make_shared<Window>(Rect(200, 100, 200, 600), "long"_sv));
+	m_children[0]->add_child(make_shared<Button>(Rect(50, 50, 0, 0), "Hello"_sv));
+	m_children[0]->add_child(make_shared<Button>(Rect(50, 80, 0, 0), "World!"_sv));
+	m_children[1]->add_child(make_shared<Window>(Rect(50, 50, 100, 100), "inner"_sv));
 
-	add_child(make_shared<terminal::TerminalWindow>(Point(100, 100)));
+	this->add_child(make_shared<terminal::TerminalWindow>(Point(100, 100)));
 }

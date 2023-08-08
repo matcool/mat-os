@@ -54,12 +54,12 @@ struct HeapBlock {
 	}
 
 	// amount of bytes occupied by the bitmap array
-	usize entries_size() const { return div_ceil<usize>(entries(), entries_per_byte); }
+	usize entries_size() const { return div_ceil<usize>(this->entries(), entries_per_byte); }
 
 	// total amount of bytes occupied by the metadata itself
 	usize metadata_size() const {
 		// round up to alloc_align so that the allocations are.. aligned
-		return div_ceil(sizeof(HeapBlock) + entries_size(), ALLOC_ALIGN) * ALLOC_ALIGN;
+		return div_ceil(sizeof(HeapBlock) + this->entries_size(), ALLOC_ALIGN) * ALLOC_ALIGN;
 	}
 
 	static usize calculate_block_size_for_big_alloc(usize alloc_size) {
@@ -89,7 +89,7 @@ struct HeapBlock {
 	// converts an index into the bitmap to a virtual address (ptr)
 	void* index_to_ptr(usize index) const {
 		const auto this_addr = VirtualAddress(this);
-		return (this_addr + metadata_size() + index * ALLOC_ALIGN).ptr();
+		return (this_addr + this->metadata_size() + index * ALLOC_ALIGN).ptr();
 	}
 
 	// converts a virtual address to an index into the bitmap,
@@ -97,7 +97,7 @@ struct HeapBlock {
 	usize ptr_to_index(void* ptr) const {
 		const auto ptr_value = reinterpret_cast<uptr>(ptr);
 		const auto this_value = reinterpret_cast<uptr>(this);
-		return (ptr_value - (this_value + metadata_size())) / ALLOC_ALIGN;
+		return (ptr_value - (this_value + this->metadata_size())) / ALLOC_ALIGN;
 	}
 
 	u8 get_entry(usize index) const {
@@ -116,11 +116,11 @@ struct HeapBlock {
 	void* try_allocate(usize size) {
 		if (size >= block_size) return nullptr;
 		const auto size_entries = div_ceil(size, ALLOC_ALIGN);
-		for (usize i = 0; i < entries(); ++i) {
+		for (usize i = 0; i < this->entries(); ++i) {
 			usize j = 0;
 			// mm yes very nice search
 			for (; j < size_entries; ++j) {
-				if (get_entry(i + j) != BM_FREE_SPACE) break;
+				if (this->get_entry(i + j) != BM_FREE_SPACE) break;
 			}
 			// if j didnt reach the end then it didnt find enough space,
 			// so skip the entries it looked through
@@ -129,11 +129,11 @@ struct HeapBlock {
 				continue;
 			}
 			// we found enough space for the allocation!
-			set_entry(i, BM_ALLOC_START);
+			this->set_entry(i, BM_ALLOC_START);
 			for (usize j = 1; j < size_entries; ++j) {
-				set_entry(i + j, BM_ALLOC_CONT);
+				this->set_entry(i + j, BM_ALLOC_CONT);
 			}
-			auto* const ptr = index_to_ptr(i);
+			auto* const ptr = this->index_to_ptr(i);
 			// for sanity checking, and catching potential bugs
 			if (!this->contains(ptr)) {
 				panic("Allocated past the block, something went wrong");
@@ -145,23 +145,23 @@ struct HeapBlock {
 
 	// Frees a pointer contained within this block, assuming it is here.
 	void free_or_panic(void* ptr) {
-		auto index = ptr_to_index(ptr);
-		if (get_entry(index) != BM_ALLOC_START) {
+		auto index = this->ptr_to_index(ptr);
+		if (this->get_entry(index) != BM_ALLOC_START) {
 			panic("Tried to heap free pointer that is not start of allocation! ({})", ptr);
 		}
-		set_entry(index, BM_FREE_SPACE);
+		this->set_entry(index, BM_FREE_SPACE);
 		++index;
-		for (; index < entries(); ++index) {
-			if (get_entry(index) != BM_ALLOC_CONT) break;
-			set_entry(index, BM_FREE_SPACE);
+		for (; index < this->entries(); ++index) {
+			if (this->get_entry(index) != BM_ALLOC_CONT) break;
+			this->set_entry(index, BM_FREE_SPACE);
 		}
 	}
 
 	void debug() const {
 		kdbgln("HeapBlock[addr={}, next={}, size={:#x}]", this, next_block, block_size);
 		kdbg(" -> Entries:");
-		for (usize i = 0; i < entries(); ++i) {
-			kdbg(" {:02b}", get_entry(i));
+		for (usize i = 0; i < this->entries(); ++i) {
+			kdbg(" {:02b}", this->get_entry(i));
 		}
 		kdbgln("");
 	}
