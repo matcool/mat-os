@@ -12,6 +12,14 @@
 
 using namespace kernel;
 
+#include <limine/limine.h>
+
+static volatile limine_module_request module_request = {
+	.id = LIMINE_MODULE_REQUEST,
+	.revision = 0,
+	.response = nullptr,
+};
+
 extern "C" void kernel_init() {
 	serial::init();
 
@@ -30,6 +38,13 @@ extern "C" void kernel_init() {
 	framebuffer::init();
 
 	kdbgln("Finished initialization");
+
+	if (module_request.response) {
+		for (usize i = 0; i < module_request.response->module_count; ++i) {
+			auto* mod = module_request.response->modules[i];
+			kdbgln("{i:02} - {} with cmd {} at addr {}", i, mod->path, mod->cmdline, mod->address);
+		}
+	}
 
 	tasks::Scheduler::get().init();
 

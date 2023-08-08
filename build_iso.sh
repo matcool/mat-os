@@ -15,6 +15,7 @@ cp \
     ./limine/limine-bios-cd.bin \
     ./limine/limine-uefi-cd.bin \
     $ISO_ROOT_PATH
+cp -r ./kernel/assets $ISO_ROOT_PATH/assets
 mkdir -p $ISO_ROOT_PATH/EFI/BOOT
 cp ./limine/BOOT*.EFI $ISO_ROOT_PATH/EFI/BOOT/
 
