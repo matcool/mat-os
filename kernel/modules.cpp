@@ -27,8 +27,7 @@ Modules::Modules() {
 					.map([](limine_file* file) {
 						return Modules::Module{
 							.path = file->path,
-							.addr = file->address,
-							.size = file->size,
+							.data = Span(reinterpret_cast<const u8*>(file->address), file->size),
 						};
 					})
 					.collect_vec();

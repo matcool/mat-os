@@ -10,8 +10,7 @@ class Modules {
 public:
 	struct Module {
 		StringView path;
-		const void* addr;
-		usize size;
+		Span<const u8> data;
 	};
 
 private:
