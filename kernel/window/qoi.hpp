@@ -6,7 +6,7 @@
 
 // A simple QOI (Quite OK Image) format decoder, that streams every decoded pixel at a time.
 class QOIStreamDecoder {
-	Span<u8> m_data;
+	Span<const u8> m_data;
 
 	// TODO: should be entirely 0, instead of 255 alpha
 	Array<Color, 64> m_prev_pixels;
@@ -20,7 +20,7 @@ class QOIStreamDecoder {
 
 public:
 	// TODO: this should maybe take in an iterator..
-	QOIStreamDecoder(Span<u8> data);
+	QOIStreamDecoder(Span<const u8> data);
 
 	u32 width() const { return m_width; }
 

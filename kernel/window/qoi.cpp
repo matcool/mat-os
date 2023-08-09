@@ -4,7 +4,7 @@ u8 QOIStreamDecoder::color_hash(Color color) const {
 	return (color.r * 3 + color.g * 5 + color.b * 7 + color.a * 11) % 64;
 }
 
-QOIStreamDecoder::QOIStreamDecoder(Span<u8> data) : m_data(data) {
+QOIStreamDecoder::QOIStreamDecoder(Span<const u8> data) : m_data(data) {
 	// skip magic bytes
 	m_data = m_data.sub(4);
 
@@ -19,7 +19,7 @@ QOIStreamDecoder::QOIStreamDecoder(Span<u8> data) : m_data(data) {
 		static_cast<u32>(height_bytes[2]) << 8 | static_cast<u32>(height_bytes[3]);
 
 	// ignore colorspace and channels
-	m_data = m_data.sub(8);
+	m_data = m_data.sub(2);
 }
 
 static constexpr u8 QOI_OP_INDEX = 0b0000'0000;
@@ -59,9 +59,9 @@ Color QOIStreamDecoder::next_pixel() {
 	} else if (masked == QOI_OP_INDEX) {
 		color = m_prev_pixels[byte];
 	} else if (masked == QOI_OP_DIFF) {
-		i8 diff_r = (no_tag >> 4) - 2;
-		i8 diff_g = (no_tag >> 2) - 2;
-		i8 diff_b = (no_tag >> 0) - 2;
+		i8 diff_r = ((no_tag >> 4) & 0b11) - 2;
+		i8 diff_g = ((no_tag >> 2) & 0b11) - 2;
+		i8 diff_b = ((no_tag >> 0) & 0b11) - 2;
 		color.r += diff_r;
 		color.g += diff_g;
 		color.b += diff_b;
@@ -69,13 +69,15 @@ Color QOIStreamDecoder::next_pixel() {
 		i8 diff_g = no_tag - 32;
 		const auto byte = m_data[0];
 		m_data = m_data.sub(1);
-		i8 diff_r = diff_g + (byte >> 4) - 8;
-		i8 diff_b = diff_g + (byte >> 0) - 8;
+		i8 diff_r = diff_g + ((byte >> 4) & 0b1111) - 8;
+		i8 diff_b = diff_g + ((byte >> 0) & 0b1111) - 8;
 		color.r += diff_r;
 		color.g += diff_g;
 		color.b += diff_b;
 	} else if (masked == QOI_OP_RUN) {
-		m_run_counter = no_tag + 1;
+		// we are returning the first value from the run on this function call, so remove 1 from the
+		// run counter, which means no_tag stays unmodified, instead of being applied the -1 bias.
+		m_run_counter = no_tag;
 	}
 
 	m_last_pixel = color;
