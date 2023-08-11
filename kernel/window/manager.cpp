@@ -1,5 +1,6 @@
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
+#include <kernel/modules.hpp>
 #include <kernel/screen/framebuffer.hpp>
 #include <kernel/terminal/window.hpp>
 #include <kernel/window/manager.hpp>
@@ -88,11 +89,15 @@ void WindowManager::draw_mouse() {
 	m_context->paste_alpha_masked(mouse_canvas, m_mouse_pos.x, m_mouse_pos.y);
 }
 
+BitmapFont get_default_font() {
+	return BitmapFont::from_qoi(kernel::Modules::get().with_path("/assets/font.qoi").data);
+}
+
 WindowManager::WindowManager(WindowContext context) :
-	Widget(Rect(0, 0, context.width(), context.height())), m_real_context(context) {
+	Widget(Rect(0, 0, context.width(), context.height())), m_real_context(context),
+	m_font(get_default_font()) {
 	m_mouse_pos = this->rect().mid_point();
-	// nice
-	this->m_context = &m_real_context;
+	m_context = &m_real_context;
 }
 
 bool manager_initialized = false;

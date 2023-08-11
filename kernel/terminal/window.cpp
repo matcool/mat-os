@@ -1,14 +1,14 @@
-#include <kernel/font.hpp>
 #include <kernel/log.hpp>
 #include <kernel/terminal/window.hpp>
+#include <kernel/window/manager.hpp>
 
 using namespace kernel::terminal;
 using kernel::window::Point;
 using kernel::window::Rect;
 
 TerminalWindow::TerminalWindow(const Point& pos, usize cols, usize rows) :
-	Window(Rect(pos, Point(cols * PIXEL_FONT_WIDTH, rows * PIXEL_FONT_HEIGHT)), "terminal"_sv),
-	m_columns(cols), m_rows(rows), m_terminal(this) {
+	Window(Rect(pos, Point(cols * 7, rows * 10)), "terminal"_sv), m_columns(cols), m_rows(rows),
+	m_terminal(this) {
 	m_buffer.reserve(cols * rows);
 	for (usize i = 0; i < cols * rows; ++i) {
 		m_buffer.push('\0');
@@ -28,13 +28,14 @@ char& TerminalWindow::char_at(usize col, usize row) {
 }
 
 void TerminalWindow::draw() {
+	const auto& font = window::WindowManager::get().font();
 	m_context->fill(this->client_rect(), Color(0, 0, 0));
 	for (usize j = 0; j < m_rows; ++j) {
 		for (usize i = 0; i < m_columns; ++i) {
 			const char ch = this->char_at(i, j);
 			if (ch == '\0') continue;
 			m_context->draw_char(
-				ch, Point(i * PIXEL_FONT_WIDTH, j * PIXEL_FONT_HEIGHT), Color(255, 255, 255)
+				ch, Point(i * font.char_width(), j * font.char_height()), Color(255, 255, 255)
 			);
 		}
 	}
@@ -74,8 +75,9 @@ void TerminalWindow::append(char ch) {
 }
 
 void TerminalWindow::invalidate_at(usize col, usize row) {
+	const auto& font = window::WindowManager::get().font();
 	this->invalidate(
-		Rect(col * PIXEL_FONT_WIDTH, row * PIXEL_FONT_HEIGHT, PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT) +
+		Rect(col * font.char_width(), row * font.char_height(), font.char_width(), font.char_height()) +
 		relative_client_rect().pos
 	);
 }

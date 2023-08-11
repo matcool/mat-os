@@ -1,6 +1,7 @@
-#include <kernel/font.hpp>
 #include <kernel/log.hpp>
 #include <kernel/window/context.hpp>
+#include <kernel/window/font.hpp>
+#include <kernel/window/manager.hpp>
 #include <stl/iterator.hpp>
 
 using namespace kernel::window;
@@ -114,14 +115,14 @@ void WindowContext::draw_rect_outline(const Rect& rect, i32 width, Color color) 
 }
 
 void WindowContext::draw_char_clipped(char ch, const Point& pos, const Rect& clip, Color color) {
-	const auto char_rect = Rect(Point(0, 0), Point(PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT))
+	const auto& font = WindowManager::get().font();
+	const auto char_rect = Rect(Point(0, 0), Point(font.char_width(), font.char_height()))
 							   .intersection(clip - m_offset - pos);
 	if (char_rect.empty()) return;
 
 	for (auto y : iterators::range(char_rect.top(), char_rect.bottom() + 1)) {
-		const auto row = PIXEL_FONT[static_cast<usize>(ch)][y];
 		for (auto x : iterators::range(char_rect.left(), char_rect.right() + 1)) {
-			if (math::get_bit(row, x))
+			if (font.is_char_pixel_set(ch, x, y))
 				this->set(x + m_offset.x + pos.x, y + m_offset.y + pos.y, color);
 		}
 	}
@@ -138,14 +139,16 @@ void WindowContext::draw_char(char ch, const Point& pos, Color color) {
 }
 
 Rect WindowContext::draw_text(StringView str, const Point& pos, Color color) {
+	const auto& font = WindowManager::get().font();
 	Point offset(0, 0);
 	for (char c : str) {
 		this->draw_char(c, pos + offset, color);
-		offset.x += 7;
+		offset.x += font.char_width();
 	}
-	return Rect(pos, Point(offset.x, PIXEL_FONT_HEIGHT));
+	return Rect(pos, Point(offset.x, font.char_height()));
 }
 
 Point WindowContext::calculate_text_area(StringView str) {
-	return Point(str.size() * PIXEL_FONT_WIDTH, PIXEL_FONT_HEIGHT);
+	const auto& font = WindowManager::get().font();
+	return Point(str.size() * font.char_width(), font.char_height());
 }

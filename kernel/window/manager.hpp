@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kernel/window/context.hpp>
+#include <kernel/window/font.hpp>
 #include <kernel/window/widget.hpp>
 
 namespace kernel::window {
@@ -15,6 +16,8 @@ class WindowManager : public Widget {
 
 	u64 m_last_render = 0;
 
+	BitmapFont m_font;
+
 	WindowManager(WindowContext context);
 
 public:
@@ -28,6 +31,8 @@ public:
 	auto width() const { return m_real_context.width(); }
 
 	auto height() const { return m_real_context.height(); }
+
+	const auto& font() const { return m_font; }
 
 	void draw() override;
 	void draw_mouse();
