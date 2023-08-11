@@ -116,10 +116,11 @@ struct HeapBlock {
 	void* try_allocate(usize size) {
 		if (size >= block_size) return nullptr;
 		const auto size_entries = div_ceil(size, ALLOC_ALIGN);
-		for (usize i = 0; i < this->entries(); ++i) {
+		const auto entries_count = this->entries();
+		for (usize i = 0; i < entries_count; ++i) {
 			usize j = 0;
 			// mm yes very nice search
-			for (; j < size_entries; ++j) {
+			for (; j < size_entries && i + j < entries_count; ++j) {
 				if (this->get_entry(i + j) != BM_FREE_SPACE) break;
 			}
 			// if j didnt reach the end then it didnt find enough space,
@@ -170,6 +171,7 @@ struct HeapBlock {
 HeapBlock* first_block = nullptr;
 
 HeapBlock* allocate_block(usize size) {
+	size = div_ceil(size, PAGE_SIZE) * PAGE_SIZE;
 	auto* block = reinterpret_cast<HeapBlock*>(kernel::alloc::allocate_pages(size / PAGE_SIZE));
 	block->next_block = nullptr;
 	block->block_size = size;
@@ -195,11 +197,8 @@ void* kernel::alloc::heap_allocate(usize size) {
 		prev_block = block;
 	}
 	// try allocating a new block
-	auto new_block_size = BLOCK_ALLOC_SIZE;
-	if (size > new_block_size) {
-		// TODO: maybe special block type for large allocations?
-		new_block_size = HeapBlock::calculate_block_size_for_big_alloc(size);
-	}
+	const auto new_block_size =
+		math::max(BLOCK_ALLOC_SIZE, HeapBlock::calculate_block_size_for_big_alloc(size));
 	kdbgln("Allocating a new heap block with size={:#x}..", new_block_size);
 	prev_block->next_block = allocate_block(new_block_size);
 	return prev_block->next_block->try_allocate(size);
