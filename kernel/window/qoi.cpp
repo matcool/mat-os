@@ -20,6 +20,10 @@ QOIStreamDecoder::QOIStreamDecoder(Span<const u8> data) : m_data(data) {
 
 	// ignore colorspace and channels
 	m_data = m_data.sub(2);
+
+	for (auto& col : m_prev_pixels) {
+		col = Color(0, 0, 0, 0);
+	}
 }
 
 static constexpr u8 QOI_OP_INDEX = 0b0000'0000;
@@ -87,6 +91,7 @@ Color QOIStreamDecoder::next_pixel() {
 }
 
 bool QOIStreamDecoder::finished() const {
+	if (m_run_counter) return false;
 	if (!m_data || m_data.size() < 8) return true;
 	// if the next 7 bytes are 0 and the one after is a 1, then qoi's stream is finished.
 	return !m_data.iter().take(7).any() && m_data[7] == 1;

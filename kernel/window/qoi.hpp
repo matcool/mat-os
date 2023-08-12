@@ -8,7 +8,6 @@
 class QOIStreamDecoder {
 	Span<const u8> m_data;
 
-	// TODO: should be entirely 0, instead of 255 alpha
 	Array<Color, 64> m_prev_pixels;
 	Color m_last_pixel = Color(0, 0, 0, 255);
 	u8 m_run_counter = 0;
