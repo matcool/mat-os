@@ -2,8 +2,8 @@
 
 its mat-os again. this time using limine on x86_64 because it does most of the boring work
 
-![image](https://github.com/matcool/mat-os/assets/26722564/ff69e7d4-beb1-4ad0-832d-48561a57d471)
-*screenshot of the system as of [`63a99e9`](https://github.com/matcool/mat-os/commit/63a99e93feac7b13c74c06b96adad929943f5622)*
+![image](https://github.com/matcool/mat-os/assets/26722564/60d84f2d-00ac-402a-afeb-0cf3ee1d8181)
+*screenshot of the system as of [`b8c5541`](https://github.com/matcool/mat-os/commit/b8c5541e895e965b56acf68b913e72c4bd11475e)*
 
 ## Goals
 - [ ] ~~Use C++20 modules~~ doesn't work with clangd :(
