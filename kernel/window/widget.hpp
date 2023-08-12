@@ -37,19 +37,24 @@ public:
 	void handle_mouse(Point mouse_pos, bool pressed);
 	void handle_keyboard(ps2::Key key, bool pressed);
 
+	// Adds a child widget, and calls its init method.
+	// TODO: reconsider the init method..
 	void add_child(WidgetPtr window);
 
 	// This is called after the widget is added to the parent, and things such as the context are set up.
 	virtual void init() {}
 
+	// Moves the widget to a position, and repaints the screen accordingly.
 	void move_to(const Point& pos);
 
+	// Resizes the widget rect, and repaints the screen accordingly.
 	void resize(const Point& new_size);
 
+	// Gets the index of a child of this widget. -1 is returned if the child was not found.
 	usize get_child_index(Widget* child) const;
 
 	// Reorders the given child to be the top most one.
-	// this is a bad name i know
+	// TODO: this is a bad name i know
 	void reorder_child_top(Widget* child);
 
 	// Returns an iterator of all windows above this one.
@@ -97,19 +102,27 @@ public:
 	// Draws decoration, such as window borders and title bar. The decorations are drawn first, and are above children.
 	virtual void draw_decoration();
 
+	// This is triggered when the mouse starts clicking on this widget.
+	// Point is relative to this widget's rect.
 	virtual void on_mouse_down(Point) {}
 
+	// This is only triggered if the mouse started the click on this widget, and then releases it.
+	// Point is relative to this widget's rect.
 	virtual void on_mouse_up(Point) {}
 
+	// Point is relative to this widget's rect.
 	virtual void on_mouse_move(Point) {}
 
+	// This is triggered when the widget itself or one of its children gains focus.
 	virtual void on_focus() {}
 
+	// This is triggered when a key is pressed, and also when its auto-repeating..
 	virtual void on_key_press(ps2::Key) {}
 
 	virtual String debug() { return "Widget"_sv; }
 };
 
+// Represents a window with decoration such as titlebar, name, and buttons
 class Window : public Widget {
 	String m_title;
 	Point m_drag_offset = Point(0, 0);
@@ -118,6 +131,7 @@ class Window : public Widget {
 public:
 	Window(Rect rect, StringView title = "hello world"_sv);
 
+	// Raises the window on the parent, like when focusing.
 	void raise(bool redraw = true);
 
 	void draw() override;
@@ -131,6 +145,7 @@ public:
 	String debug() override { return "Window"_sv; }
 };
 
+// Represents a simple button with text that can be clicked on.
 class Button : public Widget {
 	String m_text;
 
