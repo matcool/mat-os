@@ -18,6 +18,10 @@ class WindowManager : public Widget {
 
 	BitmapFont m_font;
 
+	// TODO: wrap this into an image class?
+	Vector<Color> m_mouse_data;
+	Canvas m_mouse_canvas = Canvas(nullptr, 0, 0);
+
 	WindowManager(WindowContext context);
 
 public:

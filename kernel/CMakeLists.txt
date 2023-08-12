@@ -48,6 +48,7 @@ add_custom_command(
 		"${ISO_BUILD_SCRIPT}"
 		${CMAKE_CURRENT_SOURCE_DIR}/../limine.cfg
 		${CMAKE_CURRENT_SOURCE_DIR}/assets/font.qoi
+		${CMAKE_CURRENT_SOURCE_DIR}/assets/mouse.qoi
 		kernel
 	WORKING_DIRECTORY "${CMAKE_CURRENT_SOURCE_DIR}/../"
 	VERBATIM

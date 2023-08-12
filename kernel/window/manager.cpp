@@ -1,3 +1,4 @@
+#include "kernel/window/qoi.hpp"
 #include <kernel/device/pit.hpp>
 #include <kernel/log.hpp>
 #include <kernel/modules.hpp>
@@ -56,37 +57,11 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 	}
 }
 
-constexpr u32 EMPTY = 0x0;
-constexpr u32 BLACK = 0xFF000000;
-constexpr u32 WHITE = 0xFFFFFFFF;
-
-constexpr usize MOUSE_WIDTH = 9;
-constexpr usize MOUSE_HEIGHT = 13;
-
-// clang-format off
-u32 mouse_sprite[MOUSE_WIDTH * MOUSE_HEIGHT] = {
-	BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-	BLACK, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-	BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-	BLACK, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY, EMPTY,
-	BLACK, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY, EMPTY,
-	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
-	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY, EMPTY,
-	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, EMPTY,
-	BLACK, WHITE, WHITE, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK,
-	BLACK, WHITE, WHITE, WHITE, WHITE, BLACK, BLACK, EMPTY, EMPTY,
-	BLACK, WHITE, BLACK, BLACK, WHITE, BLACK, EMPTY, EMPTY, EMPTY,
-	BLACK, BLACK, EMPTY, EMPTY, BLACK, WHITE, BLACK, EMPTY, EMPTY,
-	EMPTY, EMPTY, EMPTY, EMPTY, EMPTY, BLACK, EMPTY, EMPTY, EMPTY,
-};
-
-// clang-format on
-
 void WindowManager::draw_mouse() {
-	Canvas mouse_canvas(mouse_sprite, MOUSE_WIDTH, MOUSE_HEIGHT);
-	const auto old_mouse_rect = Rect(m_prev_mouse_pos, Point(MOUSE_WIDTH, MOUSE_HEIGHT));
+	const auto old_mouse_rect =
+		Rect(m_prev_mouse_pos, Point(m_mouse_canvas.width(), m_mouse_canvas.height()));
 	Widget::paint(Span(&old_mouse_rect, 1), true);
-	m_context->paste_alpha_masked(mouse_canvas, m_mouse_pos.x, m_mouse_pos.y);
+	m_context->paste_alpha_masked(m_mouse_canvas, m_mouse_pos.x, m_mouse_pos.y);
 }
 
 BitmapFont get_default_font() {
@@ -98,6 +73,17 @@ WindowManager::WindowManager(WindowContext context) :
 	m_font(get_default_font()) {
 	m_mouse_pos = this->rect().mid_point();
 	m_context = &m_real_context;
+
+	QOIStreamDecoder decoder(Modules::get().with_path("/assets/mouse.qoi").data);
+
+	m_mouse_data.reserve(decoder.width() * decoder.height());
+
+	while (!decoder.finished()) {
+		m_mouse_data.push(decoder.next_pixel());
+	}
+
+	m_mouse_canvas =
+		Canvas(reinterpret_cast<u32*>(m_mouse_data.data()), decoder.width(), decoder.height());
 }
 
 bool manager_initialized = false;
