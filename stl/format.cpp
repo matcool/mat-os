@@ -1,6 +1,7 @@
 #include "format.hpp"
 #include "array.hpp"
 
+using namespace STL_NS;
 using namespace STL_NS::format;
 
 FormatSpec format::parse_spec(StringView str) {

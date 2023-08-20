@@ -13,7 +13,15 @@ void memcpy(void* dest, const void* src, usize size);
 
 }
 
+#if MAT_OS
+
 // Placement operator new, does nothing to the pointer.
-inline void* operator new(usize, void* ptr) {
+inline void* operator new(usize, void* ptr) noexcept {
 	return ptr;
 }
+
+#else
+
+#include <new>
+
+#endif
