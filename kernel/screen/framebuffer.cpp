@@ -39,7 +39,7 @@ void kernel::framebuffer::init() {
 
 	const auto width = fb.width();
 	const auto height = fb.height();
-	auto* const new_pixels = (u32*)(operator new(width* height * sizeof(u32)));
+	auto* const new_pixels = (u32*)(operator new(width * height * sizeof(u32)));
 	memset(new_pixels, 0, width * height * sizeof(u32));
 	get_framebuffer() = Canvas(new_pixels, width, height, width);
 

@@ -17,15 +17,15 @@ struct IteratorEndTag {};
 // i dont like this name
 template <class Inner>
 concept InnerIterator = requires(Inner value) {
-							{ value.at_end() } -> types::is_same<bool>;
-							value.next();
-							value.value();
-						};
+	{ value.at_end() } -> types::is_same<bool>;
+	value.next();
+	value.value();
+};
 
 template <class Inner>
 concept has_size_hint = requires(Inner value) {
-							{ value.size_hint() } -> types::is_same<usize>;
-						};
+	{ value.size_hint() } -> types::is_same<usize>;
+};
 
 template <class It, class EndIt>
 struct ItPair {
@@ -234,8 +234,8 @@ public:
 	// Only elements which `func(x) -> true` will be kept.
 	template <class FilterFunc>
 	requires requires(FilterFunc func, ValueType value) {
-				 { func(value) } -> types::is_same<bool>;
-			 }
+		{ func(value) } -> types::is_same<bool>;
+	}
 	auto filter(FilterFunc func) {
 		return stl::Iterator(iterators::Filter(inner, func));
 	}

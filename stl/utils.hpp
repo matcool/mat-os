@@ -221,8 +221,7 @@ template <bool Condition, class T, class F>
 using ternary = typename STL_NS_IMPL::ternary<Condition, T, F>::type;
 
 template <class T>
-concept is_reference = !
-is_same<T, remove_ref<T>>;
+concept is_reference = !is_same<T, remove_ref<T>>;
 
 }
 

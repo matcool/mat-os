@@ -33,7 +33,7 @@ struct IDTEntry {
 		type_attributes = present | (ring << 5) | static_cast<u8>(gate);
 	}
 
-	// https://github.com/limine-bootloader/limine/blob/v5.x-branch/PROTOCOL.md#x86_64
+	// https://github.com/limine-bootloader/limine/blob/v5.x-branch/PROTOCOL.md#machine-state-at-entry
 	// 64-bit code descriptor is on index 5, so 0b101
 	// last 3 bits should be 0, since i want to use the GDT and be on ring 0
 	IDTEntry(const void* address) : IDTEntry(address, 0b101'000, 0, GateType::Interrupt) {}
