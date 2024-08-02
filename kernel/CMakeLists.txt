@@ -5,6 +5,7 @@ add_executable(kernel
 	kernel.cpp
 	cxa.cpp
 	idt.cpp
+	gdt.cpp
 	modules.cpp
 	memory/physical_alloc.cpp
 	memory/paging.cpp

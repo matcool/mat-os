@@ -1,6 +1,7 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/device/ps2.hpp>
+#include <kernel/gdt.hpp>
 #include <kernel/idt.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
@@ -18,6 +19,8 @@ extern "C" void kernel_init() {
 	kdbgln("Booting up...");
 
 	interrupt::init();
+
+	gdt::init();
 
 	paging::init();
 
