@@ -154,7 +154,6 @@ kernel::PhysicalAddress kernel::alloc::allocate_physical_page() {
 }
 
 void kernel::alloc::free_physical_page(PhysicalAddress addr) {
-	;
 	if (addr.value() % PAGE_SIZE != 0) {
 		panic("Tried to free misaligned page ({:#x})", addr.value());
 	}

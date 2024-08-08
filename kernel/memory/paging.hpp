@@ -98,6 +98,13 @@ public:
 	void clear();
 };
 
+// Flags for a page, defaults to a kernel RWX page.
+struct PageOptions {
+	bool executable = false;
+	bool writable = true;
+	bool user = false;
+};
+
 void init();
 
 // Maps a physical address to virtual address, using limine's HHDM mapping
@@ -109,8 +116,15 @@ uptr virtual_to_physical(uptr virtual_address);
 void explore_addr(uptr value);
 
 // Maps a physical page to a virtual address.
-// TODO: add flags, and maybe page size
 void map_page(VirtualAddress virt, PhysicalAddress phys);
+
+// Updates an existing page to use the given page options.
+// Also invalidates the cache.
+void update_page(VirtualAddress virt, PageOptions options);
+
+// Gets the direct entry at a virtual address.
+// Returns nullptr if address is not mapped.
+PageTableEntry* get_entry_at(VirtualAddress virt);
 
 // Unmaps a page, making it not present.
 void unmap_page(VirtualAddress virt);
