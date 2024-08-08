@@ -20,11 +20,11 @@ extern "C" void kernel_init() {
 
 	interrupt::init();
 
-	gdt::init();
-
 	paging::init();
 
 	alloc::init();
+
+	gdt::init();
 
 	pic::init();
 	ps2::init();

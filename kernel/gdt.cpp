@@ -1,5 +1,6 @@
 #include <kernel/gdt.hpp>
 #include <kernel/log.hpp>
+#include <kernel/memory/allocator.hpp>
 
 using namespace kernel::gdt;
 
@@ -62,12 +63,12 @@ enum GDTEntryFlags : u8 {
 static_assert(sizeof(GDTEntry) == 8);
 
 struct [[gnu::packed]] TaskStateSegment {
-	u32 _reserved;
-	u64 rsp0;
-	u64 rsp1;
-	u64 rsp2;
+	u32 _reserved = 0;
+	u64 rsp0 = 0;
+	u64 rsp1 = 0;
+	u64 rsp2 = 0;
 	// rest i dont care about
-	u32 _pad[19] = { 0 };
+	u32 _pad[19]{};
 };
 
 static_assert(sizeof(TaskStateSegment) == 0x68);
@@ -138,6 +139,8 @@ void init_tss_entry() {
 		GDT_PRESENT | GDT_SYSTEM | GDT_EXECUTABLE | GDT_ACCESSED,
 		GDT_SIZE
 	);
+
+	tss_instance.rsp0 = reinterpret_cast<uptr>(kernel::alloc::allocate_pages(2));
 }
 
 void kernel::gdt::init() {
