@@ -44,7 +44,7 @@ public:
 #if DEBUG_DRAW_RECTS
 	void draw_debug(Canvas* canvas);
 
-	bool changed() { return context->drawn_rects; }
+	bool changed() { return m_context->drawn_rects; }
 #endif
 };
 

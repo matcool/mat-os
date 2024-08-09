@@ -26,7 +26,7 @@ void WindowManager::draw_debug(Canvas* canvas) {
 		);
 	};
 
-	for (const auto& rect : context->drawn_rects) {
+	for (const auto& rect : m_context->drawn_rects) {
 		const auto mid_point = rect.size;
 		const auto color = Color(mid_point.x + mid_point.y, mid_point.x * mid_point.y, 0, 200);
 		for (i32 j = rect.top(); j <= rect.bottom() && j < canvas->height(); ++j) {
@@ -35,7 +35,7 @@ void WindowManager::draw_debug(Canvas* canvas) {
 			}
 		}
 	}
-	context->drawn_rects.clear();
+	m_context->drawn_rects.clear();
 }
 #endif
 
@@ -52,7 +52,7 @@ void WindowManager::handle_mouse(Point off, bool pressed) {
 		this->draw_mouse();
 		m_prev_mouse_pos = m_mouse_pos;
 #if DEBUG_DRAW_RECTS
-		if (pressed) context->drawn_rects.push(Rect(0, 0, 0, 0));
+		if (pressed) m_context->drawn_rects.push(Rect(0, 0, 0, 0));
 #endif
 	}
 }
