@@ -27,6 +27,15 @@ void screen_thread() {
 	kernel::framebuffer::loop();
 }
 
+void test_thread() {
+	int i = 0;
+	while (true) {
+		kdbgln("Hello! {}", i);
+		++i;
+		kernel::tasks::yield_thread();
+	}
+}
+
 Thread create_thread(usize stack_pages, void (*function)()) {
 	Thread thread;
 	thread.stack = kernel::alloc::allocate_pages(stack_pages);
@@ -43,13 +52,25 @@ Thread create_thread(usize stack_pages, void (*function)()) {
 
 void Scheduler::init() {
 	m_threads.push(create_thread(3, &screen_thread));
+	m_threads.push(create_thread(1, &test_thread));
 	::initialized = true;
-	yield_thread(); // jump into the scheduler interrupt
+	// give control to scheduler, since this is the easiest way to switch to the first thread
+	// TODO: write some switch_context function or whatever
+	yield_thread();
 }
+
+// related to the comment above
+bool very_first_time = true;
 
 void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 	if (m_threads.empty()) {
 		panic("No threads in the scheduler!");
+	}
+	auto& cur_thread = m_threads[m_active_idx];
+	if (!very_first_time) {
+		cur_thread.state = *regs;
+	} else {
+		very_first_time = false;
 	}
 
 	const auto next_index = (m_active_idx + 1) % m_threads.size();
