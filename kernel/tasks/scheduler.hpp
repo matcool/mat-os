@@ -13,7 +13,6 @@ void yield_thread();
 struct Thread {
 	interrupt::Registers state;
 	void* stack = nullptr;
-	bool first_time = true;
 };
 
 class Scheduler {

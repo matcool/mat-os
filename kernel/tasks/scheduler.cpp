@@ -1,3 +1,4 @@
+#include <kernel/gdt.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
@@ -33,7 +34,9 @@ Thread create_thread(usize stack_pages, void (*function)()) {
 		reinterpret_cast<uptr>(thread.stack) + kernel::PAGE_SIZE * stack_pages - sizeof(uptr);
 	*reinterpret_cast<uptr*>(thread.state.rsp) = 0;
 	thread.state.rip = reinterpret_cast<uptr>(function);
-	thread.state.cs = 0;
+	thread.state.cs = kernel::gdt::KERNEL_CODE_SEGMENT;
+	thread.state.ss = kernel::gdt::KERNEL_DATA_SEGMENT;
+	thread.state.rflags = 0b1000000000; // interrupt enable flag
 	kdbgln("thread rsp={:#x}", thread.state.rsp);
 	return thread;
 }
@@ -44,27 +47,13 @@ void Scheduler::init() {
 	yield_thread(); // jump into the scheduler interrupt
 }
 
-kernel::interrupt::Registers kernel_init_state;
-
 void Scheduler::handle_interrupt(interrupt::Registers* regs) {
-	if (kernel_init_state.rip == 0) {
-		kernel_init_state = *regs;
+	if (m_threads.empty()) {
+		panic("No threads in the scheduler!");
 	}
 
-	if (m_threads.empty()) return;
-
-	if (!m_threads[m_active_idx].first_time) {
-		m_threads[m_active_idx].state = *regs;
-	}
 	const auto next_index = (m_active_idx + 1) % m_threads.size();
 	auto& next_thread = m_threads[next_index];
-	// silly
-	if (next_thread.first_time) {
-		// copy it because i dont know what it should be :P
-		next_thread.state.cs = kernel_init_state.cs;
-		next_thread.state.rflags = 0b1000000000; // interrupt enable flag
-		next_thread.first_time = false;
-	}
 	*regs = next_thread.state;
 	m_active_idx = next_index;
 }

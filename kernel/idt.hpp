@@ -26,6 +26,7 @@ struct Registers {
 	u64 cs;
 	u64 rflags;
 	u64 rsp;
+	u64 ss;
 };
 
 void init();
