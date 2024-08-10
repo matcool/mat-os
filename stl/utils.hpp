@@ -263,4 +263,9 @@ const T& as_const(T& value) {
 		return overloaded_func(STL_NS::forward<decltype(args)>(args)...); \
 	}
 
+template <class... Ts>
+struct overloaded : Ts... {
+	using Ts::operator()...;
+};
+
 }
