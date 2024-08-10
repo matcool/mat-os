@@ -4,7 +4,7 @@
 #include <kernel/idt.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
-#include <kernel/tasks/scheduler.hpp>
+#include <kernel/syscall.hpp>
 #include <stl/types.hpp>
 
 using namespace kernel::interrupt;
@@ -155,9 +155,8 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		kdbgln("rip - {:#x}", regs->rip);
 		kdbgln("rsp - {:#x}", regs->rsp);
 		halt();
-	} else if (which == kernel::tasks::SYSCALL_INTERRUPT_N) {
-		if (kernel::tasks::Scheduler::initialized())
-			kernel::tasks::Scheduler::get().handle_interrupt(regs);
+	} else if (which == kernel::syscall::SYSCALL_INTERRUPT_N) {
+		kernel::syscall::handle_syscall(regs);
 	} else {
 		if (which == kernel::PIC_IRQ_OFFSET + 0) {
 			kernel::pit::handle_interrupt();
@@ -223,7 +222,7 @@ void kernel::interrupt::init() {
 	CONST_FOR_EACH(
 		number,
 		idt_table[number] = IDTEntry(&raw_interrupt_handler<number>),
-		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16, tasks::SYSCALL_INTERRUPT_N)
+		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16, syscall::SYSCALL_INTERRUPT_N)
 	);
 
 	CONST_FOR_EACH(

@@ -7,6 +7,7 @@ add_executable(kernel
 	idt.cpp
 	gdt.cpp
 	modules.cpp
+	syscall.cpp
 	memory/physical_alloc.cpp
 	memory/paging.cpp
 	memory/virtual_alloc.cpp

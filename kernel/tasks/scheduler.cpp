@@ -3,6 +3,7 @@
 #include <kernel/log.hpp>
 #include <kernel/memory/allocator.hpp>
 #include <kernel/screen/framebuffer.hpp>
+#include <kernel/syscall.hpp>
 #include <kernel/tasks/scheduler.hpp>
 
 using namespace kernel::tasks;
@@ -20,7 +21,7 @@ Scheduler& Scheduler::get() {
 }
 
 void kernel::tasks::yield_thread() {
-	asm volatile("int %0;" : : "i"(SYSCALL_INTERRUPT_N));
+	kernel::syscall::raw_syscall(kernel::syscall::Syscalls::ThreadYield);
 }
 
 void screen_thread() {
