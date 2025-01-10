@@ -42,6 +42,9 @@ public:
 
 	PhysicalAddress to_physical() const;
 
+	// Convert to a HHDM virtual address
+	VirtualAddress to_hhdm() const;
+
 	auto value() const { return m_value; }
 
 	void* ptr() const { return reinterpret_cast<void*>(m_value); }
@@ -116,7 +119,7 @@ uptr virtual_to_physical(uptr virtual_address);
 void explore_addr(uptr value);
 
 // Maps a physical page to a virtual address.
-void map_page(VirtualAddress virt, PhysicalAddress phys);
+void map_page(VirtualAddress virt, PhysicalAddress phys, PageTableEntry* entries = nullptr);
 
 // Updates an existing page to use the given page options.
 // Also invalidates the cache.
@@ -124,7 +127,7 @@ void update_page(VirtualAddress virt, PageOptions options);
 
 // Gets the direct entry at a virtual address.
 // Returns nullptr if address is not mapped.
-PageTableEntry* get_entry_at(VirtualAddress virt);
+PageTableEntry* get_entry_at(VirtualAddress virt, PageTableEntry* entries = nullptr);
 
 // Pointer to the highest level of page entries, stored in the CR3 register
 PageTableEntry* get_base_entries();

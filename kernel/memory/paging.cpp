@@ -137,8 +137,8 @@ static constexpr u16 MAT_TABLE_MAGIC = 0x4444;
 static constexpr u16 MAT_MAPPED_MAGIC = 0xf3f0;
 
 // Currently will replace whatever was mapped there, as its probably limine's identity mapping
-void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys) {
-	auto* entries = get_base_entries();
+void kernel::paging::map_page(VirtualAddress virt, PhysicalAddress phys, PageTableEntry* entries) {
+	if (!entries) entries = get_base_entries();
 
 	static constexpr auto mask9 = bit_mask<u64>(9);
 
@@ -216,8 +216,8 @@ void kernel::paging::invalidate_cache(VirtualAddress virt) {
 	asm volatile("invlpg %0" : : "m"(value));
 }
 
-kernel::paging::PageTableEntry* kernel::paging::get_entry_at(VirtualAddress virt) {
-	auto* entries = get_base_entries();
+kernel::paging::PageTableEntry* kernel::paging::get_entry_at(VirtualAddress virt, PageTableEntry* entries) {
+	if (!entries) entries = get_base_entries();
 
 	static constexpr auto mask9 = bit_mask<u64>(9);
 

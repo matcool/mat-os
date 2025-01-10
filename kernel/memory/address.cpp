@@ -21,3 +21,7 @@ kernel::PhysicalAddress kernel::PhysicalAddress::operator+(uptr offset) const {
 kernel::VirtualAddress kernel::VirtualAddress::operator+(uptr offset) const {
 	return VirtualAddress(value() + offset);
 }
+
+kernel::VirtualAddress kernel::VirtualAddress::to_hhdm() const {
+	return this->to_physical().to_virtual();
+}
