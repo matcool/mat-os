@@ -134,13 +134,14 @@ static GDTEntry gdt_table[] = {
 void init_tss_entry() {
 	auto& entry = *reinterpret_cast<GDTSystemEntry*>(&gdt_table[9]);
 	entry = GDTSystemEntry(
-		reinterpret_cast<u64>(&tss_instance),
+		kernel::VirtualAddress(&tss_instance).to_hhdm().value(),
 		sizeof(TaskStateSegment),
 		GDT_PRESENT | GDT_SYSTEM | GDT_EXECUTABLE | GDT_ACCESSED,
 		GDT_SIZE
 	);
 
-	tss_instance.rsp0 = reinterpret_cast<uptr>(kernel::alloc::allocate_pages(2));
+	// Used as kernel stack when changing from ring 3 to ring 0
+	tss_instance.rsp0 = kernel::VirtualAddress(kernel::alloc::allocate_pages(2)).to_hhdm().value();
 }
 
 void kernel::gdt::init() {
