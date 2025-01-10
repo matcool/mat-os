@@ -38,5 +38,5 @@ extern "C" void kernel_init() {
 
 	// scheduler takes over, so control flow shouldn't even get here
 	// but just incase
-	halt(false);
+	panic("Control flow should not get here!");
 }

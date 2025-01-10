@@ -28,17 +28,9 @@ void screen_thread() {
 	kernel::framebuffer::loop();
 }
 
-void test_thread() {
-	int i = 0;
-	while (true) {
-		kdbgln("Hello! {}", i);
-		++i;
-		kernel::tasks::yield_thread();
-	}
-}
-
-Thread create_thread(usize stack_pages, void (*function)()) {
+Thread create_kernel_thread(usize stack_pages, void (*function)()) {
 	Thread thread;
+	thread.page_table = kernel::PhysicalAddress(get_cr3());
 	thread.stack = kernel::alloc::allocate_pages(stack_pages);
 	thread.state.rsp =
 		reinterpret_cast<uptr>(thread.stack) + kernel::PAGE_SIZE * stack_pages - sizeof(uptr);
@@ -51,9 +43,43 @@ Thread create_thread(usize stack_pages, void (*function)()) {
 	return thread;
 }
 
+Thread create_user_thread(usize stack_pages, void* function) {
+	Thread thread;
+	thread.page_table = kernel::alloc::allocate_physical_page();
+	constexpr auto n_entries = 512;
+	auto* kernel_pt = kernel::paging::get_base_entries();
+	auto* thread_pt = thread.get_page_entries();
+	for (int i = 0; i < n_entries; ++i) {
+		if (i >= 256) {
+			// higher half of memory, copy over kernel entries
+			// they should be ring 0 only already
+			thread_pt[i] = kernel_pt[i];
+		} else {
+			// blank entries
+			thread_pt[i] = kernel::paging::PageTableEntry(0);
+		}
+	}
+
+	thread.state.rsp = 0x8000'0000 - 8;
+	auto stack = kernel::alloc::allocate_physical_page();
+	kernel::paging::map_page(kernel::VirtualAddress(thread.state.rsp), stack, thread_pt);
+	thread.state.rip = 0x0420'0000;
+	kernel::paging::map_page(
+		kernel::VirtualAddress(thread.state.rip), kernel::VirtualAddress(function).to_physical(), thread_pt
+	);
+	thread.state.cs = kernel::gdt::USER_CODE_SEGMENT | 3;
+	thread.state.ss = kernel::gdt::USER_DATA_SEGMENT | 3;
+	thread.state.rflags = 0b1000000000; // interrupt enable flag
+	kdbgln("thread rsp={:#x}", thread.state.rsp);
+	return thread;
+}
+
 void Scheduler::init() {
-	m_threads.push(create_thread(3, &screen_thread));
-	m_threads.push(create_thread(1, &test_thread));
+	m_threads.push(create_kernel_thread(3, &screen_thread));
+	auto* mem = kernel::alloc::allocate_page();
+	u8 code[] = { 0x90, 0x90, 0x90, 0xfa };
+	memcpy(mem, code, sizeof(code));
+	m_threads.push(create_user_thread(2, mem));
 	::initialized = true;
 	// give control to scheduler, since this is the easiest way to switch to the first thread
 	// TODO: write some switch_context function or whatever
@@ -62,6 +88,8 @@ void Scheduler::init() {
 
 // related to the comment above
 bool very_first_time = true;
+
+void switch_context_to(kernel::tasks::Thread* thread);
 
 void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 	if (m_threads.empty()) {
@@ -76,6 +104,45 @@ void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 
 	const auto next_index = (m_active_idx + 1) % m_threads.size();
 	auto& next_thread = m_threads[next_index];
-	*regs = next_thread.state;
 	m_active_idx = next_index;
+
+	switch_context_to(&next_thread);
+}
+
+// this is nasty
+
+#define POP_REGS \
+	"\
+	pop %%rsi; \
+	pop %%rdx; \
+	pop %%rdi; \
+	pop %%rcx; \
+	pop %%rbx; \
+	pop %%rbp; \
+	pop %%rax; \
+	pop %%r9;  \
+	pop %%r8;  \
+	pop %%r15; \
+	pop %%r14; \
+	pop %%r13; \
+	pop %%r12; \
+	pop %%r11; \
+	pop %%r10;"
+
+void switch_context_to(kernel::tasks::Thread* thread) {
+	using namespace kernel;
+	// make use of hhdm to make sure regs is always accessible
+	auto regs_fixed = VirtualAddress(&thread->state).to_hhdm().ptr();
+	auto cr3 = thread->page_table;
+	asm volatile(R"asm(
+		movw %2, %%ds
+		movw %2, %%es
+		movw %2, %%fs
+		movw %2, %%gs
+
+		movq %1, %%cr3
+		movq %0, %%rsp
+	)asm" POP_REGS "iretq"
+	             :
+	             : "r"(regs_fixed), "r"(cr3), "m"(thread->state.ss));
 }

@@ -1,6 +1,7 @@
 #pragma once
 
 #include <kernel/idt.hpp>
+#include <kernel/memory/paging.hpp>
 #include <stl/types.hpp>
 #include <stl/vector.hpp>
 
@@ -13,6 +14,12 @@ void yield_thread();
 struct Thread {
 	interrupt::Registers state;
 	void* stack = nullptr;
+	PhysicalAddress page_table;
+
+	paging::PageTableEntry* get_page_entries() {
+		const auto entries_addr = PhysicalAddress(page_table.value() & ~u64(0b11111));
+		return reinterpret_cast<paging::PageTableEntry*>(entries_addr.to_virtual().ptr());
+	}
 };
 
 class Scheduler {
