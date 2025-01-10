@@ -1,6 +1,7 @@
 #include <kernel/device/pic.hpp>
 #include <kernel/device/pit.hpp>
 #include <kernel/device/ps2.hpp>
+#include <kernel/gdt.hpp>
 #include <kernel/idt.hpp>
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
@@ -33,10 +34,10 @@ struct IDTEntry {
 		type_attributes = present | (ring << 5) | static_cast<u8>(gate);
 	}
 
-	// https://github.com/limine-bootloader/limine/blob/v5.x-branch/PROTOCOL.md#machine-state-at-entry
-	// 64-bit code descriptor is on index 5, so 0b101
-	// last 3 bits should be 0, since i want to use the GDT and be on ring 0
-	IDTEntry(const void* address) : IDTEntry(address, 0b101'000, 0, GateType::Interrupt) {}
+	IDTEntry(const void* address, u8 ring) :
+		IDTEntry(address, kernel::gdt::KERNEL_CODE_SEGMENT, ring, GateType::Interrupt) {}
+
+	IDTEntry(const void* address) : IDTEntry(address, 0) {}
 
 	IDTEntry(void (*func)()) : IDTEntry(reinterpret_cast<void*>(func)) {}
 
@@ -222,8 +223,11 @@ void kernel::interrupt::init() {
 	CONST_FOR_EACH(
 		number,
 		idt_table[number] = IDTEntry(&raw_interrupt_handler<number>),
-		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16, syscall::SYSCALL_INTERRUPT_N)
+		(0, 1, 2, 3, 4, 5, 6, 7, 9, 15, 16)
 	);
+
+	idt_table[syscall::SYSCALL_INTERRUPT_N] =
+		IDTEntry(reinterpret_cast<void*>(&raw_interrupt_handler<syscall::SYSCALL_INTERRUPT_N>), 3);
 
 	CONST_FOR_EACH(
 		number,

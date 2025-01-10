@@ -1,3 +1,4 @@
+#include <kernel/log.hpp>
 #include <kernel/syscall.hpp>
 #include <kernel/tasks/scheduler.hpp>
 
@@ -8,5 +9,7 @@ void kernel::syscall::handle_syscall(interrupt::Registers* regs) {
 	if (number == Syscalls::ThreadYield) {
 		if (kernel::tasks::Scheduler::initialized())
 			kernel::tasks::Scheduler::get().handle_interrupt(regs);
+	} else {
+		panic("Invalid syscall triggered {:#x}", regs->rax);
 	}
 }

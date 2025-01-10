@@ -77,7 +77,7 @@ Thread create_user_thread(usize stack_pages, void* function) {
 void Scheduler::init() {
 	m_threads.push(create_kernel_thread(3, &screen_thread));
 	auto* mem = kernel::alloc::allocate_page();
-	u8 code[] = { 0x90, 0x90, 0x90, 0xfa };
+	u8 code[] = { 0x90, 0x90, 0x90, 0xB8, 0x23, 0x01, 0x00, 0x00, 0xCD, 0x80 };
 	memcpy(mem, code, sizeof(code));
 	m_threads.push(create_user_thread(2, mem));
 	::initialized = true;
