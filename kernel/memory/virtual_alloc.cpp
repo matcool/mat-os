@@ -2,8 +2,8 @@
 #include <kernel/memory/allocator.hpp>
 #include <kernel/memory/paging.hpp>
 
-// start virtual allocations at 4 MiB, why not :-)
-static constexpr uptr BASE_ADDRESS = 4 * 1024 * 1024;
+// Hopefully no more than 256 GiB of physical memory :-)
+static constexpr uptr BASE_ADDRESS = 0xffff804000000000;
 
 // implement a simple bump allocator for now
 usize allocated_pages = 0;
