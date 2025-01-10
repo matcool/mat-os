@@ -19,14 +19,46 @@ static volatile limine_hhdm_request hhdm_request = {
 };
 uptr hhdm_base;
 
+// Returns the initial paging table, here its PML4
+kernel::paging::PageTableEntry* kernel::paging::get_base_entries() {
+	const auto entries_addr = PhysicalAddress(get_cr3() & ~u64(0b11111));
+	return reinterpret_cast<PageTableEntry*>(entries_addr.to_virtual().ptr());
+}
+
 uptr kernel::paging::physical_to_virtual(uptr addr) {
 	// limine identity maps everything up to 4 gib, need to deal with that later
+	if (addr > 4ull * 1024 * 1024 * 1024) {
+		panic("Addr >= 4 GiB passed to physical_to_virtual");
+	}
 	return addr + hhdm_base;
 }
 
-uptr kernel::paging::virtual_to_physical(uptr addr) {
-	if (addr > hhdm_base) return addr - hhdm_base;
-	return addr;
+uptr kernel::paging::virtual_to_physical(uptr target_addr) {
+	auto* entries = get_base_entries();
+
+	static constexpr auto mask9 = bit_mask<u64>(9);
+
+	auto& pml4 = entries[target_addr >> 39 & mask9];
+	auto& pdpt = pml4.follow()[target_addr >> 30 & mask9];
+
+	// 1 GiB pages
+	if (pdpt.is_ps()) {
+		auto phys_page = pdpt.addr();
+		return (phys_page + (target_addr & bit_mask<u64>(30))).value();
+	}
+
+	auto& pd = pdpt.follow()[target_addr >> 21 & mask9];
+
+	// 2 MiB pages
+	if (pd.is_ps()) {
+		auto phys_page = pd.addr();
+		return (phys_page + (target_addr & bit_mask<u64>(21))).value();
+	}
+
+	// 4 KiB pages
+	auto& pt = pd.follow()[target_addr >> 12 & mask9];
+	auto phys_page = pt.addr();
+	return (phys_page + (target_addr & bit_mask<u64>(12))).value();
 }
 
 void kernel::paging::init() {
@@ -35,12 +67,6 @@ void kernel::paging::init() {
 	hhdm_base = hhdm_request.response->offset;
 
 	kdbgln("Paging initialized");
-}
-
-// Returns the initial paging table, here its PML4
-kernel::paging::PageTableEntry* get_base_entries() {
-	const auto entries_addr = kernel::PhysicalAddress(get_cr3() & ~u64(0b11111));
-	return reinterpret_cast<kernel::paging::PageTableEntry*>(entries_addr.to_virtual().ptr());
 }
 
 void kernel::paging::explore_addr(uptr target_addr) {
@@ -83,9 +109,6 @@ void kernel::paging::explore_addr(uptr target_addr) {
 	}
 
 	kdbgln("Physical addr (from the page table)   is {:#x}", phys_addr.value());
-
-	auto actual_phys = VirtualAddress(target_addr).to_physical().value();
-	kdbgln("Physical addr (from subtracting HHDM) is {:#x}", actual_phys);
 
 	auto virt = phys_addr.to_virtual();
 

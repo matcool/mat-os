@@ -126,6 +126,9 @@ void update_page(VirtualAddress virt, PageOptions options);
 // Returns nullptr if address is not mapped.
 PageTableEntry* get_entry_at(VirtualAddress virt);
 
+// Pointer to the highest level of page entries, stored in the CR3 register
+PageTableEntry* get_base_entries();
+
 // Unmaps a page, making it not present.
 void unmap_page(VirtualAddress virt);
 
