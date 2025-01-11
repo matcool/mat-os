@@ -7,8 +7,6 @@
 
 namespace kernel::tasks {
 
-static constexpr u8 SYSCALL_INTERRUPT_N = 0x80;
-
 void yield_thread();
 
 struct Thread {
@@ -34,5 +32,7 @@ public:
 
 	void handle_interrupt(interrupt::Registers* regs);
 };
+
+void switch_context_to(Thread* thread);
 
 }

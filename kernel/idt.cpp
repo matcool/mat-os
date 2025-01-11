@@ -54,42 +54,6 @@ static struct [[gnu::packed]] {
 static_assert(sizeof(idt_register) == 10);
 static_assert(sizeof(IDTEntry) == 16);
 
-#define PUSH_REGS \
-	"\
-	push %%r10; \
-	push %%r11; \
-	push %%r12; \
-	push %%r13; \
-	push %%r14; \
-	push %%r15; \
-	push %%r8;  \
-	push %%r9;  \
-	push %%rax; \
-	push %%rbp; \
-	push %%rbx; \
-	push %%rcx; \
-	push %%rdi; \
-	push %%rdx; \
-	push %%rsi;"
-
-#define POP_REGS \
-	"\
-	pop %%rsi; \
-	pop %%rdx; \
-	pop %%rdi; \
-	pop %%rcx; \
-	pop %%rbx; \
-	pop %%rbp; \
-	pop %%rax; \
-	pop %%r9;  \
-	pop %%r8;  \
-	pop %%r15; \
-	pop %%r14; \
-	pop %%r13; \
-	pop %%r12; \
-	pop %%r11; \
-	pop %%r10;"
-
 enum class InterruptId : u64 {
 	DivideZero = 0,
 	NMI = 2,
@@ -183,12 +147,12 @@ static auto* kernel_interrupt_handler_ptr = &kernel_interrupt_handler;
 
 template <u64 Number>
 [[gnu::naked]] void raw_interrupt_handler() {
-	asm(PUSH_REGS R"asm(
+	asm(ASM_PUSH_REGS R"asm(
 		movq %0, %%rdi
 		xor %%rsi, %%rsi
 		movq %%rsp, %%rdx
 		call *%1
-	)asm" POP_REGS "iretq"
+	)asm" ASM_POP_REGS "iretq"
 	    : /* output */
 	    : "i"(Number), "m"(kernel_interrupt_handler_ptr));
 }
@@ -200,12 +164,12 @@ template <u64 Number>
 [[gnu::naked]] void raw_interrupt_error_handler() {
 	// pops off the error code first,
 	// so that the stack looks the same to a non error handler
-	asm("popq %2;\n\t" PUSH_REGS R"asm(
+	asm("popq %2;\n\t" ASM_PUSH_REGS R"asm(
 		movq %0, %%rdi
 		movq %2, %%rsi
 		movq %%rsp, %%rdx
 		call *%1
-	)asm" POP_REGS "iretq"
+	)asm" ASM_POP_REGS "iretq"
 	    : /* output */
 	    : "i"(Number), "m"(kernel_interrupt_handler_ptr), "m"(error_code_storage));
 }

@@ -29,6 +29,42 @@ struct Registers {
 	u64 ss;
 };
 
+#define ASM_PUSH_REGS \
+	"\
+	push %%r10; \
+	push %%r11; \
+	push %%r12; \
+	push %%r13; \
+	push %%r14; \
+	push %%r15; \
+	push %%r8;  \
+	push %%r9;  \
+	push %%rax; \
+	push %%rbp; \
+	push %%rbx; \
+	push %%rcx; \
+	push %%rdi; \
+	push %%rdx; \
+	push %%rsi;"
+
+#define ASM_POP_REGS \
+	"\
+	pop %%rsi; \
+	pop %%rdx; \
+	pop %%rdi; \
+	pop %%rcx; \
+	pop %%rbx; \
+	pop %%rbp; \
+	pop %%rax; \
+	pop %%r9;  \
+	pop %%r8;  \
+	pop %%r15; \
+	pop %%r14; \
+	pop %%r13; \
+	pop %%r12; \
+	pop %%r11; \
+	pop %%r10;"
+
 void init();
 
 }

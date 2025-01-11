@@ -81,26 +81,16 @@ void Scheduler::init() {
 	memcpy(mem, code, sizeof(code));
 	m_threads.push(create_user_thread(2, mem));
 	::initialized = true;
-	// give control to scheduler, since this is the easiest way to switch to the first thread
-	// TODO: write some switch_context function or whatever
-	yield_thread();
+
+	switch_context_to(&m_threads[m_active_idx]);
 }
-
-// related to the comment above
-bool very_first_time = true;
-
-void switch_context_to(kernel::tasks::Thread* thread);
 
 void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 	if (m_threads.empty()) {
 		panic("No threads in the scheduler!");
 	}
 	auto& cur_thread = m_threads[m_active_idx];
-	if (!very_first_time) {
-		cur_thread.state = *regs;
-	} else {
-		very_first_time = false;
-	}
+	cur_thread.state = *regs;
 
 	const auto next_index = (m_active_idx + 1) % m_threads.size();
 	auto& next_thread = m_threads[next_index];
@@ -109,28 +99,8 @@ void Scheduler::handle_interrupt(interrupt::Registers* regs) {
 	switch_context_to(&next_thread);
 }
 
-// this is nasty
-
-#define POP_REGS \
-	"\
-	pop %%rsi; \
-	pop %%rdx; \
-	pop %%rdi; \
-	pop %%rcx; \
-	pop %%rbx; \
-	pop %%rbp; \
-	pop %%rax; \
-	pop %%r9;  \
-	pop %%r8;  \
-	pop %%r15; \
-	pop %%r14; \
-	pop %%r13; \
-	pop %%r12; \
-	pop %%r11; \
-	pop %%r10;"
-
-void switch_context_to(kernel::tasks::Thread* thread) {
-	using namespace kernel;
+void kernel::tasks::switch_context_to(Thread* thread) {
+	cli();
 	// make use of hhdm to make sure regs is always accessible
 	auto regs_fixed = VirtualAddress(&thread->state).to_hhdm().ptr();
 	auto cr3 = thread->page_table;
@@ -142,7 +112,7 @@ void switch_context_to(kernel::tasks::Thread* thread) {
 
 		movq %1, %%cr3
 		movq %0, %%rsp
-	)asm" POP_REGS "iretq"
+	)asm" ASM_POP_REGS "iretq"
 	             :
 	             : "r"(regs_fixed), "r"(cr3), "m"(thread->state.ss));
 }
