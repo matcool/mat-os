@@ -10,6 +10,7 @@ static constexpr u8 SYSCALL_INTERRUPT_N = 0x80;
 
 template <class... Args>
 uptr raw_syscall(uptr number, Args... args) {
+	// TODO: switch to syscall instruction
 	static_assert(sizeof...(Args) <= 2);
 	uptr result;
 	// clang-format off
@@ -17,31 +18,31 @@ uptr raw_syscall(uptr number, Args... args) {
 		[&]() {
 			asm volatile(
 				"mov %1, %%rax;"
-				"int %2;"
+				"int $0x80;"
 				"mov %%rax, %0"
 				: "=r"(result)
-				: "i"(number), "i"(SYSCALL_INTERRUPT_N)
+				: "i"(number)
 			);
 		},
 		[&](auto arg1) {
 			asm volatile(
 				"mov %1, %%rax;"
-				"mov %3, %%r9;"
-				"int %2;"
+				"mov %2, %%r9;"
+				"int $0x80;"
 				"mov %%rax, %0"
 				: "=r"(result)
-				: "i"(number), "i"(SYSCALL_INTERRUPT_N), "m"(arg1)
+				: "i"(number), "m"(arg1)
 			);
 		},
 		[&](auto arg1, auto arg2) {
 			asm volatile(
 				"mov %1, %%rax;"
-				"mov %3, %%r9;"
-				"mov %4, %%r10;"
-				"int %2;"
+				"mov %2, %%r9;"
+				"mov %3, %%r10;"
+				"int $0x80;"
 				"mov %%rax, %0"
 				: "=r"(result)
-				: "i"(number), "i"(SYSCALL_INTERRUPT_N), "m"(arg1), "m"(arg2)
+				: "i"(number), "m"(arg1), "m"(arg2)
 			);
 		},
 	}(args...);
