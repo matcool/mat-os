@@ -5,6 +5,18 @@ its mat-os again. this time using limine on x86_64 because it does most of the b
 ![image](https://github.com/matcool/mat-os/assets/26722564/60d84f2d-00ac-402a-afeb-0cf3ee1d8181)
 *screenshot of the system as of [`b8c5541`](https://github.com/matcool/mat-os/commit/b8c5541e895e965b56acf68b913e72c4bd11475e)*
 
+## Build
+To build the project the following packages are required, along with either gcc or clang
+```
+git make cmake xorriso
+```
+Then run the following
+```bash
+./setup.sh
+cmake -B build
+cmake --build build
+```
+
 ## Goals
 - [ ] ~~Use C++20 modules~~ doesn't work with clangd :(
 - [X] Use CMake
@@ -28,7 +40,7 @@ its mat-os again. this time using limine on x86_64 because it does most of the b
 - - [X] Fix that paint trail bug
 - - [ ] Proper GUI system
 - [X] PS/2 mouse input
-- [ ] Threads
+- [X] Threads
 - [ ] Processes
 - [ ] A basic in-memory filesystem
 - [ ] Begin user-space
