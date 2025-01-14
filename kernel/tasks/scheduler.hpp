@@ -31,6 +31,8 @@ public:
 	void init();
 
 	void handle_interrupt(interrupt::Registers* regs);
+
+	void kill_current_thread();
 };
 
 void switch_context_to(Thread* thread);

@@ -6,6 +6,7 @@
 #include <kernel/intrinsics.hpp>
 #include <kernel/log.hpp>
 #include <kernel/syscall.hpp>
+#include <kernel/tasks/scheduler.hpp>
 #include <stl/types.hpp>
 
 using namespace kernel::interrupt;
@@ -119,7 +120,13 @@ static void kernel_interrupt_handler(u64 which, u64 error_code, Registers* regs)
 		}
 		kdbgln("rip - {:#x}", regs->rip);
 		kdbgln("rsp - {:#x}", regs->rsp);
-		halt();
+		kdbgln("cs - {:#x}", regs->cs);
+		const bool is_user = (regs->cs & 3) == 3;
+		if (is_user) {
+			kernel::tasks::Scheduler::get().kill_current_thread();
+		} else {
+			halt();
+		}
 	} else if (which == kernel::syscall::SYSCALL_INTERRUPT_N) {
 		kernel::syscall::handle_syscall(regs);
 	} else {

@@ -77,11 +77,18 @@ Thread create_user_thread(usize stack_pages, void* function) {
 void Scheduler::init() {
 	m_threads.push(create_kernel_thread(3, &screen_thread));
 	auto* mem = kernel::alloc::allocate_page();
-	u8 code[] = { 0x90, 0x90, 0x48, 0x31, 0xC0, 0xCD, 0x80, 0x90, 0xEB, 0xF7, 0x90, 0xFA };
+	u8 code[] = { 0x90, 0xfa, 0x48, 0x31, 0xC0, 0xCD, 0x80, 0x90, 0xEB, 0xF7, 0x90, 0xFA };
 	memcpy(mem, code, sizeof(code));
 	m_threads.push(create_user_thread(2, mem));
 	::initialized = true;
 
+	switch_context_to(&m_threads[m_active_idx]);
+}
+
+void Scheduler::kill_current_thread() {
+	// TODO: leaks memory
+	m_threads.remove(m_active_idx);
+	if (m_active_idx >= m_threads.size()) m_active_idx = 0;
 	switch_context_to(&m_threads[m_active_idx]);
 }
 
