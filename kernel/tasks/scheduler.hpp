@@ -20,6 +20,8 @@ public:
 	void handle_interrupt(interrupt::Registers* regs);
 
 	void kill_current_thread();
+
+	void add_process(Process proc);
 };
 
 void yield_thread();

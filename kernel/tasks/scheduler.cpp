@@ -32,6 +32,10 @@ void Scheduler::init() {
 	switch_context_to(&m_procs[m_active_idx]);
 }
 
+void Scheduler::add_process(Process proc) {
+	m_procs.push(proc);
+}
+
 void Scheduler::kill_current_thread() {
 	// TODO: leaks memory
 	m_procs.remove(m_active_idx);
