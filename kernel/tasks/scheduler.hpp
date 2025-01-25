@@ -2,31 +2,18 @@
 
 #include <kernel/idt.hpp>
 #include <kernel/memory/paging.hpp>
+#include <kernel/tasks/process.hpp>
 #include <stl/types.hpp>
 #include <stl/vector.hpp>
 
 namespace kernel::tasks {
 
-void yield_thread();
-
-struct Thread {
-	interrupt::Registers state;
-	void* stack = nullptr;
-	PhysicalAddress page_table;
-
-	paging::PageTableEntry* get_page_entries() {
-		const auto entries_addr = PhysicalAddress(page_table.value() & ~u64(0b11111));
-		return reinterpret_cast<paging::PageTableEntry*>(entries_addr.to_virtual().ptr());
-	}
-};
-
 class Scheduler {
-	Vector<Thread> m_threads;
+	Vector<Process> m_procs;
 	usize m_active_idx = 0;
 
 public:
 	static Scheduler& get();
-	static bool initialized();
 
 	void init();
 
@@ -35,6 +22,7 @@ public:
 	void kill_current_thread();
 };
 
-void switch_context_to(Thread* thread);
+void yield_thread();
+void switch_context_to(Process* proc);
 
 }
