@@ -20,6 +20,15 @@ class Vector {
 		return static_cast<Type*>(operator new(sizeof(Type) * size));
 	}
 
+	void delete_buffer() {
+		if (!m_data) return;
+		for (usize i = 0; i < m_size; ++i) {
+			m_data[i].~Type();
+		}
+		operator delete(m_data);
+		m_data = nullptr;
+	}
+
 public:
 	Vector() : Vector(0) {}
 
@@ -43,10 +52,10 @@ public:
 		other.m_size = 0;
 	}
 
-	~Vector() { delete m_data; }
+	~Vector() { delete_buffer(); }
 
 	Vector& operator=(const Vector& other) {
-		delete m_data;
+		delete_buffer();
 		m_data = allocate_buffer(other.size());
 		m_size = m_capacity = other.size();
 		for (usize i = 0; i < other.size(); ++i) {
@@ -56,7 +65,7 @@ public:
 	}
 
 	Vector& operator=(Vector&& other) {
-		delete m_data;
+		delete_buffer();
 		m_data = other.m_data;
 		m_capacity = other.m_capacity;
 		m_size = other.m_size;
@@ -111,7 +120,7 @@ public:
 			new (&new_buffer[i]) Type(move(m_data[i]));
 			m_data[i].~Type();
 		}
-		delete m_data;
+		operator delete(m_data);
 		m_data = new_buffer;
 		m_capacity = new_capacity;
 	}
