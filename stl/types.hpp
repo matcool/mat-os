@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cstdint>
+#include <stddef.h>
 
 // don't have these in the namespace because they're so common
 
@@ -16,7 +17,7 @@ using i32 = std::int32_t;
 using u64 = std::uint64_t;
 using i64 = std::int64_t;
 
-using usize = std::size_t;
+using usize = size_t;
 
 using uptr = std::uintptr_t;
 
