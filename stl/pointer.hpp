@@ -96,7 +96,7 @@ public:
 
 	const Type& operator*() const { return *ptr(); }
 
-	operator bool() const { return ptr(); }
+	explicit operator bool() const { return ptr(); }
 
 	bool operator==(const SharedPtr& other) const { return m_control == other.m_control; }
 

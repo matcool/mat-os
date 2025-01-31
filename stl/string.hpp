@@ -48,7 +48,7 @@ public:
 		return *c_str == 0;
 	}
 
-	operator bool() const { return size(); }
+	explicit operator bool() const { return size(); }
 
 	StringView slice(usize start, usize end = -1) const {
 		if (end == usize(-1)) end = size();

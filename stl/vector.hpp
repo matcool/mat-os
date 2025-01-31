@@ -85,7 +85,7 @@ public:
 
 	bool empty() const { return !size(); }
 
-	operator bool() const { return !empty(); }
+	explicit operator bool() const { return !empty(); }
 
 	auto begin() const { return data(); }
 

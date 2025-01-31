@@ -44,7 +44,7 @@ public:
 
 	bool empty() const { return !m_size; }
 
-	operator bool() const { return !empty(); }
+	explicit operator bool() const { return !empty(); }
 
 	Span sub(usize start, usize count = USIZE_MAX) {
 		if (count == USIZE_MAX) count = size() - start;
