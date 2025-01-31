@@ -111,7 +111,7 @@ public:
 
 	const Type& last() const { return data()[size() - 1]; }
 
-	// Resizes the vector to a given capacity
+	// Resizes the vector buffer to a given capacity
 	void reserve(usize new_capacity) {
 		if (new_capacity < capacity()) return;
 		auto* new_buffer = allocate_buffer(new_capacity);
@@ -123,6 +123,40 @@ public:
 		operator delete(m_data);
 		m_data = new_buffer;
 		m_capacity = new_capacity;
+	}
+
+	// Resizes the vector to a given size, default constructing new elements
+	void resize(usize new_size) {
+		if (new_size < size()) {
+			for (usize i = new_size; i < size(); ++i) {
+				m_data[i].~Type();
+			}
+		} else if (new_size > size()) {
+			if (new_size > capacity()) {
+				reserve(new_size);
+			}
+			for (usize i = size(); i < new_size; ++i) {
+				new (&m_data[i]) Type();
+			}
+		}
+		m_size = new_size;
+	}
+
+	// Resizes the vector to a given size, copying the given value for new elements
+	void resize(usize new_size, const Type& value) {
+		if (new_size < size()) {
+			for (usize i = new_size; i < size(); ++i) {
+				m_data[i].~Type();
+			}
+		} else if (new_size > size()) {
+			if (new_size > capacity()) {
+				reserve(new_size);
+			}
+			for (usize i = size(); i < new_size; ++i) {
+				new (&m_data[i]) Type(value);
+			}
+		}
+		m_size = new_size;
 	}
 
 	// Puts a new element at the end of the vector
