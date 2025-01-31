@@ -100,12 +100,20 @@ struct Rect {
 	Point pos;
 	Point size;
 
+	Rect() {}
+
 	Rect(Type x, Type y, Type width, Type height) : pos(x, y), size(width, height) {}
 
 	Rect(const Point& pos, const Point& size) : pos(pos), size(size) {}
 
 	static Rect from_corners(const Point& top_left, const Point& bot_right) {
 		return Rect(top_left, bot_right - top_left + 1);
+	}
+
+	static Rect bounding(const Rect& a, const Rect& b) {
+		const auto top_left = Point(min(a.left(), b.left()), min(a.top(), b.top()));
+		const auto bot_right = Point(max(a.right(), b.right()), max(a.bottom(), b.bottom()));
+		return from_corners(top_left, bot_right);
 	}
 
 	bool contains(const Point& point) const {
@@ -155,7 +163,11 @@ struct Rect {
 
 	Rect with_pos(const Point& point) const { return Rect(point, size); }
 
+	Rect with_size(const Point& new_size) const { return Rect(pos, new_size); }
+
 	Rect reset_pos() const { return with_pos(Point()); }
+
+	bool operator<=>(const Rect&) const = default;
 };
 
 }
